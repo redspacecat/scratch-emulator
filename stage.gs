@@ -1,1 +1,1 @@
-costumes "assets/cd21514d.svg" as "backdrop1";
+costumes "assets/blank.svg" as "backdrop1";

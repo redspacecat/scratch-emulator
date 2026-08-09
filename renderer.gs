@@ -1,5 +1,4 @@
 hide;
-costumes "assets/bcc12c24.svg" as "icon", "assets/71f420b2.svg" as "large", "assets/3339a295.svg" as " ", "assets/3339a295.svg" as "!", "assets/3339a295.svg" as "\"", "assets/3339a295.svg" as "#", "assets/3339a295.svg" as "$", "assets/3339a295.svg" as "%", "assets/3339a295.svg" as "&", "assets/3339a295.svg" as "'", "assets/3339a295.svg" as "(", "assets/3339a295.svg" as ")", "assets/3339a295.svg" as "*", "assets/3339a295.svg" as "+", "assets/3339a295.svg" as ",", "assets/3339a295.svg" as "-", "assets/3339a295.svg" as ".", "assets/3339a295.svg" as "/", "assets/3339a295.svg" as "0", "assets/3339a295.svg" as "1", "assets/3339a295.svg" as "2", "assets/3339a295.svg" as "3", "assets/3339a295.svg" as "4", "assets/3339a295.svg" as "5", "assets/3339a295.svg" as "6", "assets/3339a295.svg" as "7", "assets/3339a295.svg" as "8", "assets/3339a295.svg" as "9", "assets/3339a295.svg" as ":", "assets/3339a295.svg" as ";", "assets/3339a295.svg" as "<", "assets/3339a295.svg" as "=", "assets/3339a295.svg" as ">", "assets/3339a295.svg" as "?", "assets/3339a295.svg" as "@", "assets/3339a295.svg" as "A", "assets/3339a295.svg" as "B", "assets/3339a295.svg" as "C", "assets/3339a295.svg" as "D", "assets/3339a295.svg" as "E", "assets/3339a295.svg" as "F", "assets/3339a295.svg" as "G", "assets/3339a295.svg" as "H", "assets/3339a295.svg" as "I", "assets/3339a295.svg" as "J", "assets/3339a295.svg" as "K", "assets/3339a295.svg" as "L", "assets/3339a295.svg" as "M", "assets/3339a295.svg" as "N", "assets/3339a295.svg" as "O", "assets/3339a295.svg" as "P", "assets/3339a295.svg" as "Q", "assets/3339a295.svg" as "R", "assets/3339a295.svg" as "S", "assets/3339a295.svg" as "T", "assets/3339a295.svg" as "U", "assets/3339a295.svg" as "V", "assets/3339a295.svg" as "W", "assets/3339a295.svg" as "X", "assets/3339a295.svg" as "Y", "assets/3339a295.svg" as "Z", "assets/3339a295.svg" as "[", "assets/3339a295.svg" as "\\", "assets/3339a295.svg" as "]", "assets/3339a295.svg" as "^", "assets/3339a295.svg" as "_", "assets/3339a295.svg" as "`", "assets/3339a295.svg" as "a", "assets/3339a295.svg" as "b", "assets/3339a295.svg" as "c", "assets/3339a295.svg" as "d", "assets/3339a295.svg" as "e", "assets/3339a295.svg" as "f", "assets/3339a295.svg" as "g", "assets/3339a295.svg" as "h", "assets/3339a295.svg" as "i", "assets/3339a295.svg" as "j", "assets/3339a295.svg" as "k", "assets/3339a295.svg" as "l", "assets/3339a295.svg" as "m", "assets/3339a295.svg" as "n", "assets/3339a295.svg" as "o", "assets/3339a295.svg" as "p", "assets/3339a295.svg" as "q", "assets/3339a295.svg" as "r", "assets/3339a295.svg" as "s", "assets/3339a295.svg" as "t", "assets/3339a295.svg" as "u", "assets/3339a295.svg" as "v", "assets/3339a295.svg" as "w", "assets/3339a295.svg" as "x", "assets/3339a295.svg" as "y", "assets/3339a295.svg" as "z", "assets/3339a295.svg" as "{", "assets/3339a295.svg" as "|", "assets/3339a295.svg" as "}", "assets/3339a295.svg" as "~";
 
 %include code/PTE_font.gs
 
@@ -9,7 +8,7 @@ proc plain_text x, y, size, text, align {
     local y_offset = $y;
     if $align == "c" {
         local text_width = width_of_size($text, $size);
-        x_offset += text_width / -2;
+        x_offset += round(text_width / -2);
     }
     switch_costume "large";
     local txt_i = 1;
@@ -52,33 +51,33 @@ onflag {
     forever {
         erase_all;
         draw_block "#4c97ff", 189, 21, -56 + offset_x, 0 + offset_y, "stack", scale, "#3373cc";
-        render_input -23 + offset_x, -3 + offset_y, 16, 14, 10, "reporter", scale, "#3373cc";
+        render_input -23 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#3373cc";
         render_text_label -51 + offset_x, -6 + offset_y, "move", scale;
         render_text_label 102 + offset_x, -6 + offset_y, "steps", scale;
         draw_block "#9966ff", 105, 21, -56 + offset_x, -21 + offset_y, "stack", scale, "#774dcb";
-        render_input 28 + offset_x, -24 + offset_y, 16, 14, 10, "reporter", scale, "#774dcb";
+        render_input 28 + offset_x, -25 + offset_y, 16, 12, 10, "reporter", scale, "#774dcb";
         render_text_label -51 + offset_x, -27 + offset_y, "change size by", scale;
         draw_block "#ffab19", 93, 21, -56 + offset_x, -42 + offset_y, "stack", scale, "#cf8b17";
-        render_input -28 + offset_x, -45 + offset_y, 16, 14, 1, "reporter", scale, "#cf8b17";
+        render_input -28 + offset_x, -46 + offset_y, 16, 12, 1, "reporter", scale, "#cf8b17";
         render_text_label -51 + offset_x, -48 + offset_y, "wait", scale;
         render_text_label -8 + offset_x, -48 + offset_y, "seconds", scale;
         draw_block "#5cb1d6", 173, 21, -56 + offset_x, -63 + offset_y, "stack", scale, "#2e8eb8";
-        render_input -30 + offset_x, -66 + offset_y, 100, 14, "What's your name?", "reporter", scale, "#2e8eb8";
+        render_input -30 + offset_x, -67 + offset_y, 100, 12, "What's your name?", "reporter", scale, "#2e8eb8";
         render_text_label -51 + offset_x, -69 + offset_y, "ask", scale;
         render_text_label 75 + offset_x, -69 + offset_y, "and wait", scale;
         draw_block "#ffab19", 183, 21, -56 + offset_x, -84 + offset_y, "stack", scale, "#cf8b17";
-        render_input -3 + offset_x, -87 + offset_y, 21, 14, "", "boolean", scale, "#cf8b17";
+        render_input -3 + offset_x, -88 + offset_y, 21, 12, "", "boolean", scale, "#cf8b17";
         render_text_label -51 + offset_x, -90 + offset_y, "wait until", scale;
         draw_block "#59c059", 119, 16, -23 + offset_x, -2 + offset_y, "reporter", scale, "#389438";
         render_text_label -17 + offset_x, -6 + offset_y, "pick random", scale;
         render_text_label 64 + offset_x, -6 + offset_y, "to", scale;
-        render_input 44 + offset_x, -3 + offset_y, 16, 14, 1, "reporter", scale, "#389438";
-        render_input 78 + offset_x, -3 + offset_y, 16, 14, 10, "reporter", scale, "#389438";
+        render_input 44 + offset_x, -4 + offset_y, 16, 12, 1, "reporter", scale, "#389438";
+        render_input 78 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#389438";
         draw_block "#59c059", 125, 16, -3 + offset_x, -86 + offset_y, "boolean", scale, "#389438";
         render_text_label 43 + offset_x, -90 + offset_y, "contains", scale;
         render_text_label 110 + offset_x, -90 + offset_y, "?", scale;
-        render_input 4 + offset_x, -87 + offset_y, 34, 14, "apple", "reporter", scale, "#389438";
-        render_input 89 + offset_x, -87 + offset_y, 16, 14, "a", "reporter", scale, "#389438";
+        render_input 4 + offset_x, -88 + offset_y, 34, 12, "apple", "reporter", scale, "#389438";
+        render_input 89 + offset_x, -88 + offset_y, 16, 12, "a", "reporter", scale, "#389438";
     }
 }
 
