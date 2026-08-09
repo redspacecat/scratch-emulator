@@ -1,6 +1,7 @@
 hide;
 
 %include code/PTE_font.gs
+%include std/math
 
 proc plain_text x, y, size, text, align {
     set_pen_size $size;
@@ -220,9 +221,9 @@ proc tri_fill ax, ay, bx, by, cx, cy, resolution {
     goto $cx, $cy;
     goto $ax, $ay;
     pen_up;
-    local sideab = sqrt(($ax - $bx) * ($ax - $bx) + ($ay - $by) * ($ay - $by));
-    local sideac = sqrt(($ax - $cx) * ($ax - $cx) + ($ay - $cy) * ($ay - $cy));
-    local sidebc = sqrt(($bx - $cx) * ($bx - $cx) + ($by - $cy) * ($by - $cy));
+    local sideab = DIST($bx, $by, $ax, $ay);
+    local sideac = DIST($cx, $cy, $ax, $ay);
+    local sidebc = DIST($cx, $cy, $bx, $by);
     local semiperimiter = (sideab + (sideac + sidebc)) / 2;
     local radius = sqrt((semiperimiter - sideab) * ((semiperimiter - sideac) * (semiperimiter - sidebc)) / semiperimiter);
     set_x (sidebc * $ax + (sideac * $bx + sideab * $cx)) / (semiperimiter * 2);
@@ -231,14 +232,14 @@ proc tri_fill ax, ay, bx, by, cx, cy, resolution {
     pen_down;
     if sideab < sidebc or sideac < sidebc {
         if sideab < sideac {
-            local radius_factor = sqrt((x_position() - $cx) * (x_position() - $cx) + (y_position() - $cy) * (y_position() - $cy));
+            local radius_factor = DIST(x_position(), y_position(), $cx, $cy);
         }
         else {
-            local radius_factor = sqrt((x_position() - $bx) * (x_position() - $bx) + (y_position() - $by) * (y_position() - $by));
+            local radius_factor = DIST(x_position(), y_position(), $bx, $by);
         }
     }
     else {
-        local radius_factor = sqrt((x_position() - $ax) * (x_position() - $ax) + (y_position() - $ay) * (y_position() - $ay));
+        local radius_factor = DIST(x_position(), y_position(), $ax, $ay);
     }
     radius_factor = (radius_factor - radius) / (2 * radius_factor);
     local offset_ax = (x_position() - $ax) / radius;
