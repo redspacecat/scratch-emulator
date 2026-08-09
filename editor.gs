@@ -6,10 +6,11 @@ onflag {
     delete blocks;
     add_block "stack", Category.Control, -56, -42, 93, 21, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
     add_block "stack", Category.Control, -56, -63, 93, 21, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
-    add_block "stack", Category.Motion, -56, 0, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10, nested_block: 3};
+    add_block "stack", Category.Motion, -56, 0, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10, nested_block: 4};
     add_block "reporter", Category.Operators, -23, -2, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
 
     forever {
+        erase_all;
         broadcast "render_blocks";
     }
 }

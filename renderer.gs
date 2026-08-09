@@ -73,7 +73,7 @@ proc render_blocks {
                     blocks[i + b_inputs + counter + b_input_text],
                     blocks[i + b_inputs + counter + b_input_shape],
                     scale,
-                    colors[b_category];
+                    colors[b_category + 1];
             }
             counter += 6; # 6 = number of properties in Input
         }
