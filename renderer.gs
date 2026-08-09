@@ -1,7 +1,85 @@
 hide;
 
 %include code/PTE_font.gs
+%include code/helpful_utils.gs
 %include std/math
+
+var scale = 1;
+
+# onflag {
+#     scale = 1;
+#     offset_x = 0;
+#     offset_y = 0;
+#     forever {
+#         erase_all;
+#         draw_block "#4c97ff", 189, 21, -56 + offset_x, 0 + offset_y, "stack", scale, "#3373cc";
+#         render_input -23 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#3373cc";
+#         render_text_label -51 + offset_x, -6 + offset_y, "move", scale;
+#         render_text_label 102 + offset_x, -6 + offset_y, "steps", scale;
+#         draw_block "#9966ff", 105, 21, -56 + offset_x, -21 + offset_y, "stack", scale, "#774dcb";
+#         render_input 28 + offset_x, -25 + offset_y, 16, 12, 10, "reporter", scale, "#774dcb";
+#         render_text_label -51 + offset_x, -27 + offset_y, "change size by", scale;
+#         draw_block "#ffab19", 93, 21, -56 + offset_x, -42 + offset_y, "stack", scale, "#cf8b17";
+#         render_input -28 + offset_x, -46 + offset_y, 16, 12, 1, "reporter", scale, "#cf8b17";
+#         render_text_label -51 + offset_x, -48 + offset_y, "wait", scale;
+#         render_text_label -8 + offset_x, -48 + offset_y, "seconds", scale;
+#         draw_block "#5cb1d6", 173, 21, -56 + offset_x, -63 + offset_y, "stack", scale, "#2e8eb8";
+#         render_input -30 + offset_x, -67 + offset_y, 100, 12, "What's your name?", "reporter", scale, "#2e8eb8";
+#         render_text_label -51 + offset_x, -69 + offset_y, "ask", scale;
+#         render_text_label 75 + offset_x, -69 + offset_y, "and wait", scale;
+#         draw_block "#ffab19", 183, 21, -56 + offset_x, -84 + offset_y, "stack", scale, "#cf8b17";
+#         render_input -3 + offset_x, -89 + offset_y, 21, 12, "", "boolean", scale, "#cf8b17";
+#         render_text_label -51 + offset_x, -90 + offset_y, "wait until", scale;
+#         draw_block "#59c059", 119, 16, -23 + offset_x, -2 + offset_y, "reporter", scale, "#389438";
+#         render_text_label -17 + offset_x, -6 + offset_y, "pick random", scale;
+#         render_text_label 64 + offset_x, -6 + offset_y, "to", scale;
+#         render_input 44 + offset_x, -4 + offset_y, 16, 12, 1, "reporter", scale, "#389438";
+#         render_input 77 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#389438";
+#         draw_block "#59c059", 125, 16, -3 + offset_x, -86 + offset_y, "boolean", scale, "#389438";
+#         render_text_label 43 + offset_x, -90 + offset_y, "contains", scale;
+#         render_text_label 110 + offset_x, -90 + offset_y, "?", scale;
+#         render_input 4 + offset_x, -88 + offset_y, 34, 12, "apple", "reporter", scale, "#389438";
+#         render_input 89 + offset_x, -88 + offset_y, 16, 12, "a", "reporter", scale, "#389438";
+#     }
+# }
+
+on "render_blocks" {
+    render_blocks;
+}
+
+proc render_blocks {
+    local i = 1;
+    repeat length(blocks) / BLOCK_LENGTH {
+        # color and background color are obtained from index of category,
+        # which is a number, in the colors list
+        draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
+        
+        local counter = 0; # rendering text labels
+        repeat 3 {
+            if (blocks[i + b_labels + counter + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+                render_text_label blocks[i + b_labels + counter + 1], ((b_y + (b_y - b_height)) / 2) + 4, blocks[i + b_labels + counter], scale;
+            }
+            counter += 2; # 2 = number of properties in TextLabel
+        }
+
+        local counter = 0; # rendering inputs
+        repeat 3 {
+            if (blocks[i + b_inputs + counter] > "") { # checks if inputs[shape] > "", if so valid input
+                render_input
+                    blocks[i + b_inputs + counter + b_input_x],
+                    ((b_y + (b_y - b_height)) / 2) + blocks[i + b_inputs + counter + b_input_height] / 2,
+                    blocks[i + b_inputs + counter + b_input_width],
+                    blocks[i + b_inputs + counter + b_input_height],
+                    blocks[i + b_inputs + counter + b_input_text],
+                    blocks[i + b_inputs + counter + b_input_shape],
+                    scale,
+                    colors[b_category];
+            }
+            counter += 6; # 6 = number of properties in Input
+        }
+        i += 32;
+    }
+}
 
 proc plain_text x, y, size, text, align {
     set_pen_size $size;
@@ -43,43 +121,6 @@ func width_of_size(text, size) {
         txt_i += 1;
     }
     return text_width;
-}
-
-onflag {
-    scale = 1;
-    offset_x = 0;
-    offset_y = 0;
-    forever {
-        erase_all;
-        draw_block "#4c97ff", 189, 21, -56 + offset_x, 0 + offset_y, "stack", scale, "#3373cc";
-        render_input -23 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#3373cc";
-        render_text_label -51 + offset_x, -6 + offset_y, "move", scale;
-        render_text_label 102 + offset_x, -6 + offset_y, "steps", scale;
-        draw_block "#9966ff", 105, 21, -56 + offset_x, -21 + offset_y, "stack", scale, "#774dcb";
-        render_input 28 + offset_x, -25 + offset_y, 16, 12, 10, "reporter", scale, "#774dcb";
-        render_text_label -51 + offset_x, -27 + offset_y, "change size by", scale;
-        draw_block "#ffab19", 93, 21, -56 + offset_x, -42 + offset_y, "stack", scale, "#cf8b17";
-        render_input -28 + offset_x, -46 + offset_y, 16, 12, 1, "reporter", scale, "#cf8b17";
-        render_text_label -51 + offset_x, -48 + offset_y, "wait", scale;
-        render_text_label -8 + offset_x, -48 + offset_y, "seconds", scale;
-        draw_block "#5cb1d6", 173, 21, -56 + offset_x, -63 + offset_y, "stack", scale, "#2e8eb8";
-        render_input -30 + offset_x, -67 + offset_y, 100, 12, "What's your name?", "reporter", scale, "#2e8eb8";
-        render_text_label -51 + offset_x, -69 + offset_y, "ask", scale;
-        render_text_label 75 + offset_x, -69 + offset_y, "and wait", scale;
-        draw_block "#ffab19", 183, 21, -56 + offset_x, -84 + offset_y, "stack", scale, "#cf8b17";
-        render_input -3 + offset_x, -88 + offset_y, 21, 12, "", "boolean", scale, "#cf8b17";
-        render_text_label -51 + offset_x, -90 + offset_y, "wait until", scale;
-        draw_block "#59c059", 119, 16, -23 + offset_x, -2 + offset_y, "reporter", scale, "#389438";
-        render_text_label -17 + offset_x, -6 + offset_y, "pick random", scale;
-        render_text_label 64 + offset_x, -6 + offset_y, "to", scale;
-        render_input 44 + offset_x, -4 + offset_y, 16, 12, 1, "reporter", scale, "#389438";
-        render_input 78 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#389438";
-        draw_block "#59c059", 125, 16, -3 + offset_x, -86 + offset_y, "boolean", scale, "#389438";
-        render_text_label 43 + offset_x, -90 + offset_y, "contains", scale;
-        render_text_label 110 + offset_x, -90 + offset_y, "?", scale;
-        render_input 4 + offset_x, -88 + offset_y, 34, 12, "apple", "reporter", scale, "#389438";
-        render_input 89 + offset_x, -88 + offset_y, 16, 12, "a", "reporter", scale, "#389438";
-    }
 }
 
 proc draw_block color, width, height, x, y, shape, scale, border_color {
@@ -201,7 +242,7 @@ proc render_input x, y, width, height, text, shape, scale, color {
         pen_up;
         set_pen_color "#000000";
         local text_x = $x * $scale + ($width * $scale) / 2;
-        local text_y = ($y * $scale + ($y * $scale - $height * $scale)) / 2 - 3 * $scale;
+        local text_y = ($y * $scale + ($y * $scale - $height * $scale)) / 2 - 4 * $scale;
         print text_x, text_y, 1 * $scale, $text, align: "c";
     }
     elif $shape == "boolean" {
@@ -294,18 +335,18 @@ proc print x, y, size, text, align="" {
     plain_text round($x), round($y), $size, $text, $align;
 }
 
-onkey "left arrow" {
-    offset_x += -1;
-}
+# onkey "left arrow" {
+#     offset_x += -1;
+# }
 
-onkey "right arrow" {
-    offset_x += 1;
-}
+# onkey "right arrow" {
+#     offset_x += 1;
+# }
 
-onkey "up arrow" {
-    offset_y += 1;
-}
+# onkey "up arrow" {
+#     offset_y += 1;
+# }
 
-onkey "down arrow" {
-    offset_y += -1;
-}
+# onkey "down arrow" {
+#     offset_y += -1;
+# }
