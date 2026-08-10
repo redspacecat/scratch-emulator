@@ -49,6 +49,15 @@ list colors = [
 %define b_parent blocks[i+6]
 %define b_next blocks[i+7]
 
+%define bl_shape(ID) blocks[ID]
+%define bl_category(ID) blocks[ID+1]
+%define bl_x(ID) blocks[ID+2]
+%define bl_y(ID) blocks[ID+3]
+%define bl_width(ID) blocks[ID+4]
+%define bl_height(ID) blocks[ID+5]
+%define bl_parent(ID) blocks[ID+6]
+%define bl_next(ID) blocks[ID+7]
+
 %define b_label1_text blocks[i+8]
 %define b_label1_x blocks[i+9]
 %define b_label2_text blocks[i+10]

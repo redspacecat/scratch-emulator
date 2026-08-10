@@ -56,22 +56,24 @@ proc render_blocks {
         
         local counter = 0; # rendering text labels
         repeat 3 {
-            if (blocks[i + b_labels + counter + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-                render_text_label blocks[i + b_labels + counter + 1], ((b_y + (b_y - b_height)) / 2) + 4, blocks[i + b_labels + counter], scale;
+            local offset = i + b_labels + counter;
+            if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+                render_text_label blocks[offset + 1], ((b_y + (b_y - b_height)) / 2) + 4, blocks[offset], scale;
             }
             counter += 2; # 2 = number of properties in TextLabel
         }
 
         local counter = 0; # rendering inputs
         repeat 3 {
-            if (blocks[i + b_inputs + counter] > "") { # checks if inputs[shape] > "", if so valid input
+            local offset = i + b_inputs + counter;
+            if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
                 render_input
-                    blocks[i + b_inputs + counter + b_input_x],
-                    ((b_y + (b_y - b_height)) / 2) + blocks[i + b_inputs + counter + b_input_height] / 2,
-                    blocks[i + b_inputs + counter + b_input_width],
-                    blocks[i + b_inputs + counter + b_input_height],
-                    blocks[i + b_inputs + counter + b_input_text],
-                    blocks[i + b_inputs + counter + b_input_shape],
+                    blocks[offset + b_input_x],
+                    ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
+                    blocks[offset + b_input_width],
+                    blocks[offset + b_input_height],
+                    blocks[offset + b_input_text],
+                    blocks[offset + b_input_shape],
                     scale,
                     colors[b_category + 1];
             }
