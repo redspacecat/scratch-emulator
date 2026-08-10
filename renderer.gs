@@ -79,7 +79,7 @@ proc render_blocks {
             }
             counter += INPUT_LENGTH; # = number of properties in Input
         }
-        i += 32;
+        i += BLOCK_LENGTH;
     }
 }
 
@@ -88,7 +88,7 @@ proc plain_text x, y, size, text, align {
     local x_offset = $x;
     local y_offset = $y;
     if $align == "c" {
-        local text_width = width_of_size($text, $size);
+        local text_width = width_of_text($text, $size);
         x_offset += round(text_width / -2);
     }
     switch_costume "large";
@@ -111,18 +111,6 @@ proc plain_text x, y, size, text, align {
         x_offset += $size * (2 + pte_font_1[2 + font_char_index]);
         txt_i += 1;
     }
-}
-
-func width_of_size(text, size) {
-    local text_width = 0;
-    local txt_i = 1;
-    repeat length($text) {
-        switch_costume $text[txt_i];
-        font_char_index = pte_font_1[costume_number() + 6];
-        text_width += $size * (2 + pte_font_1[2 + font_char_index]);
-        txt_i += 1;
-    }
-    return text_width;
 }
 
 proc draw_block color, width, height, x, y, shape, scale, border_color {
@@ -249,9 +237,9 @@ proc render_input x, y, width, height, text, shape, scale, color {
     }
     elif $shape == "boolean" {
         set_pen_color $color;
-        tri_fill $x * $scale + ($width * $scale) / 3, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + ($width * $scale) / 3, $y * $scale - $height * $scale, 1 * $scale;
+        tri_fill $x * $scale + ($width * $scale) / 3, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + ($width * $scale) / 3, $y * $scale - $height * $scale, 0.5;
         fill_rect $x * $scale + ($width * $scale) / 3, $x * $scale + ($width * $scale) / 3 * 2, $y * $scale - $height * $scale, $y * $scale, 2;
-        tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + ($width * $scale) / 3 * 2, $y * $scale, $x * $scale + ($width * $scale) / 3 * 2, $y * $scale - $height * $scale, 1 * $scale;
+        tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + ($width * $scale) / 3 * 2, $y * $scale, $x * $scale + ($width * $scale) / 3 * 2, $y * $scale - $height * $scale, 0.5;
     }
 }
 

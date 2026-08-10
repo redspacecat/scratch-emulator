@@ -94,5 +94,13 @@ list colors = [
 %define b_input_text 4
 %define b_input_nested_block 5
 
-%define get_block_input(blockID, inputNum, key) blocks[((blockID - 1) * BLOCK_LENGTH + 1) + b_inputs + ((inputNum - 1) * 6) + key]
-%define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + ((inputNum - 1) * 6) + key]
+%define b_label_text 0
+%define b_label_x 1
+
+%define b_idx(blockID) ((blockID - 1) * BLOCK_LENGTH + 1)
+
+%define get_block_input(blockID, inputNum, key) blocks[b_idx(blockID) + b_inputs + ((inputNum - 1) * INPUT_LENGTH) + key]
+%define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + ((inputNum - 1) * INPUT_LENGTH) + key]
+
+%define get_block_label(blockID, labelNum, key) blocks[b_idx(blockID) + b_labels + ((labelNum - 1) * TEXT_LABEL_LENGTH) + key]
+%define get_block_idx_label(blockID, labelNum, key) blocks[blockID + b_labels + ((labelNum - 1) * TEXT_LABEL_LENGTH) + key]
