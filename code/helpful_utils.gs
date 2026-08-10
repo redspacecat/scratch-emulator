@@ -93,3 +93,6 @@ list colors = [
 %define b_input_height 3
 %define b_input_text 4
 %define b_input_nested_block 5
+
+%define get_block_input(blockID, inputNum, key) blocks[((blockID - 1) * BLOCK_LENGTH + 1) + b_inputs + ((inputNum - 1) * 6) + key]
+%define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + ((inputNum - 1) * 6) + key]

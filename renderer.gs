@@ -58,9 +58,9 @@ proc render_blocks {
         repeat 3 {
             local offset = i + b_labels + counter;
             if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-                render_text_label blocks[offset + 1], ((b_y + (b_y - b_height)) / 2) + 4, blocks[offset], scale;
+                render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
             }
-            counter += 2; # 2 = number of properties in TextLabel
+            counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
         }
 
         local counter = 0; # rendering inputs
@@ -77,7 +77,7 @@ proc render_blocks {
                     scale,
                     colors[b_category + 1];
             }
-            counter += 6; # 6 = number of properties in Input
+            counter += INPUT_LENGTH; # = number of properties in Input
         }
         i += 32;
     }

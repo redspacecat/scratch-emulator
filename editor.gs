@@ -63,15 +63,18 @@ proc add_block shape, category, x, y, width, height, parent="", next="", TextLab
 proc put_block_in_block childID, parentID, inputNumber {
     local parentIdx = ($parentID - 1) * BLOCK_LENGTH + 1;
     local childIdx = ($childID - 1) * BLOCK_LENGTH + 1;
-    local i = parentIdx;
-    local x_change = blocks[parentIdx + b_inputs + (($inputNumber - 1) * 6) + b_input_x] - bl_x(childIdx);
-    local y_change = (((b_y + (b_y - b_height)) / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx) + 0.5;
-    blocks[i + b_inputs + (($inputNumber - 1) * 6) + b_input_nested_block] = $childID;
+    local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - bl_x(childIdx);
+    local y_change = ((bl_y(parentIdx) - bl_height(parentIdx) / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx) + 0.5;
+    set_block_idx_input parentIdx, $inputNumber, b_input_nested_block, $childID;
     move_block_position childIdx, x_change, y_change;
 }
 
-func calc_block_width(blockID) {
-    
+proc set_block_input blockID, inputNum, key, val {
+    blocks[(($blockID - 1) * BLOCK_LENGTH + 1) + b_inputs + (($inputNum - 1) * INPUT_LENGTH) + $key] = $val;
+}
+
+proc set_block_idx_input blockIdx, inputNum, key, val {
+    blocks[$blockIdx + b_inputs + (($inputNum - 1) * INPUT_LENGTH) + $key] = $val;
 }
 
 proc move_block_position blockIdx, x_change, y_change {
@@ -84,7 +87,7 @@ proc move_block_position blockIdx, x_change, y_change {
         if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
             blocks[offset + 1] += $x_change;
         }
-        counter += 2; # 2 = number of properties in TextLabel
+        counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
     }
 
     local counter = 0;
@@ -93,7 +96,7 @@ proc move_block_position blockIdx, x_change, y_change {
         if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
             blocks[offset + b_input_x] += $x_change;
         }
-        counter += 6; # 6 = number of properties in Input
+        counter += INPUT_LENGTH; # = number of properties in Input
     }
 
 }
