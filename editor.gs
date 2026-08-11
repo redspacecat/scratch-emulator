@@ -6,13 +6,14 @@
 
 hide;
 
-var base_boolean_width = 21; # width of a empty boolean input
+var base_boolean_width = 18; # width of a empty boolean input
 var padding = 5; # padding between elements
 var start_padding = 5; # padding at the start of a block
 var end_padding = 4; # padding at the end of a block
 var edge_padding_same = 3; # padding where the block shape and input shape are the same (e.g. (() - ()) block)
 var end_padding_other = 5; # end padding for ending on other inputs
 var text_padding = 4; # padding around text in inputs
+var boolean_edge_padding = 8; # padding around edges of boolean blocks
 
 
 onflag {
@@ -124,7 +125,10 @@ proc put_block_in_block childID, parentID, inputNumber {
     local parentIdx = b_idx($parentID);
     local childIdx = b_idx($childID);
     local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - bl_x(childIdx);
-    local y_change = ((bl_y(parentIdx) - bl_height(parentIdx) / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx) + 0.5;
+    local y_change = ((bl_y(parentIdx) - bl_height(parentIdx) / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx);
+    if (bl_shape(parentIdx) == "stack") {
+        y_change += 0.5;
+    }
     set_block_idx_input parentIdx, $inputNumber, b_input_nested_block, $childID;
     move_block_position childIdx, x_change, y_change;
 }
@@ -222,6 +226,8 @@ proc update_block_dimensions blockID {
             if (current_x == start_x) {
                 if (bl_shape(blockIdx) == shape) {
                     current_x += edge_padding_same;
+                } elif (bl_shape(blockIdx) == "boolean") { # add more padding to boolean blocks
+                    current_x += boolean_edge_padding;
                 } else {
                     current_x += start_padding;
                 }
@@ -241,7 +247,11 @@ proc update_block_dimensions blockID {
             current_x += end_padding_other;
         }
     } else {
-        current_x += end_padding;
+        if (bl_shape(blockIdx) == "boolean") { # add more padding to boolean blocks
+            current_x += boolean_edge_padding;
+        } else {
+            current_x += end_padding;
+        }
     }
     local total_width = current_x - start_x;
     bl_width(blockIdx) = total_width;
