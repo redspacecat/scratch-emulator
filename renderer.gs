@@ -48,38 +48,49 @@ on "render_blocks" {
 }
 
 proc render_blocks {
-    local i = 1;
-    repeat length(blocks) / BLOCK_LENGTH {
-        # color and background color are obtained from index of category,
-        # which is a number, in the colors list
-        draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
-        
-        local counter = 0; # rendering text labels
-        repeat 3 {
-            local offset = i + b_labels + counter;
-            if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-                render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
+    local nesting_level = 0;
+    local nesting_level_used = true;
+    until nesting_level_used == false {
+        nesting_level_used = false;
+        local i = 1;
+        repeat length(blocks) / BLOCK_LENGTH {
+            if (b_nesting_level == nesting_level) {
+                nesting_level_used = true;
+
+                # color and background color are obtained from index of category,
+                # which is a number, in the colors list
+                draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
+                
+                local counter = 0; # rendering text labels
+                repeat 3 {
+                    local offset = i + b_labels + counter;
+                    if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+                        render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
+                    }
+                    counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
+                }
+
+                local counter = 0; # rendering inputs
+                repeat 3 {
+                    local offset = i + b_inputs + counter;
+                    if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
+                        render_input
+                            blocks[offset + b_input_x],
+                            ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
+                            blocks[offset + b_input_width],
+                            blocks[offset + b_input_height],
+                            blocks[offset + b_input_text],
+                            blocks[offset + b_input_shape],
+                            scale,
+                            colors[b_category + 1];
+                    }
+                    counter += INPUT_LENGTH; # = number of properties in Input
+                }
             }
-            counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
+            i += BLOCK_LENGTH;
         }
 
-        local counter = 0; # rendering inputs
-        repeat 3 {
-            local offset = i + b_inputs + counter;
-            if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
-                render_input
-                    blocks[offset + b_input_x],
-                    ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
-                    blocks[offset + b_input_width],
-                    blocks[offset + b_input_height],
-                    blocks[offset + b_input_text],
-                    blocks[offset + b_input_shape],
-                    scale,
-                    colors[b_category + 1];
-            }
-            counter += INPUT_LENGTH; # = number of properties in Input
-        }
-        i += BLOCK_LENGTH;
+        nesting_level++;
     }
 }
 

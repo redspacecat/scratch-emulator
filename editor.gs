@@ -20,12 +20,12 @@ onflag {
     delete blocks;
     add_block "stack", Category.Control, -56, -42, 93, 21, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
     add_block "stack", Category.Control, -56, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
-    add_block "stack", Category.Motion, -56, 0, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
+    add_block "stack", Category.Motion, -56, -21, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
     add_block "reporter", Category.Operators, -23, 81, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
     add_block "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
-    add_block "boolean", Category.Operators, 72, -120, 60, 16, label1: TextLabel {x: 100, text: "or"}, input1: Input {shape: "boolean", x: 75, width: 21, height: 12}, input2: Input {shape: "boolean", x: 115, width: 21, height: 12};
-    add_block "boolean", Category.Operators, 72, -100, 125, 16, label1: TextLabel {x: 118, text: "contains"}, label2: TextLabel {x: 185, text: "?"}, input1: Input {shape: "reporter", x: 79, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: 164, width: 16, height: 12, text: "a"};
-    add_block "reporter", Category.Operators, 72, -140, 60, 16, label1: TextLabel {x: 100, text: "+"}, input1: Input {shape: "reporter", x: 75, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 115, width: 16, height: 12, text: "127"};
+    add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
+    add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
+    add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
 
     forever {
         erase_all;
@@ -57,6 +57,10 @@ onkey "6" {
     put_block_in_block childID: 4, parentID: 7, inputNumber: 1;
 }
 
+onkey "7" {
+    put_block_in_block childID: 7, parentID: 2, inputNumber: 1;
+}
+
 onkey "a" {
     update_block_dimensions 1;
 }
@@ -85,7 +89,7 @@ onkey "g" {
     update_block_dimensions 8;
 }
 
-proc add_block shape, category, x, y, width, height, parent="", next="", TextLabel label1=TextLabel {}, TextLabel label2=TextLabel {}, TextLabel label3=TextLabel {}, Input input1=Input {}, Input input2=Input {}, Input input3=Input {} {
+proc add_block shape, category, x, y, width, height, parent="", next="", TextLabel label1=TextLabel {}, TextLabel label2=TextLabel {}, TextLabel label3=TextLabel {}, Input input1=Input {}, Input input2=Input {}, Input input3=Input {}, nesting_level=0 {
     add $shape to blocks;
     add $category to blocks;
     add $x to blocks;
@@ -94,6 +98,7 @@ proc add_block shape, category, x, y, width, height, parent="", next="", TextLab
     add $height to blocks;
     add $parent to blocks;
     add $next to blocks;
+    add $nesting_level to blocks;
 
     add $label1.text to blocks; add $label1.x to blocks;
     add $label2.text to blocks; add $label2.x to blocks;
@@ -130,7 +135,18 @@ proc put_block_in_block childID, parentID, inputNumber {
         y_change += 0.5;
     }
     set_block_idx_input parentIdx, $inputNumber, b_input_nested_block, $childID;
+    bl_parent(childIdx) = $parentID;
+    update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
+}
+
+proc update_nesting_level bIdx {
+    # get nesting level from parent and increment
+    bl_nesting_level($bIdx) = bl_nesting_level(b_idx(bl_parent($bIdx))) + 1;
+    # check inputs recursively for nesting level updates
+    if (b_input1_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input1_nested_block($bIdx));}
+    if (b_input2_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input2_nested_block($bIdx));}
+    if (b_input3_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input3_nested_block($bIdx));}
 }
 
 struct TMPInput {
