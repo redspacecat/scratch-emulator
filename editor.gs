@@ -6,6 +6,15 @@
 
 hide;
 
+var base_boolean_width = 21; # width of a empty boolean input
+var padding = 5; # padding between elements
+var start_padding = 5; # padding at the start of a block
+var end_padding = 4; # padding at the end of a block
+var edge_padding_same = 3; # padding where the block shape and input shape are the same (e.g. (() - ()) block)
+var end_padding_other = 5; # end padding for ending on other inputs
+var text_padding = 4; # padding around text in inputs
+
+
 onflag {
     delete blocks;
     add_block "stack", Category.Control, -56, -42, 93, 21, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
@@ -16,13 +25,6 @@ onflag {
     add_block "boolean", Category.Operators, 72, -120, 60, 16, label1: TextLabel {x: 100, text: "or"}, input1: Input {shape: "boolean", x: 75, width: 21, height: 12}, input2: Input {shape: "boolean", x: 115, width: 21, height: 12};
     add_block "boolean", Category.Operators, 72, -100, 125, 16, label1: TextLabel {x: 118, text: "contains"}, label2: TextLabel {x: 185, text: "?"}, input1: Input {shape: "reporter", x: 79, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: 164, width: 16, height: 12, text: "a"};
     add_block "reporter", Category.Operators, 72, -140, 60, 16, label1: TextLabel {x: 100, text: "+"}, input1: Input {shape: "reporter", x: 75, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 115, width: 16, height: 12, text: "127"};
-
-#         draw_block "#59c059", 125, 16, -3 + offset_x, -86 + offset_y, "boolean", scale, "#389438";
-#         render_text_label 43 + offset_x, -90 + offset_y, "contains", scale;
-#         render_text_label 110 + offset_x, -90 + offset_y, "?", scale;
-#         render_input 4 + offset_x, -88 + offset_y, 34, 12, "apple", "reporter", scale, "#389438";
-#         render_input 89 + offset_x, -88 + offset_y, 16, 12, "a", "reporter", scale, "#389438";
-
 
     forever {
         erase_all;
@@ -165,15 +167,6 @@ proc update_block_dimensions blockID {
     }
     INSERTION_SORT_BY_FIELD(TMPInput, tmp_item_order, .x);
 
-    local base_boolean_width = 21; # width of a empty boolean input
-    local padding = 5; # padding between elements
-    local start_padding = 5; # padding at the start of a block
-    local end_padding = 4; # padding at the end of a block
-    local edge_padding_reporter = 3; # edge padding for an edge with a reporter input
-    local edge_padding_boolean = 3; # edge padding for an edge with a boolean input
-    local edge_padding_same = 3; # padding where the block shape and input shape are the same (e.g. (() - ()) block)
-    local end_padding_other = 5; # end padding for ending on other inputs
-    local text_padding = 3; # padding around text in inputs
     local start_x = bl_x(blockIdx);
     local current_x = start_x;
     local block_total_height = bl_height(blockIdx);
@@ -219,7 +212,7 @@ proc update_block_dimensions blockID {
                     log input_width;
                     set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
                 } elif (shape == "boolean") { # boolean inputs don't have text, so use just set width
-                    local input_width = 21;
+                    local input_width = base_boolean_width;
                     # boolean inputs are always a fixed width, as
                     # there's nothing changeable about them
                     set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
