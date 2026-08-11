@@ -27,6 +27,12 @@ onflag {
     add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
     add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
 
+    i = 1;
+    repeat length blocks / BLOCK_LENGTH {
+        update_block_dimensions i;
+        i++;
+    }
+
     forever {
         erase_all;
         broadcast "render_blocks";
@@ -42,7 +48,7 @@ onkey "2" {
 }
 
 onkey "3" {
-    put_block_in_block childID: 7, parentID: 6, inputNumber: 1;
+    put_block_in_block childID: 7, parentID: 6, inputNumber: 2;
 }
 
 onkey "4" {
@@ -63,6 +69,18 @@ onkey "7" {
 
 onkey "8" {
     put_block_in_block childID: 4, parentID: 3, inputNumber: 1;
+}
+
+onkey "9" {
+    put_block_in_block childID: 6, parentID: 2, inputNumber: 1;
+}
+
+onkey "0" {
+    put_block_in_block childID: 8, parentID: 4, inputNumber: 1;
+}
+
+onkey "-" {
+    put_block_in_block childID: 4, parentID: 1, inputNumber: 1;
 }
 
 onkey "a" {
@@ -151,30 +169,30 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
 proc propagate_size_change blockID {
     local idx = b_idx($blockID);
     if (bl_shape(idx) == "boolean" or bl_shape(idx) == "reporter") {
-        log "updating block dimensions " & $blockID;
+        # log "updating block dimensions " & $blockID;
         update_block_dimensions $blockID;
         if bl_parent(idx) > "" {
             propagate_size_change bl_parent(idx);
         } else {
-            log "no parent, no propagating " & $blockID;
+            # log "no parent, no propagating " & $blockID;
         }
     } else {
-        log "updating stack block dimensions " & $blockID;
+        # log "updating stack block dimensions " & $blockID;
         local height_before = bl_height(idx);
         update_block_dimensions $blockID;
         local height_change = bl_height(idx) - height_before;
-        log "height change " & height_change;
-        if bl_next(idx) {
-            shift_next_block_down bl_next(idx), height_change;
+        # log "height change " & height_change & " next " & bl_next(idx);
+        if bl_next(idx) > "" {
+            shift_next_block_down b_idx(bl_next(idx)), height_change;
         }
     }
 }
 
 proc shift_next_block_down blockIdx, amount {
-    log "shifting idx " & $blockIdx & " down " & $amount;
+    # log "shifting idx " & $blockIdx & " down " & $amount;
     # bl_y($blockIdx) -= $amount;
     move_block_position $blockIdx, 0, -$amount;
-    log "next block " & bl_next($blockIdx);
+    # log "next block " & bl_next($blockIdx);
     if bl_next($blockIdx) > "" {
         shift_next_block_down b_idx(bl_next($blockIdx)), $amount;
     }
@@ -259,9 +277,6 @@ proc update_block_dimensions blockID {
                 if (input_height > block_total_height) { # expand the parent block's height if necessary
                     block_total_height = input_height;
                     bl_height(blockIdx) = block_total_height; # update block height
-                    # we need to move the block to center it vertically in the input
-                    # since the y position stays the same otherwise
-                    put_block_in_block nested_block, $blockID, inputNum, update_sizes: false;
                 }
                 # log "nested input width: " & input_width;
             } else {
@@ -311,6 +326,26 @@ proc update_block_dimensions blockID {
     }
     local total_width = current_x - start_x;
     bl_width(blockIdx) = total_width;
+
+    # after updating block width, go over all embedded blocks and reposition them
+    # we need to move the block to center it vertically in the input
+    # since the y position stays the same otherwise
+    # additionally we need to update the x if something was inserted on an earlier input
+
+    local i = 1;
+    repeat length tmp_item_order {
+        local TMPInput item = tmp_item_order[i];
+        if (item.index >= 4) {
+            local inputNum = item.index - 3;
+            local nested_block = get_block_idx_input(blockIdx, inputNum, b_input_nested_block);
+            local shape = get_block_idx_input(blockIdx, inputNum, b_input_shape);
+            if (nested_block > "") {
+                # log "updating block pos " & nested_block & " in input " & inputNum;
+                put_block_in_block nested_block, $blockID, inputNum, update_sizes: false;
+            }
+        }
+        i++;
+    }
 }
 
 proc set_block_input blockID, inputNum, key, val {
