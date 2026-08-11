@@ -18,9 +18,9 @@ var boolean_edge_padding = 8; # padding around edges of boolean blocks
 
 onflag {
     delete blocks;
-    add_block "stack", Category.Control, -56, -42, 93, 21, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
-    add_block "stack", Category.Control, -56, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
-    add_block "stack", Category.Motion, -56, -21, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
+    add_block "stack", Category.Control, -56, -42, 93, 21, parent: 3, next: 2, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
+    add_block "stack", Category.Control, -56, -63, 93, 21, parent: 1, next: "", label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
+    add_block "stack", Category.Motion, -56, -21, 189, 21, parent: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
     add_block "reporter", Category.Operators, -23, 81, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
     add_block "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
     add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
@@ -59,6 +59,10 @@ onkey "6" {
 
 onkey "7" {
     put_block_in_block childID: 7, parentID: 2, inputNumber: 1;
+}
+
+onkey "8" {
+    put_block_in_block childID: 4, parentID: 3, inputNumber: 1;
 }
 
 onkey "a" {
@@ -126,7 +130,7 @@ proc add_block shape, category, x, y, width, height, parent="", next="", TextLab
     add $input3.nested_block to blocks;
 }
 
-proc put_block_in_block childID, parentID, inputNumber {
+proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     local parentIdx = b_idx($parentID);
     local childIdx = b_idx($childID);
     local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - bl_x(childIdx);
@@ -138,6 +142,42 @@ proc put_block_in_block childID, parentID, inputNumber {
     bl_parent(childIdx) = $parentID;
     update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
+
+    if ($update_sizes) {
+        propagate_size_change $parentID;
+    }
+}
+
+proc propagate_size_change blockID {
+    local idx = b_idx($blockID);
+    if (bl_shape(idx) == "boolean" or bl_shape(idx) == "reporter") {
+        log "updating block dimensions " & $blockID;
+        update_block_dimensions $blockID;
+        if bl_parent(idx) > "" {
+            propagate_size_change bl_parent(idx);
+        } else {
+            log "no parent, no propagating " & $blockID;
+        }
+    } else {
+        log "updating stack block dimensions " & $blockID;
+        local height_before = bl_height(idx);
+        update_block_dimensions $blockID;
+        local height_change = bl_height(idx) - height_before;
+        log "height change " & height_change;
+        if bl_next(idx) {
+            shift_next_block_down bl_next(idx), height_change;
+        }
+    }
+}
+
+proc shift_next_block_down blockIdx, amount {
+    log "shifting idx " & $blockIdx & " down " & $amount;
+    # bl_y($blockIdx) -= $amount;
+    move_block_position $blockIdx, 0, -$amount;
+    log "next block " & bl_next($blockIdx);
+    if bl_next($blockIdx) > "" {
+        shift_next_block_down b_idx(bl_next($blockIdx)), $amount;
+    }
 }
 
 proc update_nesting_level bIdx {
@@ -221,7 +261,7 @@ proc update_block_dimensions blockID {
                     bl_height(blockIdx) = block_total_height; # update block height
                     # we need to move the block to center it vertically in the input
                     # since the y position stays the same otherwise
-                    put_block_in_block nested_block, $blockID, inputNum;
+                    put_block_in_block nested_block, $blockID, inputNum, update_sizes: false;
                 }
                 # log "nested input width: " & input_width;
             } else {
