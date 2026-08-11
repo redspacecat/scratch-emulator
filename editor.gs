@@ -180,10 +180,10 @@ proc update_block_dimensions blockID {
         if (item.index <= 3) {
             local text = get_block_idx_label(blockIdx, item.index, b_label_text);
             local text_width = width_of_text(text, 1) - 1;
-            log text;
-            log text_width;
-            log item.x;
-            log item.index;
+            # log text;
+            # log text_width;
+            # log item.x;
+            # log item.index;
 
             if (current_x == start_x) {
                 current_x += start_padding;
@@ -194,7 +194,7 @@ proc update_block_dimensions blockID {
             current_x += text_width;
         } elif (item.index >= 4) {
             local inputNum = item.index - 3;
-            log "handling input: " & inputNum;
+            # log "handling input: " & inputNum;
             local nested_block = get_block_idx_input(blockIdx, inputNum, b_input_nested_block);
             local shape = get_block_idx_input(blockIdx, inputNum, b_input_shape);
             if (nested_block > "") {
@@ -207,13 +207,13 @@ proc update_block_dimensions blockID {
                     # since the y position stays the same otherwise
                     put_block_in_block nested_block, $blockID, inputNum;
                 }
-                log "nested input width: " & input_width;
+                # log "nested input width: " & input_width;
             } else {
                 if (shape == "reporter") {
                     local text = get_block_idx_input(blockIdx, inputNum, b_input_text);
-                    log "handling text: " & text;
+                    # log "handling text: " & text;
                     local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
-                    log input_width;
+                    # log input_width;
                     set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
                 } elif (shape == "boolean") { # boolean inputs don't have text, so use just set width
                     local input_width = base_boolean_width;
@@ -255,9 +255,6 @@ proc update_block_dimensions blockID {
     }
     local total_width = current_x - start_x;
     bl_width(blockIdx) = total_width;
-
-    show tmp_item_order;
-
 }
 
 proc set_block_input blockID, inputNum, key, val {
@@ -276,26 +273,17 @@ proc set_block_idx_label blockIdx, labelNum, key, val {
     blocks[$blockIdx + b_labels + (($labelNum - 1) * TEXT_LABEL_LENGTH) + $key] = $val;
 }
 
-proc move_block_position blockIdx, x_change, y_change {
-    bl_x($blockIdx) += $x_change;
-    bl_y($blockIdx) += $y_change;
-    local i = $blockIdx;
-    local counter = 0;
-    repeat 3 {
-        local offset = i + b_labels + counter;
-        if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-            blocks[offset + 1] += $x_change;
-        }
-        counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
-    }
+proc move_block_position bIdx, x_change, y_change {
+    bl_x($bIdx) += $x_change;
+    bl_y($bIdx) += $y_change;
 
-    local counter = 0;
-    repeat 3 {
-        local offset = i + b_inputs + counter;
-        if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
-            blocks[offset + b_input_x] += $x_change;
-        }
-        counter += INPUT_LENGTH; # = number of properties in Input
-    }
-
+    if (b_label1_x($bIdx) > "") {b_label1_x($bIdx) += $x_change;}
+    if (b_label2_x($bIdx) > "") {b_label2_x($bIdx) += $x_change;}
+    if (b_label3_x($bIdx) > "") {b_label3_x($bIdx) += $x_change;}
+    if (b_input1_shape($bIdx) > "") {b_input1_x($bIdx) += $x_change;}
+    if (b_input2_shape($bIdx) > "") {b_input2_x($bIdx) += $x_change;}
+    if (b_input3_shape($bIdx) > "") {b_input3_x($bIdx) += $x_change;}
+    if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
+    if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
+    if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
 }
