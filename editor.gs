@@ -91,6 +91,7 @@ nowarp proc handle_input {
         drag_offset_x = mx - bl_x(dragged_block_idx);
         drag_offset_y = my - bl_y(dragged_block_idx);
         disconnect_block dragged_block;
+        find_dragged_blocks dragged_block_idx;
         until not mouse_down() {
             handle_drag;
         }
@@ -98,8 +99,9 @@ nowarp proc handle_input {
             put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
             highlighted_input = InputRank {};
         }
-    } else {
         dragged_block = 0;
+        dragged_block_idx = 0;
+        delete dragged_blocks;
     }
 }
 
@@ -118,18 +120,20 @@ proc handle_drag {
     delete tmp_input_ranking;
     local i = 1;
     repeat length blocks / BLOCK_LENGTH {
-        if not (b_id(i) == dragged_block) { # avoid the block we're currently holding
+        if not (b_id(i) in dragged_blocks) { # avoid blocks we're currently holding
             local counter = 0;
             local inputNum = 1;
             repeat 3 {
                 local offset = i + b_inputs + counter;
                 if blocks[offset + b_input_shape] > "" {
-                    add InputRank {
-                        # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
-                        dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
-                        block: b_id(i), 
-                        input: inputNum
-                    } to tmp_input_ranking;
+                    if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (bl_y(i) - bl_height(i) / 2)) < 40 {
+                        add InputRank {
+                            # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
+                            dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
+                            block: b_id(i), 
+                            input: inputNum
+                        } to tmp_input_ranking;
+                    }
                 }
                 counter += INPUT_LENGTH;
                 inputNum++;
@@ -147,6 +151,19 @@ proc handle_drag {
     }
 
     log (days_since_2000() - start_time) * 86400000 & " ms/call";
+}
+
+proc find_dragged_blocks bIdx {
+    delete dragged_blocks;
+    check_dragged_block $bIdx;    
+}
+
+proc check_dragged_block bIdx {
+    add b_id($bIdx) to dragged_blocks;
+
+    if (b_input1_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input1_nested_block($bIdx));}
+    if (b_input2_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input2_nested_block($bIdx));}
+    if (b_input3_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input3_nested_block($bIdx));}
 }
 
 proc init_blocks {

@@ -29,44 +29,16 @@ struct InputRank {
 }
 
 proc render_blocks {
+    # render regular blocks
     local nesting_level = 0;
     local nesting_level_used = true;
     until nesting_level_used == false {
         nesting_level_used = false;
-        local i = 1;
+        i = 1;
         repeat length(blocks) / BLOCK_LENGTH {
             if (b_nesting_level == nesting_level) {
                 nesting_level_used = true;
-
-                # color and background color are obtained from index of category,
-                # which is a number, in the colors list
-                draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
-                
-                local counter = 0; # rendering text labels
-                repeat 3 {
-                    local offset = i + b_labels + counter;
-                    if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-                        render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
-                    }
-                    counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
-                }
-
-                local counter = 0; # rendering inputs
-                repeat 3 {
-                    local offset = i + b_inputs + counter;
-                    if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
-                        render_input
-                            blocks[offset + b_input_x],
-                            ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
-                            blocks[offset + b_input_width],
-                            blocks[offset + b_input_height],
-                            blocks[offset + b_input_text],
-                            blocks[offset + b_input_shape],
-                            scale,
-                            colors[b_category + 1];
-                    }
-                    counter += INPUT_LENGTH; # = number of properties in Input
-                }
+                render_one_block;
             }
             i += BLOCK_LENGTH;
         }
@@ -75,6 +47,14 @@ proc render_blocks {
     }
 
     max_nesting_level = nesting_level - 2;
+
+    # render dragged blocks over others
+    local j = 1;
+    repeat length dragged_blocks {
+        i = b_idx(dragged_blocks[j]);
+        render_one_block;
+        j++;
+    }
 
     local InputRank h_i = highlighted_input;
     if h_i.block > 0 {
@@ -87,6 +67,38 @@ proc render_blocks {
             get_block_idx_input(idx, h_i.input, b_input_shape),
             scale,
             "#ffffff";
+    }
+}
+
+proc render_one_block {
+    # color and background color are obtained from index of category,
+    # which is a number, in the colors list
+    draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
+    
+    local counter = 0; # rendering text labels
+    repeat 3 {
+        local offset = i + b_labels + counter;
+        if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+            render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
+        }
+        counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
+    }
+
+    local counter = 0; # rendering inputs
+    repeat 3 {
+        local offset = i + b_inputs + counter;
+        if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
+            render_input
+                blocks[offset + b_input_x],
+                ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
+                blocks[offset + b_input_width],
+                blocks[offset + b_input_height],
+                blocks[offset + b_input_text],
+                blocks[offset + b_input_shape],
+                scale,
+                colors[b_category + 1];
+        }
+        counter += INPUT_LENGTH; # = number of properties in Input
     }
 }
 
