@@ -90,6 +90,8 @@ proc render_blocks {
 
         nesting_level++;
     }
+
+    max_nesting_level = nesting_level - 2;
 }
 
 proc plain_text x, y, size, text, align {

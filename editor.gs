@@ -43,10 +43,20 @@ onflag {
     erase_all;
     delete blocks;
     init_blocks;
+    dragged_block = 0;
+    highest_nesting_level = 0;
     broadcast "render_loop";
     broadcast "input_loop";
 
-    show clicked_block;
+    show hovered_block;
+    wait 0;
+    show dragged_block;
+    wait 0;
+    show dragged_block_idx;
+    wait 0;
+    show drag_offset_x;
+    wait 0;
+    show drag_offset_y;
 }
 
 on "render_loop" {
@@ -57,9 +67,26 @@ on "render_loop" {
 }
 
 on "input_loop" {
-    # wait_until(mouse_down());
     forever {
-        clicked_block = find_clicked_block(mouse_x() - SCROLL_X, mouse_y() - SCROLL_Y, scale);
+        wait_until(mouse_down());
+        mx = mouse_x() - SCROLL_X;
+        my = mouse_y() - SCROLL_Y;
+        hovered_block = find_hovered_block(mx, my, scale);
+        if hovered_block > 0 {
+            dragged_block = hovered_block;
+            dragged_block_idx = b_idx(dragged_block);
+            drag_offset_x = mx - bl_x(dragged_block_idx);
+            drag_offset_y = my - bl_y(dragged_block_idx);
+            until not mouse_down() {
+                mx = mouse_x() - SCROLL_X;
+                my = mouse_y() - SCROLL_Y;
+                target_x = mx - drag_offset_x;
+                target_y = my - drag_offset_y;
+                move_block_position dragged_block_idx, target_x - bl_x(dragged_block_idx), target_y - bl_y(dragged_block_idx);
+            }
+        } else {
+            dragged_block = 0;
+        }
     }
 }
 
@@ -80,41 +107,48 @@ proc init_blocks {
     }
 }
 
-func find_clicked_block(x, y, scale) {
+func find_hovered_block(x, y, scale) {
     local Point p = Point {x: $x, y: $y};
-    local i = 1;
-    repeat length blocks / BLOCK_LENGTH {
-        local shape = bl_shape(i);
-        local x = bl_x(i);
-        local y = bl_y(i);
-        local width = bl_width(i);
-        local height = bl_height(i);
+    local nesting_level = "renderer"."max_nesting_level";
+    until nesting_level == -1 {
+        local i = 1;
+        repeat length blocks / BLOCK_LENGTH {
+            if bl_nesting_level(i) == nesting_level {
+                local shape = bl_shape(i);
+                local x = bl_x(i);
+                local y = bl_y(i);
+                local width = bl_width(i);
+                local height = bl_height(i);
 
-        if shape == "reporter" {
-            local radius = height / 2;
-            if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
-            point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
-            point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                return b_id(i);
+                if shape == "reporter" {
+                    local radius = height / 2;
+                    if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+                    point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+                    point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                        return b_id(i);
+                    }
+                } elif shape == "boolean" {
+                    local seg_l = height / 2; # segment length
+                    if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+                    point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+                    point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                        return b_id(i);
+                    }
+                } elif shape == "stack" {
+                    if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                    point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+                    point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
+                        return b_id(i);
+                    }
+                }
             }
-        } elif shape == "boolean" {
-            local seg_l = height / 2; # segment length
-            if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
-            point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
-            point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                return b_id(i);
-            }
-        } elif shape == "stack" {
-            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-            point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-            point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
-                return b_id(i);
-            }
+            i += BLOCK_LENGTH;
+
         }
 
-        i += BLOCK_LENGTH;
+        nesting_level--;
     }
-    return "";
+    return 0;
 }
 
 func point_in_rect(Point p, Rect rect) {
@@ -302,6 +336,8 @@ proc update_nesting_level bIdx {
     if (b_input1_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input1_nested_block($bIdx));}
     if (b_input2_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input2_nested_block($bIdx));}
     if (b_input3_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input3_nested_block($bIdx));}
+
+
 }
 
 struct TMPInput {
