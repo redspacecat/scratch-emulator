@@ -4,45 +4,28 @@ hide;
 %include code/helpful_utils.gs
 %include std/math
 
-# onflag {
-#     scale = 1;
-#     offset_x = 0;
-#     offset_y = 0;
-#     forever {
-#         erase_all;
-#         draw_block "#4c97ff", 189, 21, -56 + offset_x, 0 + offset_y, "stack", scale, "#3373cc";
-#         render_input -23 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#3373cc";
-#         render_text_label -51 + offset_x, -6 + offset_y, "move", scale;
-#         render_text_label 102 + offset_x, -6 + offset_y, "steps", scale;
-#         draw_block "#9966ff", 105, 21, -56 + offset_x, -21 + offset_y, "stack", scale, "#774dcb";
-#         render_input 28 + offset_x, -25 + offset_y, 16, 12, 10, "reporter", scale, "#774dcb";
-#         render_text_label -51 + offset_x, -27 + offset_y, "change size by", scale;
-#         draw_block "#ffab19", 93, 21, -56 + offset_x, -42 + offset_y, "stack", scale, "#cf8b17";
-#         render_input -28 + offset_x, -46 + offset_y, 16, 12, 1, "reporter", scale, "#cf8b17";
-#         render_text_label -51 + offset_x, -48 + offset_y, "wait", scale;
-#         render_text_label -8 + offset_x, -48 + offset_y, "seconds", scale;
-#         draw_block "#5cb1d6", 173, 21, -56 + offset_x, -63 + offset_y, "stack", scale, "#2e8eb8";
-#         render_input -30 + offset_x, -67 + offset_y, 100, 12, "What's your name?", "reporter", scale, "#2e8eb8";
-#         render_text_label -51 + offset_x, -69 + offset_y, "ask", scale;
-#         render_text_label 75 + offset_x, -69 + offset_y, "and wait", scale;
-#         draw_block "#ffab19", 183, 21, -56 + offset_x, -84 + offset_y, "stack", scale, "#cf8b17";
-#         render_input -3 + offset_x, -89 + offset_y, 21, 12, "", "boolean", scale, "#cf8b17";
-#         render_text_label -51 + offset_x, -90 + offset_y, "wait until", scale;
-#         draw_block "#59c059", 119, 16, -23 + offset_x, -2 + offset_y, "reporter", scale, "#389438";
-#         render_text_label -17 + offset_x, -6 + offset_y, "pick random", scale;
-#         render_text_label 64 + offset_x, -6 + offset_y, "to", scale;
-#         render_input 44 + offset_x, -4 + offset_y, 16, 12, 1, "reporter", scale, "#389438";
-#         render_input 77 + offset_x, -4 + offset_y, 16, 12, 10, "reporter", scale, "#389438";
-#         draw_block "#59c059", 125, 16, -3 + offset_x, -86 + offset_y, "boolean", scale, "#389438";
-#         render_text_label 43 + offset_x, -90 + offset_y, "contains", scale;
-#         render_text_label 110 + offset_x, -90 + offset_y, "?", scale;
-#         render_input 4 + offset_x, -88 + offset_y, 34, 12, "apple", "reporter", scale, "#389438";
-#         render_input 89 + offset_x, -88 + offset_y, 16, 12, "a", "reporter", scale, "#389438";
-#     }
-# }
+list colors = [
+    "#4c97ff", "#3373cc",
+    "#9966ff", "#774dcb",
+    "#cf63cf", "#bd42bd",
+    "#ffbf00", "#cc9900",
+    "#ffab19", "#cf8b17",
+    "#5cb1d6", "#2e8eb8",
+    "#59c059", "#389438",
+    "#ff8c1a", "#db6e00",
+    "#ff661a", "#e64d00",
+    "#ff6680", "#ff3355",
+    "#0fbd8c", "#0b8e69",
+];
 
 on "render_blocks" {
     render_blocks;
+}
+
+struct InputRank {
+    dist,
+    block,
+    input # input id in block
 }
 
 proc render_blocks {
@@ -92,6 +75,19 @@ proc render_blocks {
     }
 
     max_nesting_level = nesting_level - 2;
+
+    local InputRank h_i = highlighted_input;
+    if h_i.block > 0 {
+        local idx = b_idx(h_i.block);
+        render_input get_block_idx_input(idx, h_i.input, b_input_x),
+            bl_y(idx) - bl_height(idx) / 2 + get_block_idx_input(idx, h_i.input, b_input_height) / 2,
+            get_block_idx_input(idx, h_i.input, b_input_width),
+            get_block_idx_input(idx, h_i.input, b_input_height),
+            "",
+            get_block_idx_input(idx, h_i.input, b_input_shape),
+            scale,
+            "#ffffff";
+    }
 }
 
 proc plain_text x, y, size, text, align {

@@ -26,20 +26,6 @@ enum Category {
     Extensions=21
 }
 
-list colors = [
-    "#4c97ff", "#3373cc",
-    "#9966ff", "#774dcb",
-    "#cf63cf", "#bd42bd",
-    "#ffbf00", "#cc9900",
-    "#ffab19", "#cf8b17",
-    "#5cb1d6", "#2e8eb8",
-    "#59c059", "#389438",
-    "#ff8c1a", "#db6e00",
-    "#ff661a", "#e64d00",
-    "#ff6680", "#ff3355",
-    "#0fbd8c", "#0b8e69",
-];
-
 %define wait_until(x) until x {}
 
 %define b_shape blocks[i]

@@ -66,28 +66,87 @@ on "render_loop" {
     }
 }
 
+struct InputRank {
+    dist="",
+    block="",
+    input="" # input id in block
+}
+
+list InputRank tmp_input_ranking;
+
 on "input_loop" {
     forever {
-        wait_until(mouse_down());
-        mx = mouse_x() - SCROLL_X;
-        my = mouse_y() - SCROLL_Y;
-        hovered_block = find_hovered_block(mx, my, scale);
-        if hovered_block > 0 {
-            dragged_block = hovered_block;
-            dragged_block_idx = b_idx(dragged_block);
-            drag_offset_x = mx - bl_x(dragged_block_idx);
-            drag_offset_y = my - bl_y(dragged_block_idx);
-            until not mouse_down() {
-                mx = mouse_x() - SCROLL_X;
-                my = mouse_y() - SCROLL_Y;
-                target_x = mx - drag_offset_x;
-                target_y = my - drag_offset_y;
-                move_block_position dragged_block_idx, target_x - bl_x(dragged_block_idx), target_y - bl_y(dragged_block_idx);
-            }
-        } else {
-            dragged_block = 0;
-        }
+        handle_input;
     }
+}
+
+nowarp proc handle_input {
+    wait_until(mouse_down());
+    mx = mouse_x() - SCROLL_X;
+    my = mouse_y() - SCROLL_Y;
+    hovered_block = find_hovered_block(mx, my, scale);
+    if hovered_block > 0 {
+        dragged_block = hovered_block;
+        dragged_block_idx = b_idx(dragged_block);
+        drag_offset_x = mx - bl_x(dragged_block_idx);
+        drag_offset_y = my - bl_y(dragged_block_idx);
+        disconnect_block dragged_block;
+        until not mouse_down() {
+            handle_drag;
+        }
+        if highlighted_input.block > "" {
+            put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
+            highlighted_input = InputRank {};
+        }
+    } else {
+        dragged_block = 0;
+    }
+}
+
+proc handle_drag {
+    start_time = days_since_2000();
+
+    mx = mouse_x() - SCROLL_X;
+    my = mouse_y() - SCROLL_Y;
+    target_x = mx - drag_offset_x;
+    target_y = my - drag_offset_y;
+    move_block_position dragged_block_idx, target_x - bl_x(dragged_block_idx), target_y - bl_y(dragged_block_idx);
+
+    t_x = bl_x(dragged_block_idx);
+    t_y = bl_y(dragged_block_idx) - bl_height(dragged_block_idx) / 2;
+
+    delete tmp_input_ranking;
+    local i = 1;
+    repeat length blocks / BLOCK_LENGTH {
+        if not (b_id(i) == dragged_block) { # avoid the block we're currently holding
+            local counter = 0;
+            local inputNum = 1;
+            repeat 3 {
+                local offset = i + b_inputs + counter;
+                if blocks[offset + b_input_shape] > "" {
+                    add InputRank {
+                        # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
+                        dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
+                        block: b_id(i), 
+                        input: inputNum
+                    } to tmp_input_ranking;
+                }
+                counter += INPUT_LENGTH;
+                inputNum++;
+            }
+        }
+
+        i += BLOCK_LENGTH;
+    }
+    INSERTION_SORT_BY_FIELD(InputRank, tmp_input_ranking, .dist);
+
+    if tmp_input_ranking[1].dist <= 20 {
+        InputRank highlighted_input = tmp_input_ranking[1];
+    } else {
+        InputRank highlighted_input = InputRank {};
+    }
+
+    log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
 proc init_blocks {
@@ -107,7 +166,7 @@ proc init_blocks {
     }
 }
 
-func find_hovered_block(x, y, scale) {
+func find_hovered_block(x, y, scale, ignoreIdx=0) {
     local Point p = Point {x: $x, y: $y};
     local nesting_level = "renderer"."max_nesting_level";
     until nesting_level == -1 {
@@ -120,25 +179,33 @@ func find_hovered_block(x, y, scale) {
                 local width = bl_width(i);
                 local height = bl_height(i);
 
-                if shape == "reporter" {
-                    local radius = height / 2;
-                    if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
-                    point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
-                    point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                        return b_id(i);
-                    }
-                } elif shape == "boolean" {
-                    local seg_l = height / 2; # segment length
-                    if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
-                    point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
-                    point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                        return b_id(i);
-                    }
-                } elif shape == "stack" {
-                    if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                    point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-                    point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
-                        return b_id(i);
+                if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) {
+                    if shape == "reporter" {
+                        local radius = height / 2;
+                        if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+                        point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+                        point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                            if $ignoreIdx != i {
+                                return b_id(i);
+                            }
+                        }
+                    } elif shape == "boolean" {
+                        local seg_l = height / 2; # segment length
+                        if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+                        point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+                        point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                            if $ignoreIdx != i {
+                                return b_id(i);
+                            }
+                        }
+                    } elif shape == "stack" {
+                        if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                        point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+                        point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
+                            if $ignoreIdx != i {
+                                return b_id(i);
+                            }
+                        }
                     }
                 }
             }
@@ -297,6 +364,30 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     }
 }
 
+proc disconnect_block blockID {
+    local blockIdx = b_idx($blockID);
+    local parentID = bl_parent(blockIdx);
+    local parentIdx = b_idx(parentID);
+    bl_parent(blockIdx) = "";
+    bl_next(blockIdx) = "";
+
+    # if we're disconnecting a stack block, remove the parent's next so that
+    # it is fully disconnected and won't get moved around in the future
+    # if it's not a stack block, then removing the parent's next could remove a connection
+    # that shouldn't be removed
+    if bl_shape(blockIdx) == "stack" {
+        bl_next(parentIdx) = "";
+    }
+
+    # go through parent's inputs and disconnect all places the block is referenced
+    if b_input1_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 1, b_input_nested_block, "";}
+    if b_input2_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 2, b_input_nested_block, "";}
+    if b_input3_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 3, b_input_nested_block, "";}
+    
+    update_nesting_level blockIdx;
+    propagate_size_change parentID;
+}
+
 proc propagate_size_change blockID {
     local idx = b_idx($blockID);
     if (bl_shape(idx) == "boolean" or bl_shape(idx) == "reporter") {
@@ -380,7 +471,14 @@ proc update_block_dimensions blockID {
 
     local start_x = bl_x(blockIdx);
     local current_x = start_x;
-    local block_total_height = bl_height(blockIdx);
+    # local block_total_height = bl_height(blockIdx);
+    local shape = bl_shape(blockIdx);
+    local block_total_height = 16;
+    if shape == "stack" {
+        block_total_height = 21;
+    } else {
+        block_total_height = 16;
+    }
     local i = 1;
     repeat length tmp_item_order {
         local TMPInput item = tmp_item_order[i];
@@ -418,6 +516,10 @@ proc update_block_dimensions blockID {
                     # log "handling text: " & text;
                     local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
                     # log input_width;
+                    # local input_height = get_block_idx_input(blockIdx, inputNum, b_input_height) + 6;
+                    # if input_height > block_total_height {
+                    #     block_total_height = input_height;
+                    # }
                     set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
                 } elif (shape == "boolean") { # boolean inputs don't have text, so use just set width
                     local input_width = base_boolean_width;
@@ -459,6 +561,7 @@ proc update_block_dimensions blockID {
     }
     local total_width = current_x - start_x;
     bl_width(blockIdx) = total_width;
+    bl_height(blockIdx) = block_total_height; # update block height
 
     # after updating block width, go over all embedded blocks and reposition them
     # we need to move the block to center it vertically in the input
