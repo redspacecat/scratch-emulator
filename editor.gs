@@ -15,9 +15,55 @@ var end_padding_other = 5; # end padding for ending on other inputs
 var text_padding = 4; # padding around text in inputs
 var boolean_edge_padding = 8; # padding around edges of boolean blocks
 
+var SCROLL_X = 0;
+var SCROLL_Y = 0;
+
+struct Point {
+    x,
+    y
+}
+
+struct Rect {
+    x1,
+    y1,
+    x2,
+    y2
+}
+
+struct Tri {
+    x1,
+    y1,
+    x2,
+    y2,
+    x3,
+    y3
+}
 
 onflag {
+    erase_all;
     delete blocks;
+    init_blocks;
+    broadcast "render_loop";
+    broadcast "input_loop";
+
+    show clicked_block;
+}
+
+on "render_loop" {
+    forever {
+        erase_all;
+        broadcast "render_blocks";
+    }
+}
+
+on "input_loop" {
+    # wait_until(mouse_down());
+    forever {
+        clicked_block = find_clicked_block(mouse_x() - SCROLL_X, mouse_y() - SCROLL_Y, scale);
+    }
+}
+
+proc init_blocks {
     add_block "stack", Category.Control, -56, -42, 93, 21, parent: 3, next: 2, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
     add_block "stack", Category.Control, -56, -63, 93, 21, parent: 1, next: "", label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
     add_block "stack", Category.Motion, -56, -21, 189, 21, parent: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
@@ -32,11 +78,62 @@ onflag {
         update_block_dimensions i;
         i++;
     }
+}
 
-    forever {
-        erase_all;
-        broadcast "render_blocks";
+func find_clicked_block(x, y, scale) {
+    local Point p = Point {x: $x, y: $y};
+    local i = 1;
+    repeat length blocks / BLOCK_LENGTH {
+        local shape = bl_shape(i);
+        local x = bl_x(i);
+        local y = bl_y(i);
+        local width = bl_width(i);
+        local height = bl_height(i);
+
+        if shape == "reporter" {
+            local radius = height / 2;
+            if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+            point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+            point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                return b_id(i);
+            }
+        } elif shape == "boolean" {
+            local seg_l = height / 2; # segment length
+            if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+            point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+            point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                return b_id(i);
+            }
+        } elif shape == "stack" {
+            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+            point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+            point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
+                return b_id(i);
+            }
+        }
+
+        i += BLOCK_LENGTH;
     }
+    return "";
+}
+
+func point_in_rect(Point p, Rect rect) {
+    return ($p.x >= $rect.x1 and $p.x <= $rect.x2 and $p.y >= $rect.y1 and $p.y <= $rect.y2);
+}
+
+func point_in_circle(Point p, Point c, radius) {
+    return (((($p.x - $c.x) * ($p.x - $c.x)) + (($p.y - $c.y) * ($p.y - $c.y))) <= ($radius * $radius));
+}
+
+func point_in_tri(Point p, Tri t) {
+    local d1 = ($p.x - $t.x2) * ($t.y1 - $t.y2) - ($t.x1 - $t.x2) * ($p.y - $t.y2);
+    local d2 = ($p.x - $t.x3) * ($t.y2 - $t.y3) - ($t.x2 - $t.x3) * ($p.y - $t.y3);
+    local d3 = ($p.x - $t.x1) * ($t.y3 - $t.y1) - ($t.x3 - $t.x1) * ($p.y - $t.y1);
+
+    local has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0);
+    local has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0);
+
+    return not (has_neg and has_pos);
 }
 
 onkey "1" {

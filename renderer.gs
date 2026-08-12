@@ -4,8 +4,6 @@ hide;
 %include code/helpful_utils.gs
 %include std/math
 
-var scale = 1;
-
 # onflag {
 #     scale = 1;
 #     offset_x = 0;
@@ -204,22 +202,22 @@ proc draw_block color, width, height, x, y, shape, scale, border_color {
     elif $shape == "boolean" {
         set_pen_color $color;
         local seg_amount = $height / 2 * $scale;
-        tri_fill $x * $scale + seg_amount, $y * scale - $height * $scale, $x * $scale, $y - seg_amount, $x * scale + seg_amount, $y * scale, 1;
-        fill_rect $x * $scale + seg_amount * $scale, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
-        tri_fill $x * $scale + $width * $scale - seg_amount, $y * scale - $height * $scale, $x * $scale + $width * $scale, $y - seg_amount, $x * scale + $width * $scale - seg_amount, $y * scale, 1;
+        tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * scale, 1;
+        fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
+        tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * scale + $width * $scale - seg_amount, $y * scale, 1;
         # tri_fill $x * $scale + 8 * $scale, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + 8 * $scale, $y * $scale - $height * $scale, 1 * $scale;
         # fill_rect $x * $scale + 8 * $scale, $x * $scale + $width * $scale - 8 * $scale, $y * $scale - $height * $scale, $y * $scale, 2;
         # tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + $width * $scale - 8 * $scale, $y * $scale, $x * $scale + $width * $scale - 8 * $scale, $y * $scale - $height * $scale, 1 * $scale;
-        goto $x * $scale + seg_amount * $scale, $y * $scale - $height * $scale - 1 * $scale;
+        goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
         set_pen_size 1 * $scale;
         set_pen_color $border_color;
         pen_down;
         goto $x * $scale - 1 * $scale, $y * $scale - $height * $scale / 2;
-        goto $x * $scale + seg_amount * $scale, $y * $scale;
-        goto $x * $scale + $width * $scale - seg_amount * $scale, $y * $scale;
+        goto $x * $scale + seg_amount, $y * $scale;
+        goto $x * $scale + $width * $scale - seg_amount, $y * $scale;
         goto $x * $scale + $width * $scale + 1 * $scale, $y * $scale - $height * $scale / 2;
-        goto $x * $scale + $width * $scale - seg_amount * $scale, $y * $scale - $height * $scale - 1 * $scale;
-        goto $x * $scale + seg_amount * $scale, $y * $scale - $height * $scale - 1 * $scale;
+        goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+        goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
         pen_up;
     }
 }
@@ -253,9 +251,9 @@ proc render_input x, y, width, height, text, shape, scale, color {
     elif $shape == "boolean" {
         set_pen_color $color;
         local seg_amount = $height / 2 * $scale;
-        tri_fill $x * $scale + seg_amount, $y * scale - $height * $scale, $x * $scale, $y - seg_amount, $x * scale + seg_amount, $y * scale, 0.5;
-        fill_rect $x * $scale + seg_amount * $scale, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
-        tri_fill $x * $scale + $width * $scale - seg_amount, $y * scale - $height * $scale, $x * $scale + $width * $scale, $y - seg_amount, $x * scale + $width * $scale - seg_amount, $y * scale, 0.5;
+        tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * $scale, 0.5;
+        fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
+        tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale, 0.5;
         # tri_fill $x * $scale + 6 * $scale, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + 6 * $scale, $y * $scale - $height * $scale, 0.6;
         # fill_rect $x * $scale + 6 * $scale, $x * $scale + $width * $scale - 6 * $scale, $y * $scale - $height * $scale, $y * $scale, 2;
         # tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + $width * $scale - 6 * $scale, $y * $scale, $x * $scale + $width * $scale - 6 * $scale, $y * $scale - $height * $scale, 0.6;
