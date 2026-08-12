@@ -339,7 +339,7 @@ proc disconnect_block blockID {
     if b_input2_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 2, b_input_nested_block, "";}
     if b_input3_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 3, b_input_nested_block, "";}
     
-    update_nesting_level blockIdx;
+    update_nesting_level blockIdx, useParent: false; # to make sure the nesting level is 0
     propagate_size_change parentID;
 }
 
@@ -375,9 +375,15 @@ proc shift_next_block_down blockIdx, amount {
     }
 }
 
-proc update_nesting_level bIdx {
-    # get nesting level from parent and increment
-    bl_nesting_level($bIdx) = bl_nesting_level(b_idx(bl_parent($bIdx))) + 1;
+proc update_nesting_level bIdx, useParent=true {
+    if $useParent {
+        # get nesting level from parent and increment
+        bl_nesting_level($bIdx) = bl_nesting_level(b_idx(bl_parent($bIdx))) + 1;
+    } else {
+        # we want to allow setting the nesting level to 0 initally,
+        # if updating a top level reporter/boolean block instead of a nested block
+        bl_nesting_level($bIdx) = 0;
+    }
     # check inputs recursively for nesting level updates
     if (b_input1_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input1_nested_block($bIdx));}
     if (b_input2_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input2_nested_block($bIdx));}
