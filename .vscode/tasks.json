@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+			"label": "post-process",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"post-processing/main.py",
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+            "presentation": {
+                "reveal": "silent",
+                "revealProblems": "onProblem",
+				"panel": "dedicated",
+            },
+			"problemMatcher": {
+				"pattern": {
+					"regexp": "."
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": "^.*$",
+					"endsPattern": "saved" 
+				}
+			}
+		},
+        {
+			"label": "Build",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"goboscript: goboscript-build",
+				"post-process"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+    ]
+}
