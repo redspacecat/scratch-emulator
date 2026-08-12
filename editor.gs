@@ -57,6 +57,8 @@ onflag {
     show drag_offset_x;
     wait 0;
     show drag_offset_y;
+    wait 0;
+    show highlighted_input_nested_block;
 }
 
 on "render_loop" {
@@ -96,8 +98,14 @@ nowarp proc handle_input {
             handle_drag;
         }
         if highlighted_input.block > "" {
+            if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
+                # if there's a currently embedded block, we need to disconnect it
+                # to get rid of its parent reference
+                disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block);
+            }
             put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
             highlighted_input = InputRank {};
+            highlighted_input_nested_block = "";
         }
         dragged_block = 0;
         dragged_block_idx = 0;
@@ -146,8 +154,10 @@ proc handle_drag {
 
     if tmp_input_ranking[1].dist <= 20 {
         InputRank highlighted_input = tmp_input_ranking[1];
+        highlighted_input_nested_block = get_block_idx_input(b_idx(highlighted_input.block), highlighted_input.input, b_input_nested_block); # if there's a block in the input we want it so we can render a custom border around it if highlighted
     } else {
         InputRank highlighted_input = InputRank {};
+        highlighted_input_nested_block = "";
     }
 
     log (days_since_2000() - start_time) * 86400000 & " ms/call";
@@ -218,7 +228,7 @@ func find_hovered_block(x, y, scale, ignoreIdx=0) {
                     } elif shape == "stack" {
                         if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
                         point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-                        point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: width, y2: y}) {
+                        point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
                             if $ignoreIdx != i {
                                 return b_id(i);
                             }
@@ -252,78 +262,6 @@ func point_in_tri(Point p, Tri t) {
     local has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0);
 
     return not (has_neg and has_pos);
-}
-
-onkey "1" {
-    put_block_in_block childID: 4, parentID: 3, inputNumber: 1;
-}
-
-onkey "2" {
-    put_block_in_block childID: 5, parentID: 1, inputNumber: 1;
-}
-
-onkey "3" {
-    put_block_in_block childID: 7, parentID: 6, inputNumber: 2;
-}
-
-onkey "4" {
-    put_block_in_block childID: 5, parentID: 4, inputNumber: 1;
-}
-
-onkey "5" {
-    put_block_in_block childID: 5, parentID: 4, inputNumber: 2;
-}
-
-onkey "6" {
-    put_block_in_block childID: 4, parentID: 7, inputNumber: 1;
-}
-
-onkey "7" {
-    put_block_in_block childID: 7, parentID: 2, inputNumber: 1;
-}
-
-onkey "8" {
-    put_block_in_block childID: 4, parentID: 3, inputNumber: 1;
-}
-
-onkey "9" {
-    put_block_in_block childID: 6, parentID: 2, inputNumber: 1;
-}
-
-onkey "0" {
-    put_block_in_block childID: 8, parentID: 4, inputNumber: 1;
-}
-
-onkey "-" {
-    put_block_in_block childID: 4, parentID: 1, inputNumber: 1;
-}
-
-onkey "a" {
-    update_block_dimensions 1;
-}
-
-onkey "b" {
-    update_block_dimensions 3;
-}
-
-onkey "c" {
-    update_block_dimensions 4;
-}
-
-onkey "d" {
-    update_block_dimensions 2;
-}
-
-onkey "e" {
-    update_block_dimensions 6;
-}
-
-onkey "f" {
-    update_block_dimensions 7;
-}
-
-onkey "g" {
-    update_block_dimensions 8;
 }
 
 proc add_block shape, category, x, y, width, height, parent="", next="", TextLabel label1=TextLabel {}, TextLabel label2=TextLabel {}, TextLabel label3=TextLabel {}, Input input1=Input {}, Input input2=Input {}, Input input3=Input {}, nesting_level=0 {
@@ -520,8 +458,14 @@ proc update_block_dimensions blockID {
             local nested_block = get_block_idx_input(blockIdx, inputNum, b_input_nested_block);
             local shape = get_block_idx_input(blockIdx, inputNum, b_input_shape);
             if (nested_block > "") {
+                # we override shape, to allow for the nested block shape not being
+                # the same as the input's block shape
+                shape = bl_shape(b_idx(nested_block));
                 local input_width = bl_width(b_idx(nested_block));
-                local input_height = bl_height(b_idx(nested_block)) + 4; # 4 = top and bottom padding
+                local input_height = bl_height(b_idx(nested_block)) + 4; # = top and bottom padding
+                if bl_shape(blockIdx) == "stack" {
+                    input_height += 2;
+                }
                 if (input_height > block_total_height) { # expand the parent block's height if necessary
                     block_total_height = input_height;
                     bl_height(blockIdx) = block_total_height; # update block height
@@ -566,6 +510,9 @@ proc update_block_dimensions blockID {
     if (item.index >= 4) {
         if (bl_shape(blockIdx) == shape) {
             current_x += edge_padding_same;
+        } elif (bl_shape(blockIdx) == "boolean") { # add more padding to the end of boolean blocks
+            # have to add this or else the padding isn't the same as the start, and there isn't enough
+            current_x += boolean_edge_padding;
         } else {
             current_x += end_padding_other;
         }

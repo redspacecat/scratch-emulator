@@ -30,6 +30,7 @@ struct InputRank {
 
 proc render_blocks {
     # render regular blocks
+    InputRank h_i = highlighted_input;
     local nesting_level = 0;
     local nesting_level_used = true;
     until nesting_level_used == false {
@@ -38,7 +39,7 @@ proc render_blocks {
         repeat length(blocks) / BLOCK_LENGTH {
             if (b_nesting_level == nesting_level) {
                 nesting_level_used = true;
-                render_one_block;
+                render_one_block b_id(i);
             }
             i += BLOCK_LENGTH;
         }
@@ -52,42 +53,46 @@ proc render_blocks {
     local j = 1;
     repeat length dragged_blocks {
         i = b_idx(dragged_blocks[j]);
-        render_one_block;
+        render_one_block dragged_blocks[j];
         j++;
-    }
-
-    local InputRank h_i = highlighted_input;
-    if h_i.block > 0 {
-        local idx = b_idx(h_i.block);
-        render_input get_block_idx_input(idx, h_i.input, b_input_x),
-            bl_y(idx) - bl_height(idx) / 2 + get_block_idx_input(idx, h_i.input, b_input_height) / 2,
-            get_block_idx_input(idx, h_i.input, b_input_width),
-            get_block_idx_input(idx, h_i.input, b_input_height),
-            "",
-            get_block_idx_input(idx, h_i.input, b_input_shape),
-            scale,
-            "#ffffff";
     }
 }
 
-proc render_one_block {
+proc render_one_block blockID {
     # color and background color are obtained from index of category,
     # which is a number, in the colors list
-    draw_block colors[b_category], b_width, b_height, b_x, b_y, b_shape, scale, colors[b_category + 1];
-    
+    draw_block
+        colors[b_category],
+        b_width,
+        b_height,
+        b_x,
+        b_y,
+        b_shape,
+        scale,
+        colors[b_category + 1],
+        is_highlighted: h_i.block == b_parent and "editor"."highlighted_input_nested_block" == $blockID;
+
     local counter = 0; # rendering text labels
     repeat 3 {
         local offset = i + b_labels + counter;
         if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
-            render_text_label blocks[offset + 1], (b_y - (b_height / 2)) + 4, blocks[offset], scale;
+            render_text_label
+                blocks[offset + 1],
+                (b_y - (b_height / 2)) + 4,
+                blocks[offset],
+                scale;
         }
         counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
     }
 
     local counter = 0; # rendering inputs
+    local inputNum = 1;
     repeat 3 {
         local offset = i + b_inputs + counter;
-        if (blocks[offset] > "") { # checks if inputs[shape] > "", if so valid input
+        # checks if inputs[shape] > "", if so valid input
+        # also check that there's not a nested block inside
+        # if so, no need to render it
+        if (blocks[offset] > "" and blocks[offset + b_input_nested_block] == "") {
             render_input
                 blocks[offset + b_input_x],
                 ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
@@ -96,9 +101,11 @@ proc render_one_block {
                 blocks[offset + b_input_text],
                 blocks[offset + b_input_shape],
                 scale,
-                colors[b_category + 1];
+                colors[b_category + 1],
+                is_highlighted: h_i.block == $blockID and h_i.input == inputNum;
         }
         counter += INPUT_LENGTH; # = number of properties in Input
+        inputNum++;
     }
 }
 
@@ -132,7 +139,7 @@ proc plain_text x, y, size, text, align {
     }
 }
 
-proc draw_block color, width, height, x, y, shape, scale, border_color {
+proc draw_block color, width, height, x, y, shape, scale, border_color, is_highlighted {
     if $shape == "stack" {
         set_pen_color $color;
         local drawx = $x * $scale;
@@ -194,6 +201,16 @@ proc draw_block color, width, height, x, y, shape, scale, border_color {
         pen_up;
     }
     elif $shape == "reporter" {
+        if $is_highlighted {
+            set_pen_color "#ffffff";
+            pen_size = $height * $scale + 6 * $scale;
+            set_pen_size pen_size;
+            goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
+            pen_down;
+            change_x $width * $scale - pen_size + 6 * $scale;
+            pen_up;
+        }
+
         pen_size = $height * $scale + 2 * $scale;
         set_pen_color $border_color;
         set_pen_size pen_size;
@@ -215,9 +232,7 @@ proc draw_block color, width, height, x, y, shape, scale, border_color {
         tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * scale, 1;
         fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
         tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * scale + $width * $scale - seg_amount, $y * scale, 1;
-        # tri_fill $x * $scale + 8 * $scale, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + 8 * $scale, $y * $scale - $height * $scale, 1 * $scale;
-        # fill_rect $x * $scale + 8 * $scale, $x * $scale + $width * $scale - 8 * $scale, $y * $scale - $height * $scale, $y * $scale, 2;
-        # tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + $width * $scale - 8 * $scale, $y * $scale, $x * $scale + $width * $scale - 8 * $scale, $y * $scale - $height * $scale, 1 * $scale;
+        
         goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
         set_pen_size 1 * $scale;
         set_pen_color $border_color;
@@ -229,6 +244,20 @@ proc draw_block color, width, height, x, y, shape, scale, border_color {
         goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
         goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
         pen_up;
+
+        if $is_highlighted {
+            set_pen_color "#ffffff";
+            set_pen_size 2;
+            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            pen_down;
+            goto $x * $scale - 2 * $scale, $y * $scale - $height * $scale / 2;
+            goto $x * $scale + seg_amount, $y * $scale + 1;
+            goto $x * $scale + $width * $scale - seg_amount, $y * $scale + 1;
+            goto $x * $scale + $width * $scale + 2 * $scale, $y * $scale - $height * $scale / 2;
+            goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            pen_up;
+        }
     }
 }
 
@@ -237,8 +266,17 @@ proc render_text_label x, y, text, scale {
     print $x * $scale, ($y * $scale) - 7 * $scale, 1 * $scale, $text;
 }
 
-proc render_input x, y, width, height, text, shape, scale, color {
+proc render_input x, y, width, height, text, shape, scale, color, is_highlighted {
     if $shape == "reporter" {
+        if $is_highlighted {
+            set_pen_color "#ffffff";
+            pen_size = $height * $scale + 6 * $scale;
+            set_pen_size pen_size;
+            goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
+            pen_down;
+            change_x $width * $scale - pen_size + 6 * $scale;
+            pen_up;
+        }
         set_pen_color $color;
         pen_size = $height * $scale + 2 * $scale;
         set_pen_size pen_size;
@@ -264,9 +302,20 @@ proc render_input x, y, width, height, text, shape, scale, color {
         tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * $scale, 0.5;
         fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
         tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale, 0.5;
-        # tri_fill $x * $scale + 6 * $scale, $y * $scale, $x * $scale, $y * $scale - $height * $scale / 2, $x * $scale + 6 * $scale, $y * $scale - $height * $scale, 0.6;
-        # fill_rect $x * $scale + 6 * $scale, $x * $scale + $width * $scale - 6 * $scale, $y * $scale - $height * $scale, $y * $scale, 2;
-        # tri_fill $x * $scale + $width * $scale, $y * $scale - $height * $scale / 2, $x * $scale + $width * $scale - 6 * $scale, $y * $scale, $x * $scale + $width * $scale - 6 * $scale, $y * $scale - $height * $scale, 0.6;
+        if $is_highlighted {
+            set_pen_color "#ffffff";
+            local seg_amount = $height / 2 * $scale;
+            set_pen_size 2;
+            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            pen_down;
+            goto $x * $scale - 2 * $scale, $y * $scale - $height * $scale / 2;
+            goto $x * $scale + seg_amount, $y * $scale + 1;
+            goto $x * $scale + $width * $scale - seg_amount, $y * $scale + 1;
+            goto $x * $scale + $width * $scale + 2 * $scale, $y * $scale - $height * $scale / 2;
+            goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            pen_up;
+        }
     }
 }
 
@@ -351,19 +400,3 @@ proc fill_rect fromx, tox, fromy, toy, iter {
 proc print x, y, size, text, align="" {
     plain_text round($x), round($y), $size, $text, $align;
 }
-
-# onkey "left arrow" {
-#     offset_x += -1;
-# }
-
-# onkey "right arrow" {
-#     offset_x += 1;
-# }
-
-# onkey "up arrow" {
-#     offset_y += 1;
-# }
-
-# onkey "down arrow" {
-#     offset_y += -1;
-# }
