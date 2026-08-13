@@ -19,7 +19,9 @@ list colors = [
 ];
 
 on "render_blocks" {
+    start_time = days_since_2000();
     render_blocks;
+    log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
 
 struct InputRank {
@@ -173,10 +175,10 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
         goto drawx + scaled_w - 2 * $scale, drawy - scaled_h + 2 * $scale;
         pen_up;
         fill_rect drawx + 7 * $scale, drawx + 19 * $scale, drawy - scaled_h, drawy - 3 * $scale, 2;
-        tri_fill drawx + 7 * $scale, drawy, drawx + 10 * $scale, drawy - 3 * $scale, drawx + 7 * $scale, drawy - 3 * $scale, 1 * $scale;
-        tri_fill drawx + 19 * $scale, drawy, drawx + 19 * $scale, drawy - 3 * $scale, drawx + 16 * $scale, drawy - 3 * $scale, 1 * $scale;
-        tri_fill drawx + 7 * $scale, drawy - scaled_h, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, drawx + 19 * $scale, drawy - scaled_h, 1 * $scale;
-        tri_fill drawx + 19 * $scale, drawy - scaled_h, drawx + 16 * $scale, drawy - scaled_h - 3 * $scale, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, 1 * $scale;
+        tri_fill drawx + 7 * $scale, drawy, drawx + 10 * $scale, drawy - 3 * $scale, drawx + 7 * $scale, drawy - 3 * $scale, 0.5;
+        tri_fill drawx + 19 * $scale, drawy, drawx + 19 * $scale, drawy - 3 * $scale, drawx + 16 * $scale, drawy - 3 * $scale, 0.5;
+        tri_fill drawx + 7 * $scale, drawy - scaled_h, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, drawx + 19 * $scale, drawy - scaled_h, 0.5;
+        tri_fill drawx + 19 * $scale, drawy - scaled_h, drawx + 16 * $scale, drawy - scaled_h - 3 * $scale, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, 0.5;
         set_pen_size 1 * $scale;
         set_pen_color $border_color;
         goto drawx + 3 * $scale, drawy;
@@ -187,29 +189,33 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
         goto drawx + 19 * $scale, drawy;
         goto drawx + scaled_w - 2 * $scale, drawy;
         point_in_direction 90;
-        repeat 3 {
+        local move_amount = 2 / 1.366;
+        repeat 2 {
             turn_right 30;
-            move 1 * $scale;
+            move move_amount * $scale;
         }
+        # goto drawx + scaled_w, drawy - 2 * $scale;
         goto drawx + scaled_w, drawy - scaled_h + 2 * $scale;
-        repeat 3 {
+        point_in_direction 180;
+        repeat 2 {
             turn_right 30;
-            move 1 * $scale;
+            move move_amount * $scale;
         }
         goto drawx + 19 * $scale, drawy - scaled_h;
         goto drawx + 16 * $scale, drawy - scaled_h - 3 * $scale;
         goto drawx + 10 * $scale, drawy - scaled_h - 3 * $scale;
         goto drawx + 7 * $scale, drawy - scaled_h;
         goto drawx + 2 * $scale, drawy - scaled_h;
-        point_in_direction -90;
-        repeat 3 {
+        point_in_direction 270;
+        repeat 2 {
             turn_right 30;
-            move 1 * $scale;
+            move move_amount * $scale;
         }
         goto drawx, drawy - 2 * $scale;
-        repeat 3 {
+        point_in_direction 0;
+        repeat 2 {
             turn_right 30;
-            move 1 * $scale;
+            move move_amount * $scale;
         }
         goto drawx + 3 * $scale, drawy;
         pen_up;
@@ -218,25 +224,29 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
         if $is_highlighted {
             set_pen_color "#ffffff";
             pen_size = $height * $scale + 6 * $scale;
-            set_pen_size pen_size;
+            set_pen_size 0; # this has to be done to avoid a second pen stroke adding a few extra pixels
             goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
             pen_down;
+            set_pen_size pen_size;
             change_x $width * $scale - pen_size + 6 * $scale;
             pen_up;
         }
 
         pen_size = $height * $scale + 2 * $scale;
         set_pen_color $border_color;
-        set_pen_size pen_size;
+        set_pen_size 0;
         goto $x * $scale + pen_size / 2 - 1 * $scale, $y * $scale - pen_size / 2 + 1 * $scale;
         pen_down;
+        set_pen_size pen_size;
         change_x $width * $scale - pen_size + 2 * $scale;
         pen_up;
+
         pen_size = $height * $scale;
         set_pen_color $color;
-        set_pen_size pen_size;
+        set_pen_size 0;
         goto $x * $scale + pen_size / 2, $y * $scale - pen_size / 2;
         pen_down;
+        set_pen_size pen_size;
         change_x $width * $scale - pen_size;
         pen_up;
     }
@@ -285,26 +295,31 @@ proc render_input x, y, width, height, text, shape, scale, color, is_highlighted
         if $is_highlighted {
             set_pen_color "#ffffff";
             pen_size = $height * $scale + 6 * $scale;
-            set_pen_size pen_size;
+            set_pen_size 0;
             goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
             pen_down;
+            set_pen_size pen_size;
             change_x $width * $scale - pen_size + 6 * $scale;
             pen_up;
         }
         set_pen_color $color;
         pen_size = $height * $scale + 2 * $scale;
-        set_pen_size pen_size;
+        set_pen_size 0;
         goto $x * $scale + pen_size / 2 - 1 * $scale, $y * $scale - pen_size / 2 + 1 * $scale;
         pen_down;
+        set_pen_size pen_size;
         change_x $width * $scale - pen_size + 2 * $scale;
         pen_up;
+
         pen_size = $height * $scale;
-        set_pen_size pen_size;
+        set_pen_size 0;
         set_pen_color "#ffffff";
         goto $x * $scale + pen_size / 2, $y * $scale - pen_size / 2;
         pen_down;
+        set_pen_size pen_size;
         change_x $width * $scale - pen_size;
         pen_up;
+
         set_pen_color "#000000";
         local text_x = $x * $scale + ($width * $scale) / 2;
         local text_y = ($y * $scale + ($y * $scale - $height * $scale)) / 2 - 4 * $scale;

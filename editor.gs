@@ -97,6 +97,8 @@ nowarp proc handle_input {
                 disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
             }
             put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
+            # when a block is put into an input, it brings that script to the front
+            move_script_to_front b_id(highlighted_input.block);
             highlighted_input = InputRank {};
             highlighted_input_nested_block = "";
         }
@@ -153,7 +155,7 @@ proc handle_drag {
         highlighted_input_nested_block = "";
     }
 
-    log (days_since_2000() - start_time) * 86400000 & " ms/call";
+    # log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
 proc find_dragged_blocks bIdx {
@@ -312,8 +314,6 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     bl_parent(childIdx) = $parentID;
     update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
-
-    move_script_to_front parentIdx;
 
     # when a block is put in another block, it is no longer a top level block, it is not a root
     if $childID in roots {
