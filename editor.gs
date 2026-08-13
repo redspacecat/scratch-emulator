@@ -324,13 +324,13 @@ proc disconnect_block blockID {
     local parentID = bl_parent(blockIdx);
     local parentIdx = b_idx(parentID);
     bl_parent(blockIdx) = "";
-    bl_next(blockIdx) = "";
+    # bl_next(blockIdx) = ""; # this should be done if separating/disconnecting one single stack block
 
     # if we're disconnecting a stack block, remove the parent's next so that
     # it is fully disconnected and won't get moved around in the future
     # if it's not a stack block, then removing the parent's next could remove a connection
     # that shouldn't be removed
-    if bl_shape(blockIdx) == "stack" {
+    if bl_nesting_level(blockIdx) == 0 {
         bl_next(parentIdx) = "";
     }
 
@@ -345,7 +345,8 @@ proc disconnect_block blockID {
 
 proc propagate_size_change blockID {
     local idx = b_idx($blockID);
-    if (bl_shape(idx) == "boolean" or bl_shape(idx) == "reporter") {
+    # if it's not a top-level block, update the block then propagate to the parent
+    if bl_nesting_level(idx) > 0 {
         # log "updating block dimensions " & $blockID;
         update_block_dimensions $blockID;
         if bl_parent(idx) > "" {
@@ -360,7 +361,8 @@ proc propagate_size_change blockID {
         local height_change = bl_height(idx) - height_before;
         # log "height change " & height_change & " next " & bl_next(idx);
         if bl_next(idx) > "" {
-            shift_next_block_down b_idx(bl_next(idx)), height_change;
+            move_block_position b_idx(bl_next(idx)), 0, -height_change;
+            # shift_next_block_down b_idx(bl_next(idx)), height_change;
         }
     }
 }
@@ -370,9 +372,9 @@ proc shift_next_block_down blockIdx, amount {
     # bl_y($blockIdx) -= $amount;
     move_block_position $blockIdx, 0, -$amount;
     # log "next block " & bl_next($blockIdx);
-    if bl_next($blockIdx) > "" {
-        shift_next_block_down b_idx(bl_next($blockIdx)), $amount;
-    }
+    # if bl_next($blockIdx) > "" {
+    #     shift_next_block_down b_idx(bl_next($blockIdx)), $amount;
+    # }
 }
 
 proc update_nesting_level bIdx, useParent=true {
@@ -570,7 +572,7 @@ proc set_block_idx_label blockIdx, labelNum, key, val {
     blocks[$blockIdx + b_labels + (($labelNum - 1) * TEXT_LABEL_LENGTH) + $key] = $val;
 }
 
-proc move_block_position bIdx, x_change, y_change {
+proc move_block_position bIdx, x_change, y_change, moveStack=true {
     bl_x($bIdx) += $x_change;
     bl_y($bIdx) += $y_change;
 
@@ -583,4 +585,8 @@ proc move_block_position bIdx, x_change, y_change {
     if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
+    
+    if bl_nesting_level($bIdx) == 0 and bl_next($bIdx) > "" and $moveStack {
+        move_block_position b_idx(bl_next($bIdx)), $x_change, $y_change, $moveStack;
+    }
 }
