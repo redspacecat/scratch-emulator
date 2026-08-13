@@ -28,37 +28,51 @@ struct InputRank {
     input # input id in block
 }
 
+list queue;
+list visited;
+
 proc render_blocks {
-    # render regular blocks
+    # # render regular blocks
+    max_nesting_level = 0;
     InputRank h_i = highlighted_input;
-    local nesting_level = 0;
-    local nesting_level_used = true;
-    until nesting_level_used == false {
-        nesting_level_used = false;
-        i = 1;
-        repeat length(blocks) / BLOCK_LENGTH {
-            if (b_nesting_level == nesting_level) {
-                nesting_level_used = true;
-                render_one_block b_id(i);
+    
+    local i = 1;
+    repeat length roots {
+        local root = roots[i];
+        delete queue;
+        delete visited;
+
+        add root to queue;
+        add root to visited;
+        until length queue == 0 {
+            local current = queue[1];
+            local currentIdx = b_idx(current);
+            delete queue[1];
+            render_one_block current, currentIdx;
+
+            if bl_nesting_level(currentIdx) > max_nesting_level {
+                max_nesting_level = bl_nesting_level(currentIdx);
             }
-            i += BLOCK_LENGTH;
+
+            local next = bl_next(currentIdx);
+            if next > "" and next not in visited {
+                add next to visited;
+                add next to queue;
+            }
+            local input1 = b_input1_nested_block(currentIdx);
+            local input2 = b_input2_nested_block(currentIdx);
+            local input3 = b_input3_nested_block(currentIdx);
+            if input1 > "" and input1 not in visited { add input1 to visited; add input1 to queue; }
+            if input2 > "" and input2 not in visited { add input2 to visited; add input2 to queue; }
+            if input3 > "" and input3 not in visited { add input3 to visited; add input3 to queue; }
         }
-
-        nesting_level++;
-    }
-
-    max_nesting_level = nesting_level - 2;
-
-    # render dragged blocks over others
-    local j = 1;
-    repeat length dragged_blocks {
-        i = b_idx(dragged_blocks[j]);
-        render_one_block dragged_blocks[j];
-        j++;
+        
+        i++;
     }
 }
 
-proc render_one_block blockID {
+proc render_one_block blockID, blockIdx {
+    local i = $blockIdx;
     # color and background color are obtained from index of category,
     # which is a number, in the colors list
     draw_block

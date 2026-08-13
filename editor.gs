@@ -313,6 +313,8 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
 
+    move_script_to_front parentIdx;
+
     # when a block is put in another block, it is no longer a top level block, it is not a root
     if $childID in roots {
         delete roots[$childID in roots];
@@ -321,6 +323,16 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     if ($update_sizes) {
         propagate_size_change $parentID;
     }
+}
+
+proc move_script_to_front blockIdx {
+    local idx = $blockIdx;
+    until bl_parent(idx) == "" {
+        idx = b_idx(bl_parent(idx));
+    }
+    id = b_id(idx);
+    delete roots[id in roots]; # when a block is disconnected it's moved to the front
+    add id to roots;
 }
 
 proc disconnect_block blockID, shift=false {
