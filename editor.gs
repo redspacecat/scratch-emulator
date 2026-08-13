@@ -42,23 +42,16 @@ struct Tri {
 onflag {
     erase_all;
     delete blocks;
+    delete roots;
     init_blocks;
     dragged_block = 0;
     highest_nesting_level = 0;
     broadcast "render_loop";
     broadcast "input_loop";
 
-    show hovered_block;
-    wait 0;
     show dragged_block;
     wait 0;
-    show dragged_block_idx;
-    wait 0;
-    show drag_offset_x;
-    wait 0;
-    show drag_offset_y;
-    wait 0;
-    show highlighted_input_nested_block;
+    show roots;
 }
 
 on "render_loop" {
@@ -101,7 +94,7 @@ nowarp proc handle_input {
             if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
                 # if there's a currently embedded block, we need to disconnect it
                 # to get rid of its parent reference
-                disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block);
+                disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
             }
             put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
             highlighted_input = InputRank {};
@@ -299,6 +292,12 @@ proc add_block shape, category, x, y, width, height, parent="", next="", TextLab
     add $input3.height to blocks;
     add $input3.text to blocks;
     add $input3.nested_block to blocks;
+
+    local blockID = length blocks / BLOCK_LENGTH;
+    # if a block is not being added as part of a script, add it to roots
+    if $parent == "" {
+        add blockID to roots;
+    }
 }
 
 proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
@@ -314,12 +313,17 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
 
+    # when a block is put in another block, it is no longer a top level block, it is not a root
+    if $childID in roots {
+        delete roots[$childID in roots];
+    }
+
     if ($update_sizes) {
         propagate_size_change $parentID;
     }
 }
 
-proc disconnect_block blockID {
+proc disconnect_block blockID, shift=false {
     local blockIdx = b_idx($blockID);
     local parentID = bl_parent(blockIdx);
     local parentIdx = b_idx(parentID);
@@ -332,6 +336,13 @@ proc disconnect_block blockID {
     # that shouldn't be removed
     if bl_nesting_level(blockIdx) == 0 {
         bl_next(parentIdx) = "";
+    }
+
+    delete roots[$blockID in roots]; # when a block is disconnected it's moved to the front
+    add $blockID to roots;
+
+    if $shift {
+        move_block_position blockIdx, 10, -10;
     }
 
     # go through parent's inputs and disconnect all places the block is referenced
