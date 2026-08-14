@@ -37,17 +37,76 @@ proc render_blocks {
     render_c_block
         scale: 1,
         x: 10,
-        y: 135,
+        y: 165,
         width: 85,
-        height: 97,
+        height: 105,
         slot_count: 2,
         prong_1_height: 21,
-        prong_2_height: 12,
-        prong_3_height: 12,
+        prong_2_height: 15,
+        prong_3_height: 15,
+        prong_2_style: "normal",
+        prong_3_style: "normal",
+        end_style: "normal",
         slot_1_height: 42,
-        slot_2_height: 10,
-        color: colors[9],
-        border_color: colors[10];
+        slot_2_height: 12,
+        color: colors[Category.Control],
+        border_color: colors[Category.Control + 1];
+    render_text_label 14, 158, "if", 1;
+    render_input 31, 161, 18, 12, "", "boolean", 1, colors[Category.Control + 1], false;
+    render_text_label 56, 158, "then", 1;
+    render_text_label 14, 98, "else", 1;
+
+    render_c_block
+        scale: 1,
+        x: 10,
+        y: 45,
+        width: 85,
+        height: 48,
+        slot_count: 1,
+        prong_1_height: 21,
+        prong_2_height: 15,
+        prong_2_style: "cap",
+        end_style: "normal",
+        slot_1_height: 12,
+        color: colors[Category.Control],
+        border_color: colors[Category.Control + 1];
+    render_text_label 14, 38, "if", 1;
+    render_input 31, 41, 18, 12, "", "boolean", 1, colors[Category.Control + 1], false;
+    render_text_label 56, 38, "then", 1;
+
+    render_c_block
+        scale: 1,
+        x: 120,
+        y: 135,
+        width: 85,
+        height: 48,
+        slot_count: 1,
+        prong_1_height: 21,
+        prong_2_height: 15,
+        prong_2_style: "normal",
+        end_style: "normal",
+        slot_1_height: 12,
+        color: colors[Category.Control],
+        border_color: colors[Category.Control + 1];
+    render_text_label 124, 128, "repeat", 1;
+    render_input 165, 131, 18, 12, "10", "reporter", 1, colors[Category.Control + 1], false;
+
+    render_c_block
+        scale: 1,
+        x: 120,
+        y: 66,
+        width: 85,
+        height: 48,
+        slot_count: 1,
+        prong_1_height: 21,
+        prong_2_height: 15,
+        prong_2_style: "normal",
+        end_style: "cap",
+        slot_1_height: 12,
+        color: colors[Category.Control],
+        border_color: colors[Category.Control + 1];
+    render_text_label 124, 59, "forever", 1;
+
 
     # # render regular blocks
     max_nesting_level = 0;
@@ -300,10 +359,10 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
     }
 }
 
-proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, prong_2_height, prong_3_height, slot_1_height, slot_2_height, color, border_color {
+proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, prong_2_height, prong_3_height=0, prong_2_style="normal", prong_3_style="normal", end_style="normal", slot_1_height, slot_2_height=0, color, border_color {
     set_pen_color $color;
-    c_x_offset = 7;
-    inner_offset = 7;
+    c_x_offset = 8;
+    inner_offset = 8;
     local prong2y = $y - $prong_1_height - $slot_1_height;
     local prong3y = $y - $prong_1_height - $slot_1_height - $prong_2_height - $slot_2_height;
 
@@ -348,27 +407,46 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
     tri_fill $x + inner_offset + 19, $y - $prong_1_height, $x + inner_offset + 16, $y - $prong_1_height - 3, $x + inner_offset + 16, $y - $prong_1_height, 0.5;
 
     # second prong
-    tri_fill $x + inner_offset + 7, prong2y, $x + inner_offset + 10, prong2y - 3, $x + inner_offset + 7, prong2y - 3, 0.5;
-    tri_fill $x + inner_offset + 19, prong2y, $x + inner_offset + 16, prong2y - 3, $x + inner_offset + 19, prong2y - 3, 0.5;
-    fill_rect $x + c_x_offset, $x + inner_offset + 7, prong2y - 3, prong2y, 2;
-    fill_rect $x + inner_offset + 19, $x + $width - 2, prong2y - 3, prong2y, 2;
-    fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y - 3, 2;
-    # second prong nub
-    fill_rect $x + inner_offset + 10, $x + inner_offset + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
-    tri_fill $x + inner_offset + 7, prong2y - $prong_2_height, $x + inner_offset + 10, prong2y - $prong_2_height - 3, $x + inner_offset + 10, prong2y - $prong_2_height, 0.5;
-    tri_fill $x + inner_offset + 19, prong2y - $prong_2_height, $x + inner_offset + 16, prong2y - $prong_2_height - 3, $x + inner_offset + 16, prong2y - $prong_2_height, 0.5;
+    if $prong_2_style == "cap" {
+        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y, 2;
+    } else {
+        tri_fill $x + inner_offset + 7, prong2y, $x + inner_offset + 10, prong2y - 3, $x + inner_offset + 7, prong2y - 3, 0.5;
+        tri_fill $x + inner_offset + 19, prong2y, $x + inner_offset + 16, prong2y - 3, $x + inner_offset + 19, prong2y - 3, 0.5;
+        fill_rect $x + c_x_offset, $x + inner_offset + 7, prong2y - 3, prong2y, 2;
+        fill_rect $x + inner_offset + 19, $x + $width - 2, prong2y - 3, prong2y, 2;
+        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y - 3, 2;
+    }
 
     if $slot_count > 1 {
+        # second prong nub
+        fill_rect $x + inner_offset + 10, $x + inner_offset + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
+        tri_fill $x + inner_offset + 7, prong2y - $prong_2_height, $x + inner_offset + 10, prong2y - $prong_2_height - 3, $x + inner_offset + 10, prong2y - $prong_2_height, 0.5;
+        tri_fill $x + inner_offset + 19, prong2y - $prong_2_height, $x + inner_offset + 16, prong2y - $prong_2_height - 3, $x + inner_offset + 16, prong2y - $prong_2_height, 0.5;
+
         # third prong
-        tri_fill $x + inner_offset + 7, prong3y, $x + inner_offset + 10, prong3y - 3, $x + inner_offset + 7, prong3y - 3, 0.5;
-        tri_fill $x + inner_offset + 19, prong3y, $x + inner_offset + 16, prong3y - 3, $x + inner_offset + 19, prong3y - 3, 0.5;
-        fill_rect $x + c_x_offset, $x + inner_offset + 7, prong3y - 3, prong3y, 2;
-        fill_rect $x + inner_offset + 19, $x + $width - 2, prong3y - 3, prong3y, 2;
-        fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y - 3, 2;
-        # third prong nub
-        fill_rect $x + 10, $x + 16, prong3y - $prong_2_height - 3, prong3y - $prong_2_height, 2;
-        tri_fill $x + 7, prong3y - $prong_2_height, $x + 10, prong3y - $prong_2_height - 3, $x + 10, prong3y - $prong_2_height, 0.5;
-        tri_fill $x + 19, prong3y - $prong_2_height, $x + 16, prong3y - $prong_2_height - 3, $x + 16, prong3y - $prong_2_height, 0.5;
+        if $prong_3_style == "cap" {
+            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y, 2;
+        } else {
+            tri_fill $x + inner_offset + 7, prong3y, $x + inner_offset + 10, prong3y - 3, $x + inner_offset + 7, prong3y - 3, 0.5;
+            tri_fill $x + inner_offset + 19, prong3y, $x + inner_offset + 16, prong3y - 3, $x + inner_offset + 19, prong3y - 3, 0.5;
+            fill_rect $x + c_x_offset, $x + inner_offset + 7, prong3y - 3, prong3y, 2;
+            fill_rect $x + inner_offset + 19, $x + $width - 2, prong3y - 3, prong3y, 2;
+            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y - 3, 2;
+        }
+
+        if $end_style == "normal" {
+            # third prong nub
+            fill_rect $x + 10, $x + 16, prong3y - $prong_2_height - 3, prong3y - $prong_2_height, 2;
+            tri_fill $x + 7, prong3y - $prong_2_height, $x + 10, prong3y - $prong_2_height - 3, $x + 10, prong3y - $prong_2_height, 0.5;
+            tri_fill $x + 19, prong3y - $prong_2_height, $x + 16, prong3y - $prong_2_height - 3, $x + 16, prong3y - $prong_2_height, 0.5;
+        }
+    } else {
+        if $end_style == "normal" {
+            # second prong nub
+            fill_rect $x + 10, $x + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
+            tri_fill $x + 7, prong2y - $prong_2_height, $x + 10, prong2y - $prong_2_height - 3, $x + 10, prong2y - $prong_2_height, 0.5;
+            tri_fill $x + 19, prong2y - $prong_2_height, $x + 16, prong2y - $prong_2_height - 3, $x + 16, prong2y - $prong_2_height, 0.5;
+        }
     }
 
     # border rendering
@@ -400,10 +478,12 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
     goto $x + c_x_offset, $y - $prong_1_height;
     goto $x + c_x_offset, prong2y;
 
-    goto $x + inner_offset + 7, prong2y;
-    goto $x + inner_offset + 10, prong2y - 3;
-    goto $x + inner_offset + 16, prong2y - 3;
-    goto $x + inner_offset + 19, prong2y;
+    if $prong_2_style == "normal" {
+        goto $x + inner_offset + 7, prong2y;
+        goto $x + inner_offset + 10, prong2y - 3;
+        goto $x + inner_offset + 16, prong2y - 3;
+        goto $x + inner_offset + 19, prong2y;
+    }
     goto $x + $width - 2, prong2y;
     point_in_direction 90;
     repeat 2 {
@@ -416,18 +496,22 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
         turn_right 30;
         move move_amount;
     }
-    goto $x + inner_offset + 19, prong2y - $prong_2_height;
-    goto $x + inner_offset + 16, prong2y - $prong_2_height - 3;
-    goto $x + inner_offset + 10, prong2y - $prong_2_height - 3;
-    goto $x + inner_offset + 7, prong2y - $prong_2_height;
+
     if $slot_count > 1 {
+        goto $x + inner_offset + 19, prong2y - $prong_2_height;
+        goto $x + inner_offset + 16, prong2y - $prong_2_height - 3;
+        goto $x + inner_offset + 10, prong2y - $prong_2_height - 3;
+        goto $x + inner_offset + 7, prong2y - $prong_2_height;
+
         goto $x + c_x_offset, prong2y - $prong_2_height;
         goto $x + c_x_offset, prong3y;
 
-        goto $x + inner_offset + 7, prong3y;
-        goto $x + inner_offset + 10, prong3y - 3;
-        goto $x + inner_offset + 16, prong3y - 3;
-        goto $x + inner_offset + 19, prong3y;
+        if $prong_3_style == "normal" {
+            goto $x + inner_offset + 7, prong3y;
+            goto $x + inner_offset + 10, prong3y - 3;
+            goto $x + inner_offset + 16, prong3y - 3;
+            goto $x + inner_offset + 19, prong3y;
+        }
         goto $x + $width - 2, prong3y;
         point_in_direction 90;
         repeat 2 {
@@ -441,11 +525,20 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
             move move_amount;
         }
 
-        # bottom of prong 3
-        goto $x + 19, prong3y - $prong_3_height;
-        goto $x + 16, prong3y - $prong_3_height - 3;
-        goto $x + 10, prong3y - $prong_3_height - 3;
-        goto $x + 7, prong3y - $prong_3_height;
+        if $end_style == "normal" {
+            # bottom of prong 3
+            goto $x + 19, prong3y - $prong_3_height;
+            goto $x + 16, prong3y - $prong_3_height - 3;
+            goto $x + 10, prong3y - $prong_3_height - 3;
+            goto $x + 7, prong3y - $prong_3_height;
+        }
+    } else {
+        if $end_style == "normal" {
+            goto $x + 19, prong2y - $prong_2_height;
+            goto $x + 16, prong2y - $prong_2_height - 3;
+            goto $x + 10, prong2y - $prong_2_height - 3;
+            goto $x + 7, prong2y - $prong_2_height;
+        }
     }
     set_x $x + 2;
 
