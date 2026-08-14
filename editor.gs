@@ -68,6 +68,7 @@ struct InputRank {
 }
 
 list InputRank tmp_input_ranking;
+list block_scripts;
 
 on "input_loop" {
     forever {
@@ -98,7 +99,7 @@ nowarp proc handle_input {
             }
             put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
             # when a block is put into an input, it brings that script to the front
-            move_script_to_front b_id(highlighted_input.block);
+            move_script_to_front b_idx(highlighted_input.block);
             highlighted_input = InputRank {};
             highlighted_input_nested_block = "";
         }
@@ -129,13 +130,15 @@ proc handle_drag {
             repeat 3 {
                 local offset = i + b_inputs + counter;
                 if blocks[offset + b_input_shape] > "" {
-                    if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (bl_y(i) - bl_height(i) / 2)) < 40 {
-                        add InputRank {
-                            # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
-                            dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
-                            block: b_id(i), 
-                            input: inputNum
-                        } to tmp_input_ranking;
+                    if is_input_valid(bl_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
+                        if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (bl_y(i) - bl_height(i) / 2)) < 40 {
+                            add InputRank {
+                                # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
+                                dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
+                                block: b_id(i), 
+                                input: inputNum
+                            } to tmp_input_ranking;
+                        }
                     }
                 }
                 counter += INPUT_LENGTH;
@@ -156,6 +159,16 @@ proc handle_drag {
     }
 
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
+}
+
+func is_input_valid(sourceShape, targetShape) {
+    if $sourceShape == "reporter" and $targetShape == "reporter" {
+        return true;
+    }
+    if $sourceShape == "boolean" and ($targetShape == "boolean" or $targetShape == "reporter") {
+        return true;
+    }
+    return false;
 }
 
 proc find_dragged_blocks bIdx {
@@ -190,52 +203,66 @@ proc init_blocks {
 
 func find_hovered_block(x, y, scale, ignoreIdx=0) {
     local Point p = Point {x: $x, y: $y};
-    local nesting_level = "renderer"."max_nesting_level";
-    until nesting_level == -1 {
-        local i = 1;
-        repeat length blocks / BLOCK_LENGTH {
-            if bl_nesting_level(i) == nesting_level {
-                local shape = bl_shape(i);
-                local x = bl_x(i);
-                local y = bl_y(i);
-                local width = bl_width(i);
-                local height = bl_height(i);
 
-                if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) {
-                    if shape == "reporter" {
-                        local radius = height / 2;
-                        if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
-                        point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
-                        point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                            if $ignoreIdx != i {
-                                return b_id(i);
+    delete block_scripts;
+    local i = 1;
+    repeat length blocks / BLOCK_LENGTH {
+        add get_script_root(i) to block_scripts;
+        i += BLOCK_LENGTH;
+    }
+
+    local j = length roots;
+    repeat length roots {
+        local root = roots[j];
+        local nesting_level = "renderer"."max_nesting_level";
+        until nesting_level == -1 {
+            local i = 1;
+            repeat length blocks / BLOCK_LENGTH {
+                if bl_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
+                    local shape = bl_shape(i);
+                    local x = bl_x(i);
+                    local y = bl_y(i);
+                    local width = bl_width(i);
+                    local height = bl_height(i);
+
+                    if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) {
+                        if shape == "reporter" {
+                            local radius = height / 2;
+                            if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+                            point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+                            point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                                if $ignoreIdx != i {
+                                    return b_id(i);
+                                }
                             }
-                        }
-                    } elif shape == "boolean" {
-                        local seg_l = height / 2; # segment length
-                        if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
-                        point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
-                        point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                            if $ignoreIdx != i {
-                                return b_id(i);
+                        } elif shape == "boolean" {
+                            local seg_l = height / 2; # segment length
+                            if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+                            point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+                            point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                                if $ignoreIdx != i {
+                                    return b_id(i);
+                                }
                             }
-                        }
-                    } elif shape == "stack" {
-                        if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                        point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-                        point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
-                            if $ignoreIdx != i {
-                                return b_id(i);
+                        } elif shape == "stack" {
+                            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                            point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+                            point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
+                                if $ignoreIdx != i {
+                                    return b_id(i);
+                                }
                             }
                         }
                     }
                 }
-            }
-            i += BLOCK_LENGTH;
+                i += BLOCK_LENGTH;
 
+            }
+
+            nesting_level--;
         }
 
-        nesting_level--;
+        j--;
     }
     return 0;
 }
@@ -326,13 +353,17 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
 }
 
 proc move_script_to_front blockIdx {
+    local id = get_script_root($blockIdx);
+    delete roots[id in roots]; # when a block is disconnected it's moved to the front
+    add id to roots;
+}
+
+func get_script_root(blockIdx) {
     local idx = $blockIdx;
     until bl_parent(idx) == "" {
         idx = b_idx(bl_parent(idx));
     }
-    id = b_id(idx);
-    delete roots[id in roots]; # when a block is disconnected it's moved to the front
-    add id to roots;
+    return b_id(idx);
 }
 
 proc disconnect_block blockID, shift=false {
