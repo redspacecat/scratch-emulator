@@ -232,128 +232,124 @@ proc plain_text x, y, size, text, align {
 proc draw_block color, width, height, x, y, shape, scale, border_color, is_highlighted {
     if $shape == "stack" {
         set_pen_color $color;
-        local drawx = $x * $scale;
-        local drawy = $y * $scale;
-        local scaled_w = $width * $scale;
-        local scaled_h = $height * $scale;
-        fill_rect drawx + 2 * $scale, drawx + 7 * $scale, drawy - scaled_h, drawy, 2;
-        set_pen_size 4 * $scale;
-        goto drawx + 2 * $scale, drawy - 2 * $scale;
+        fill_rect $x + 2, $x + 7, $y - $height, $y, 2;
+        set_pen_size 4;
+        goto $x + 2, $y - 2;
         pen_down;
-        goto drawx + 2 * $scale, drawy - scaled_h + 2 * $scale;
+        goto $x + 2, $y - $height + 2;
         pen_up;
-        fill_rect drawx + 19 * $scale, drawx + scaled_w - 2 * $scale, drawy - scaled_h, drawy, 2;
-        set_pen_size 4 * $scale;
-        goto drawx + scaled_w - 2 * $scale, drawy - 2 * $scale;
+        fill_rect $x + 19, $x + $width - 2, $y - $height, $y, 2;
+        set_pen_size 4;
+        goto $x + $width - 2, $y - 2;
         pen_down;
-        goto drawx + scaled_w - 2 * $scale, drawy - scaled_h + 2 * $scale;
+        goto $x + $width - 2, $y - $height + 2;
         pen_up;
-        fill_rect drawx + 7 * $scale, drawx + 19 * $scale, drawy - scaled_h, drawy - 3 * $scale, 2;
-        tri_fill drawx + 7 * $scale, drawy, drawx + 10 * $scale, drawy - 3 * $scale, drawx + 7 * $scale, drawy - 3 * $scale, 0.5;
-        tri_fill drawx + 19 * $scale, drawy, drawx + 19 * $scale, drawy - 3 * $scale, drawx + 16 * $scale, drawy - 3 * $scale, 0.5;
-        tri_fill drawx + 7 * $scale, drawy - scaled_h, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, drawx + 19 * $scale, drawy - scaled_h, 0.5;
-        tri_fill drawx + 19 * $scale, drawy - scaled_h, drawx + 16 * $scale, drawy - scaled_h - 3 * $scale, drawx + 10 * $scale, drawy - scaled_h - 3 * $scale, 0.5;
-        set_pen_size 1 * $scale;
+        fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 2;
+        tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
+        tri_fill $x + 19, $y, $x + 19, $y - 3, $x + 16, $y - 3, 0.5;
+        tri_fill $x + 7, $y - $height, $x + 10, $y - $height - 3, $x + 19, $y - $height, 0.5;
+        tri_fill $x + 19, $y - $height, $x + 16, $y - $height - 3, $x + 10, $y - $height - 3, 0.5;
+        set_pen_size 1;
         set_pen_color $border_color;
-        goto drawx + 3 * $scale, drawy;
+        goto $x + 3, $y;
         pen_down;
-        goto drawx + 7 * $scale, drawy;
-        goto drawx + 10 * $scale, drawy - 3 * $scale;
-        goto drawx + 16 * $scale, drawy - 3 * $scale;
-        goto drawx + 19 * $scale, drawy;
-        goto drawx + scaled_w - 2 * $scale, drawy;
+        goto $x + 7, $y;
+        goto $x + 10, $y - 3;
+        goto $x + 16, $y - 3;
+        goto $x + 19, $y;
+        goto $x + $width - 2, $y;
         point_in_direction 90;
         local move_amount = 2 / 1.366;
         repeat 2 {
             turn_right 30;
-            move move_amount * $scale;
+            move move_amount;
         }
-        # goto drawx + scaled_w, drawy - 2 * $scale;
-        goto drawx + scaled_w, drawy - scaled_h + 2 * $scale;
+        # goto $x + $width, $y - 2;
+        goto $x + $width, $y - $height + 2;
         point_in_direction 180;
         repeat 2 {
             turn_right 30;
-            move move_amount * $scale;
+            move move_amount;
         }
-        goto drawx + 19 * $scale, drawy - scaled_h;
-        goto drawx + 16 * $scale, drawy - scaled_h - 3 * $scale;
-        goto drawx + 10 * $scale, drawy - scaled_h - 3 * $scale;
-        goto drawx + 7 * $scale, drawy - scaled_h;
-        goto drawx + 2 * $scale, drawy - scaled_h;
+        goto $x + 19, $y - $height;
+        goto $x + 16, $y - $height - 3;
+        goto $x + 10, $y - $height - 3;
+        goto $x + 7, $y - $height;
+        goto $x + 2, $y - $height;
         point_in_direction 270;
         repeat 2 {
             turn_right 30;
-            move move_amount * $scale;
+            move move_amount;
         }
-        goto drawx, drawy - 2 * $scale;
+        goto $x, $y - 2;
         point_in_direction 0;
         repeat 2 {
             turn_right 30;
-            move move_amount * $scale;
+            move move_amount;
         }
-        goto drawx + 3 * $scale, drawy;
+        goto $x + 3, $y;
         pen_up;
     }
     elif $shape == "reporter" {
         if $is_highlighted {
             set_pen_color "#ffffff";
-            pen_size = $height * $scale + 6 * $scale;
+            pen_size = $height + 6;
             set_pen_size 0; # this has to be done to avoid a second pen stroke adding a few extra pixels
-            goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
+            goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
             pen_down;
             set_pen_size pen_size;
-            change_x $width * $scale - pen_size + 6 * $scale;
+            change_x $width - pen_size + 6;
             pen_up;
         }
 
-        pen_size = $height * $scale + 2 * $scale;
+        pen_size = $height + 2;
         set_pen_color $border_color;
         set_pen_size 0;
-        goto $x * $scale + pen_size / 2 - 1 * $scale, $y * $scale - pen_size / 2 + 1 * $scale;
+        goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
         pen_down;
         set_pen_size pen_size;
-        change_x $width * $scale - pen_size + 2 * $scale;
+        change_x $width - pen_size + 2;
         pen_up;
 
-        pen_size = $height * $scale;
+        pen_size = $height;
         set_pen_color $color;
         set_pen_size 0;
-        goto $x * $scale + pen_size / 2, $y * $scale - pen_size / 2;
+        goto $x + pen_size / 2, $y - pen_size / 2;
         pen_down;
         set_pen_size pen_size;
-        change_x $width * $scale - pen_size;
+        change_x $width - pen_size;
         pen_up;
     }
     elif $shape == "boolean" {
         set_pen_color $color;
-        local seg_amount = $height / 2 * $scale;
-        tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * scale, 1;
-        fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
-        tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * scale + $width * $scale - seg_amount, $y * scale, 1;
+        local seg_amount = $height / 2;
+        tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y * scale, 1;
+        fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
+        tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x * scale + $width - seg_amount, $y * scale, 1;
         
-        goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
-        set_pen_size 1 * $scale;
+        goto $x + seg_amount, $y - $height - 1;
+        set_pen_size 1;
         set_pen_color $border_color;
         pen_down;
-        goto $x * $scale - 1 * $scale, $y * $scale - $height * $scale / 2;
-        goto $x * $scale + seg_amount, $y * $scale;
-        goto $x * $scale + $width * $scale - seg_amount, $y * $scale;
-        goto $x * $scale + $width * $scale + 1 * $scale, $y * $scale - $height * $scale / 2;
-        goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
-        goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+        goto $x - 1, $y - $height / 2;
+        goto $x + seg_amount, $y;
+        goto $x + $width - seg_amount, $y;
+        goto $x + $width + 1, $y - $height / 2;
+        goto $x + $width - seg_amount, $y - $height - 1;
+        goto $x + seg_amount, $y - $height - 1;
         pen_up;
 
         if $is_highlighted {
             set_pen_color "#ffffff";
             set_pen_size 2;
-            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x + seg_amount, $y - $height - 1;
             pen_down;
-            goto $x * $scale - 2 * $scale, $y * $scale - $height * $scale / 2;
-            goto $x * $scale + seg_amount, $y * $scale + 1;
-            goto $x * $scale + $width * $scale - seg_amount, $y * $scale + 1;
-            goto $x * $scale + $width * $scale + 2 * $scale, $y * $scale - $height * $scale / 2;
-            goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
-            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x - 2, $y - $height / 2;
+            goto $x + seg_amount, $y + 1;
+            goto $x + $width - seg_amount, $y + 1;
+            goto $x + $width + 2, $y - $height / 2;
+            goto $x + $width - seg_amount, $y - $height - 1;
+            goto $x + seg_amount, $y - $height - 1;
             pen_up;
         }
     }
@@ -560,62 +556,62 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
 
 proc render_text_label x, y, text, scale {
     set_pen_color "#ffffff";
-    print $x * $scale, ($y * $scale) - 7 * $scale, 1 * $scale, $text;
+    print $x, ($y) - 7, 1, $text;
 }
 
 proc render_input x, y, width, height, text, shape, scale, color, is_highlighted {
     if $shape == "reporter" {
         if $is_highlighted {
             set_pen_color "#ffffff";
-            pen_size = $height * $scale + 6 * $scale;
+            pen_size = $height + 6;
             set_pen_size 0;
-            goto $x * $scale + pen_size / 2 - 3 * $scale, $y * $scale - pen_size / 2 + 3 * $scale;
+            goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
             pen_down;
             set_pen_size pen_size;
-            change_x $width * $scale - pen_size + 6 * $scale;
+            change_x $width - pen_size + 6;
             pen_up;
         }
         set_pen_color $color;
-        pen_size = $height * $scale + 2 * $scale;
+        pen_size = $height + 2;
         set_pen_size 0;
-        goto $x * $scale + pen_size / 2 - 1 * $scale, $y * $scale - pen_size / 2 + 1 * $scale;
+        goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
         pen_down;
         set_pen_size pen_size;
-        change_x $width * $scale - pen_size + 2 * $scale;
+        change_x $width - pen_size + 2;
         pen_up;
 
-        pen_size = $height * $scale;
+        pen_size = $height;
         set_pen_size 0;
         set_pen_color "#ffffff";
-        goto $x * $scale + pen_size / 2, $y * $scale - pen_size / 2;
+        goto $x + pen_size / 2, $y - pen_size / 2;
         pen_down;
         set_pen_size pen_size;
-        change_x $width * $scale - pen_size;
+        change_x $width - pen_size;
         pen_up;
 
         set_pen_color "#000000";
-        local text_x = $x * $scale + ($width * $scale) / 2;
-        local text_y = ($y * $scale + ($y * $scale - $height * $scale)) / 2 - 4 * $scale;
-        print text_x, text_y, 1 * $scale, $text, align: "c";
+        local text_x = $x + ($width) / 2;
+        local text_y = ($y + ($y - $height)) / 2 - 4;
+        print text_x, text_y, 1, $text, align: "c";
     }
     elif $shape == "boolean" {
         set_pen_color $color;
-        local seg_amount = $height / 2 * $scale;
-        tri_fill $x * $scale + seg_amount, $y * $scale - $height * $scale, $x * $scale, $y * $scale - seg_amount, $x * $scale + seg_amount, $y * $scale, 0.5;
-        fill_rect $x * $scale + seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $y * $scale, 2;
-        tri_fill $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale, $x * $scale + $width * $scale, $y * $scale - seg_amount, $x * $scale + $width * $scale - seg_amount, $y * $scale, 0.5;
+        local seg_amount = $height / 2;
+        tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y, 0.5;
+        fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
+        tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x + $width - seg_amount, $y, 0.5;
         if $is_highlighted {
             set_pen_color "#ffffff";
-            local seg_amount = $height / 2 * $scale;
+            local seg_amount = $height / 2;
             set_pen_size 2;
-            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x + seg_amount, $y - $height - 1;
             pen_down;
-            goto $x * $scale - 2 * $scale, $y * $scale - $height * $scale / 2;
-            goto $x * $scale + seg_amount, $y * $scale + 1;
-            goto $x * $scale + $width * $scale - seg_amount, $y * $scale + 1;
-            goto $x * $scale + $width * $scale + 2 * $scale, $y * $scale - $height * $scale / 2;
-            goto $x * $scale + $width * $scale - seg_amount, $y * $scale - $height * $scale - 1 * $scale;
-            goto $x * $scale + seg_amount, $y * $scale - $height * $scale - 1 * $scale;
+            goto $x - 2, $y - $height / 2;
+            goto $x + seg_amount, $y + 1;
+            goto $x + $width - seg_amount, $y + 1;
+            goto $x + $width + 2, $y - $height / 2;
+            goto $x + $width - seg_amount, $y - $height - 1;
+            goto $x + seg_amount, $y - $height - 1;
             pen_up;
         }
     }
