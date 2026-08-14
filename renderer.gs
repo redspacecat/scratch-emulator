@@ -34,6 +34,21 @@ list queue;
 list visited;
 
 proc render_blocks {
+    render_c_block
+        scale: 1,
+        x: 10,
+        y: 135,
+        width: 85,
+        height: 97,
+        slot_count: 2,
+        prong_1_height: 21,
+        prong_2_height: 12,
+        prong_3_height: 12,
+        slot_1_height: 42,
+        slot_2_height: 10,
+        color: colors[9],
+        border_color: colors[10];
+
     # # render regular blocks
     max_nesting_level = 0;
     InputRank h_i = highlighted_input;
@@ -283,6 +298,171 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
             pen_up;
         }
     }
+}
+
+proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, prong_2_height, prong_3_height, slot_1_height, slot_2_height, color, border_color {
+    set_pen_color $color;
+    c_x_offset = 7;
+    inner_offset = 7;
+    local prong2y = $y - $prong_1_height - $slot_1_height;
+    local prong3y = $y - $prong_1_height - $slot_1_height - $prong_2_height - $slot_2_height;
+
+
+    # outer wall
+    fill_rect $x + 2, $x + c_x_offset, $y - $height, $y, 2;
+    set_pen_size 4;
+    goto $x + 2, $y - 2;
+    pen_down;
+    goto $x + 2, $y - $height + 2;
+    pen_up;
+
+    set_pen_size 4;
+    goto $x + $width - 2, $y - 2;
+    pen_down;
+    goto $x + $width - 2, $y - $prong_1_height + 2;
+    pen_up;
+
+    set_pen_size 4;
+    goto $x + $width - 2, prong2y - 2;
+    pen_down;
+    goto $x + $width - 2, prong2y - $prong_2_height + 2;
+    pen_up;
+
+    if $slot_count > 1 {
+        set_pen_size 4;
+        goto $x + $width - 2, prong3y - 2;
+        pen_down;
+        goto $x + $width - 2, prong3y - $prong_3_height + 2;
+        pen_up;
+    }
+
+    # top prong top nub
+    fill_rect $x + 7, $x + $width - 2, $y - $prong_1_height, $y - 3, 2;
+    tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
+    tri_fill $x + 19, $y, $x + 16, $y - 3, $x + 19, $y - 3, 0.5;
+
+    fill_rect $x + 19, $x + $width - 2, $y - 3, $y, 2; # fill top line
+
+    fill_rect $x + inner_offset + 10, $x + inner_offset + 16, $y - $prong_1_height - 3, $y - $prong_1_height, 2; # top prong button nub
+    tri_fill $x + inner_offset + 7, $y - $prong_1_height, $x + inner_offset + 10, $y - $prong_1_height - 3, $x + inner_offset + 10, $y - $prong_1_height, 0.5;
+    tri_fill $x + inner_offset + 19, $y - $prong_1_height, $x + inner_offset + 16, $y - $prong_1_height - 3, $x + inner_offset + 16, $y - $prong_1_height, 0.5;
+
+    # second prong
+    tri_fill $x + inner_offset + 7, prong2y, $x + inner_offset + 10, prong2y - 3, $x + inner_offset + 7, prong2y - 3, 0.5;
+    tri_fill $x + inner_offset + 19, prong2y, $x + inner_offset + 16, prong2y - 3, $x + inner_offset + 19, prong2y - 3, 0.5;
+    fill_rect $x + c_x_offset, $x + inner_offset + 7, prong2y - 3, prong2y, 2;
+    fill_rect $x + inner_offset + 19, $x + $width - 2, prong2y - 3, prong2y, 2;
+    fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y - 3, 2;
+    # second prong nub
+    fill_rect $x + inner_offset + 10, $x + inner_offset + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
+    tri_fill $x + inner_offset + 7, prong2y - $prong_2_height, $x + inner_offset + 10, prong2y - $prong_2_height - 3, $x + inner_offset + 10, prong2y - $prong_2_height, 0.5;
+    tri_fill $x + inner_offset + 19, prong2y - $prong_2_height, $x + inner_offset + 16, prong2y - $prong_2_height - 3, $x + inner_offset + 16, prong2y - $prong_2_height, 0.5;
+
+    if $slot_count > 1 {
+        # third prong
+        tri_fill $x + inner_offset + 7, prong3y, $x + inner_offset + 10, prong3y - 3, $x + inner_offset + 7, prong3y - 3, 0.5;
+        tri_fill $x + inner_offset + 19, prong3y, $x + inner_offset + 16, prong3y - 3, $x + inner_offset + 19, prong3y - 3, 0.5;
+        fill_rect $x + c_x_offset, $x + inner_offset + 7, prong3y - 3, prong3y, 2;
+        fill_rect $x + inner_offset + 19, $x + $width - 2, prong3y - 3, prong3y, 2;
+        fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y - 3, 2;
+        # third prong nub
+        fill_rect $x + 10, $x + 16, prong3y - $prong_2_height - 3, prong3y - $prong_2_height, 2;
+        tri_fill $x + 7, prong3y - $prong_2_height, $x + 10, prong3y - $prong_2_height - 3, $x + 10, prong3y - $prong_2_height, 0.5;
+        tri_fill $x + 19, prong3y - $prong_2_height, $x + 16, prong3y - $prong_2_height - 3, $x + 16, prong3y - $prong_2_height, 0.5;
+    }
+
+    # border rendering
+    set_pen_size 1;
+    set_pen_color $border_color;
+    goto $x + 2, $y;
+    pen_down;
+    goto $x + 7, $y;
+    goto $x + 10, $y - 3;
+    goto $x + 16, $y - 3;
+    goto $x + 19, $y;
+    goto $x + $width - 2, $y;
+    point_in_direction 90;
+    local move_amount = 2 / 1.366;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+    goto $x + $width, $y - $prong_1_height + 2;
+    point_in_direction 180;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+    goto $x + inner_offset + 19, $y - $prong_1_height;
+    goto $x + inner_offset + 16, $y - $prong_1_height - 3;
+    goto $x + inner_offset + 10, $y - $prong_1_height - 3;
+    goto $x + inner_offset + 7, $y - $prong_1_height;
+    goto $x + c_x_offset, $y - $prong_1_height;
+    goto $x + c_x_offset, prong2y;
+
+    goto $x + inner_offset + 7, prong2y;
+    goto $x + inner_offset + 10, prong2y - 3;
+    goto $x + inner_offset + 16, prong2y - 3;
+    goto $x + inner_offset + 19, prong2y;
+    goto $x + $width - 2, prong2y;
+    point_in_direction 90;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+    goto $x + $width, prong2y - $prong_2_height + 2;
+    point_in_direction 180;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+    goto $x + inner_offset + 19, prong2y - $prong_2_height;
+    goto $x + inner_offset + 16, prong2y - $prong_2_height - 3;
+    goto $x + inner_offset + 10, prong2y - $prong_2_height - 3;
+    goto $x + inner_offset + 7, prong2y - $prong_2_height;
+    if $slot_count > 1 {
+        goto $x + c_x_offset, prong2y - $prong_2_height;
+        goto $x + c_x_offset, prong3y;
+
+        goto $x + inner_offset + 7, prong3y;
+        goto $x + inner_offset + 10, prong3y - 3;
+        goto $x + inner_offset + 16, prong3y - 3;
+        goto $x + inner_offset + 19, prong3y;
+        goto $x + $width - 2, prong3y;
+        point_in_direction 90;
+        repeat 2 {
+            turn_right 30;
+            move move_amount;
+        }
+        goto $x + $width, prong3y - $prong_2_height + 2;
+        point_in_direction 180;
+        repeat 2 {
+            turn_right 30;
+            move move_amount;
+        }
+
+        # bottom of prong 3
+        goto $x + 19, prong3y - $prong_3_height;
+        goto $x + 16, prong3y - $prong_3_height - 3;
+        goto $x + 10, prong3y - $prong_3_height - 3;
+        goto $x + 7, prong3y - $prong_3_height;
+    }
+    set_x $x + 2;
+
+    point_in_direction 270;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+    goto $x, $y - 2;
+    point_in_direction 0;
+    repeat 2 {
+        turn_right 30;
+        move move_amount;
+    }
+
+    pen_up;
+
 }
 
 proc render_text_label x, y, text, scale {
