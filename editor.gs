@@ -189,9 +189,10 @@ proc init_blocks {
     add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
     add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
     add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
+    add_block "c", Category.Control, -90, 165, 85, 105, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", slot_1_height: 42, slot_2_height: 12, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -86, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
 
     i = 1;
-    repeat length blocks / BLOCK_LENGTH {
+    repeat length blocks / BLOCK_LENGTH - 1 {
         update_block_dimensions i;
         i++;
     }
@@ -282,7 +283,32 @@ func point_in_tri(Point p, Tri t) {
     return not (has_neg and has_pos);
 }
 
-proc add_block shape, category, x, y, width, height, parent="", next="", TextLabel label1=TextLabel {}, TextLabel label2=TextLabel {}, TextLabel label3=TextLabel {}, Input input1=Input {}, Input input2=Input {}, Input input3=Input {}, nesting_level=0 {
+proc add_block
+        shape,
+        category,
+        x,
+        y,
+        width,
+        height,
+        parent="",
+        next="",
+        slot_count="",
+        prong_1_height="",
+        prong_2_style="",
+        prong_3_style="",
+        end_style="",
+        slot_1_height="",
+        slot_2_height="",
+        slot_1_nested_block="",
+        slot_2_nested_block="",
+        TextLabel label1=TextLabel {},
+        TextLabel label2=TextLabel {},
+        TextLabel label3=TextLabel {},
+        Input input1=Input {},
+        Input input2=Input {},
+        Input input3=Input {},
+        nesting_level=0 {
+        
     add $shape to blocks;
     add $category to blocks;
     add $x to blocks;
@@ -292,6 +318,15 @@ proc add_block shape, category, x, y, width, height, parent="", next="", TextLab
     add $parent to blocks;
     add $next to blocks;
     add $nesting_level to blocks;
+    add $slot_count to blocks;
+    add $prong_1_height to blocks;
+    add $prong_2_style to blocks;
+    add $prong_3_style to blocks;
+    add $end_style to blocks;
+    add $slot_1_height to blocks;
+    add $slot_2_height to blocks;
+    add $slot_1_nested_block to blocks;
+    add $slot_2_nested_block to blocks;
 
     add $label1.text to blocks; add $label1.x to blocks;
     add $label2.text to blocks; add $label2.x to blocks;

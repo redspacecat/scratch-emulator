@@ -26,6 +26,12 @@ enum Category {
     Extensions=21
 }
 
+%define BLOCK_LENGTH 42
+%define TEXT_LABEL_LENGTH 2
+%define INPUT_LENGTH 6
+
+%define c_block_prong_height 15
+
 %define wait_until(x) until x {}
 
 %define b_shape blocks[i]
@@ -37,6 +43,15 @@ enum Category {
 %define b_parent blocks[i+6]
 %define b_next blocks[i+7]
 %define b_nesting_level blocks[i+8]
+%define b_slot_count blocks[i+9]
+%define b_prong_1_height blocks[i+10]
+%define b_prong_2_style blocks[i+11]
+%define b_prong_3_style blocks[i+12]
+%define b_end_style blocks[i+13]
+%define b_slot_1_height blocks[i+14]
+%define b_slot_2_height blocks[i+15]
+%define b_slot_1_nested_block blocks[i+16]
+%define b_slot_2_nested_block blocks[i+17]
 
 %define bl_shape(ID) blocks[ID]
 %define bl_category(ID) blocks[ID+1]
@@ -47,35 +62,44 @@ enum Category {
 %define bl_parent(ID) blocks[ID+6]
 %define bl_next(ID) blocks[ID+7]
 %define bl_nesting_level(ID) blocks[ID+8]
+%define bl_slot_count(ID) blocks[ID+9]
+%define bl_prong_1_height(ID) blocks[ID+10]
+%define bl_prong_2_style(ID) blocks[ID+11]
+%define bl_prong_3_style(ID) blocks[ID+12]
+%define bl_end_style(ID) blocks[ID+13]
+%define bl_slot_1_height(ID) blocks[ID+14]
+%define bl_slot_2_height(ID) blocks[ID+15]
+%define bl_slot_1_nested_block(ID) blocks[ID+16]
+%define bl_slot_2_nested_block(ID) blocks[ID+17]
 
-%define b_label1_text(idx) blocks[idx+9]
-%define b_label1_x(idx) blocks[idx+10]
-%define b_label2_text(idx) blocks[idx+11]
-%define b_label2_x(idx) blocks[idx+12]
-%define b_label3_text(idx) blocks[idx+13]
-%define b_label3_x(idx) blocks[idx+14]
+%define b_label1_text(idx) blocks[idx+18]
+%define b_label1_x(idx) blocks[idx+19]
+%define b_label2_text(idx) blocks[idx+20]
+%define b_label2_x(idx) blocks[idx+21]
+%define b_label3_text(idx) blocks[idx+22]
+%define b_label3_x(idx) blocks[idx+23]
 
-%define b_input1_shape(idx) blocks[idx+15]
-%define b_input1_x(idx) blocks[idx+16]
-%define b_input1_width(idx) blocks[idx+17]
-%define b_input1_height(idx) blocks[idx+18]
-%define b_input1_text(idx) blocks[idx+19]
-%define b_input1_nested_block(idx) blocks[idx+20]
-%define b_input2_shape(idx) blocks[idx+21]
-%define b_input2_x(idx) blocks[idx+22]
-%define b_input2_width(idx) blocks[idx+23]
-%define b_input2_height(idx) blocks[idx+24]
-%define b_input2_text(idx) blocks[idx+25]
-%define b_input2_nested_block(idx) blocks[idx+26]
-%define b_input3_shape(idx) blocks[idx+27]
-%define b_input3_x(idx) blocks[idx+28]
-%define b_input3_width(idx) blocks[idx+29]
-%define b_input3_height(idx) blocks[idx+30]
-%define b_input3_text(idx) blocks[idx+31]
-%define b_input3_nested_block(idx) blocks[idx+32]
+%define b_input1_shape(idx) blocks[idx+24]
+%define b_input1_x(idx) blocks[idx+25]
+%define b_input1_width(idx) blocks[idx+26]
+%define b_input1_height(idx) blocks[idx+27]
+%define b_input1_text(idx) blocks[idx+28]
+%define b_input1_nested_block(idx) blocks[idx+29]
+%define b_input2_shape(idx) blocks[idx+30]
+%define b_input2_x(idx) blocks[idx+31]
+%define b_input2_width(idx) blocks[idx+32]
+%define b_input2_height(idx) blocks[idx+33]
+%define b_input2_text(idx) blocks[idx+34]
+%define b_input2_nested_block(idx) blocks[idx+35]
+%define b_input3_shape(idx) blocks[idx+36]
+%define b_input3_x(idx) blocks[idx+37]
+%define b_input3_width(idx) blocks[idx+38]
+%define b_input3_height(idx) blocks[idx+39]
+%define b_input3_text(idx) blocks[idx+40]
+%define b_input3_nested_block(idx) blocks[idx+41]
 
-%define b_labels 9
-%define b_inputs 15
+%define b_labels 18
+%define b_inputs 24
 
 %define b_input_shape 0
 %define b_input_x 1
@@ -87,8 +111,8 @@ enum Category {
 %define b_label_text 0
 %define b_label_x 1
 
-%define b_idx(blockID) ((blockID - 1) * BLOCK_LENGTH + 1)
-%define b_id(blockIdx) ((blockIdx - 1) / BLOCK_LENGTH + 1)
+%define b_idx(blockID) (blockID - 1) * BLOCK_LENGTH + 1
+%define b_id(blockIdx) (blockIdx - 1) / BLOCK_LENGTH + 1
 
 %define get_block_input(blockID, inputNum, key) blocks[b_idx(blockID) + b_inputs + ((inputNum - 1) * INPUT_LENGTH) + key]
 %define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + ((inputNum - 1) * INPUT_LENGTH) + key]
