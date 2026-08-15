@@ -232,23 +232,23 @@ proc plain_text x, y, size, text, align {
 proc draw_block color, width, height, x, y, shape, scale, border_color, is_highlighted {
     if $shape == "stack" {
         set_pen_color $color;
-        fill_rect $x + 2, $x + 7, $y - $height, $y, 2;
+        fill_rect $x + 2, $x + 7, $y - $height, $y, 1;
         set_pen_size 4;
         goto $x + 2, $y - 2;
         pen_down;
-        goto $x + 2, $y - $height + 2;
+        goto $x + 2, $y - $height + 3;
         pen_up;
-        fill_rect $x + 19, $x + $width - 2, $y - $height, $y, 2;
+        fill_rect $x + 19, $x + $width - 2, $y - $height + 1, $y, 1;
         set_pen_size 4;
         goto $x + $width - 2, $y - 2;
         pen_down;
         goto $x + $width - 2, $y - $height + 2;
         pen_up;
-        fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 2;
+        fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 1;
         tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
         tri_fill $x + 19, $y, $x + 19, $y - 3, $x + 16, $y - 3, 0.5;
-        tri_fill $x + 7, $y - $height, $x + 10, $y - $height - 3, $x + 19, $y - $height, 0.5;
-        tri_fill $x + 19, $y - $height, $x + 16, $y - $height - 3, $x + 10, $y - $height - 3, 0.5;
+        tri_fill $x + 8, $y - $height, $x + 11, $y - $height - 2, $x + 19, $y - $height, 0.5;
+        tri_fill $x + 19, $y - $height, $x + 16, $y - $height - 2, $x + 10, $y - $height - 2, 0.5; # change numbers to make tri more accurate
         set_pen_size 1;
         set_pen_color $border_color;
         goto $x + 3, $y;
@@ -324,7 +324,7 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
         set_pen_color $color;
         local seg_amount = $height / 2;
         tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y * scale, 1;
-        fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
+        fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 1;
         tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x * scale + $width - seg_amount, $y * scale, 1;
         
         goto $x + seg_amount, $y - $height - 1;
@@ -364,7 +364,7 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
 
 
     # outer wall
-    fill_rect $x + 2, $x + c_x_offset, $y - $height, $y, 2;
+    fill_rect $x + 2, $x + c_x_offset, $y - $height, $y - 1, 1;
     set_pen_size 4;
     goto $x + 2, $y - 2;
     pen_down;
@@ -392,54 +392,54 @@ proc render_c_block scale, x, y, width, height, slot_count, prong_1_height, pron
     }
 
     # top prong top nub
-    fill_rect $x + 7, $x + $width - 2, $y - $prong_1_height, $y - 3, 2;
+    fill_rect $x + 7, $x + $width - 2, $y - $prong_1_height, $y - 3, 1;
     tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
     tri_fill $x + 19, $y, $x + 16, $y - 3, $x + 19, $y - 3, 0.5;
 
-    fill_rect $x + 19, $x + $width - 2, $y - 3, $y, 2; # fill top line
+    fill_rect $x + 19, $x + $width - 2, $y - 3, $y, 1; # fill top line
 
-    fill_rect $x + inner_offset + 10, $x + inner_offset + 16, $y - $prong_1_height - 3, $y - $prong_1_height, 2; # top prong button nub
+    fill_rect $x + inner_offset + 10, $x + inner_offset + 16, $y - $prong_1_height - 3, $y - $prong_1_height, 1; # top prong button nub
     tri_fill $x + inner_offset + 7, $y - $prong_1_height, $x + inner_offset + 10, $y - $prong_1_height - 3, $x + inner_offset + 10, $y - $prong_1_height, 0.5;
     tri_fill $x + inner_offset + 19, $y - $prong_1_height, $x + inner_offset + 16, $y - $prong_1_height - 3, $x + inner_offset + 16, $y - $prong_1_height, 0.5;
 
     # second prong
     if $prong_2_style == "cap" {
-        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y, 2;
+        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y, 1;
     } else {
         tri_fill $x + inner_offset + 7, prong2y, $x + inner_offset + 10, prong2y - 3, $x + inner_offset + 7, prong2y - 3, 0.5;
         tri_fill $x + inner_offset + 19, prong2y, $x + inner_offset + 16, prong2y - 3, $x + inner_offset + 19, prong2y - 3, 0.5;
-        fill_rect $x + c_x_offset, $x + inner_offset + 7, prong2y - 3, prong2y, 2;
-        fill_rect $x + inner_offset + 19, $x + $width - 2, prong2y - 3, prong2y, 2;
-        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y - 3, 2;
+        fill_rect $x + c_x_offset, $x + inner_offset + 7, prong2y - 3, prong2y, 1;
+        fill_rect $x + inner_offset + 19, $x + $width - 2, prong2y - 3, prong2y, 1;
+        fill_rect $x + c_x_offset, $x + $width - 2, prong2y - $prong_2_height, prong2y - 3, 1;
     }
 
     if $slot_count > 1 {
         # second prong nub
-        fill_rect $x + inner_offset + 10, $x + inner_offset + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
+        fill_rect $x + inner_offset + 10, $x + inner_offset + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 1;
         tri_fill $x + inner_offset + 7, prong2y - $prong_2_height, $x + inner_offset + 10, prong2y - $prong_2_height - 3, $x + inner_offset + 10, prong2y - $prong_2_height, 0.5;
         tri_fill $x + inner_offset + 19, prong2y - $prong_2_height, $x + inner_offset + 16, prong2y - $prong_2_height - 3, $x + inner_offset + 16, prong2y - $prong_2_height, 0.5;
 
         # third prong
         if $prong_3_style == "cap" {
-            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y, 2;
+            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y, 1;
         } else {
             tri_fill $x + inner_offset + 7, prong3y, $x + inner_offset + 10, prong3y - 3, $x + inner_offset + 7, prong3y - 3, 0.5;
             tri_fill $x + inner_offset + 19, prong3y, $x + inner_offset + 16, prong3y - 3, $x + inner_offset + 19, prong3y - 3, 0.5;
-            fill_rect $x + c_x_offset, $x + inner_offset + 7, prong3y - 3, prong3y, 2;
-            fill_rect $x + inner_offset + 19, $x + $width - 2, prong3y - 3, prong3y, 2;
-            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y - 3, 2;
+            fill_rect $x + c_x_offset, $x + inner_offset + 7, prong3y - 3, prong3y, 1;
+            fill_rect $x + inner_offset + 19, $x + $width - 2, prong3y - 3, prong3y, 1;
+            fill_rect $x + c_x_offset, $x + $width - 2, prong3y - $prong_2_height, prong3y - 3, 1;
         }
 
         if $end_style == "normal" {
             # third prong nub
-            fill_rect $x + 10, $x + 16, prong3y - $prong_2_height - 3, prong3y - $prong_2_height, 2;
+            fill_rect $x + 10, $x + 16, prong3y - $prong_2_height - 3, prong3y - $prong_2_height, 1;
             tri_fill $x + 7, prong3y - $prong_2_height, $x + 10, prong3y - $prong_2_height - 3, $x + 10, prong3y - $prong_2_height, 0.5;
             tri_fill $x + 19, prong3y - $prong_2_height, $x + 16, prong3y - $prong_2_height - 3, $x + 16, prong3y - $prong_2_height, 0.5;
         }
     } else {
         if $end_style == "normal" {
             # second prong nub
-            fill_rect $x + 10, $x + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 2;
+            fill_rect $x + 10, $x + 16, prong2y - $prong_2_height - 3, prong2y - $prong_2_height, 1;
             tri_fill $x + 7, prong2y - $prong_2_height, $x + 10, prong2y - $prong_2_height - 3, $x + 10, prong2y - $prong_2_height, 0.5;
             tri_fill $x + 19, prong2y - $prong_2_height, $x + 16, prong2y - $prong_2_height - 3, $x + 16, prong2y - $prong_2_height, 0.5;
         }
@@ -598,7 +598,7 @@ proc render_input x, y, width, height, text, shape, scale, color, is_highlighted
         set_pen_color $color;
         local seg_amount = $height / 2;
         tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y, 0.5;
-        fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
+        fill_rect_hq $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
         tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x + $width - seg_amount, $y, 0.5;
         if $is_highlighted {
             set_pen_color "#ffffff";
@@ -664,7 +664,7 @@ proc tri_fill ax, ay, bx, by, cx, cy, resolution {
     pen_up;
 }
 
-proc fill_rect fromx, tox, fromy, toy, iter {
+proc fill_rect_hq fromx, tox, fromy, toy, iter {
     local filler_width = $tox - $fromx;
     local filler_height = $toy - $fromy;
     if filler_width > filler_height {
@@ -694,6 +694,53 @@ proc fill_rect fromx, tox, fromy, toy, iter {
     }
     pen_up;
 }
+
+proc fill_rect x1, x2, y1, y2, blah {
+    set_pen_size 1;
+    goto $x1, $y1;
+    pen_down;
+    set_x $x2;
+    set_y $y2;
+    set_x $x1;
+    set_y $y1;
+    pen_up;
+    i0 = $x2 - $x1;
+    i1 = $y2 - $y1;
+    if i0 < 1 or i1 < 1 {
+        stop_this_script;
+    }
+    if i1 < i0 {
+        i0 = floor(i1);
+        i1 = i0 / 2;
+        set_pen_size i0;
+        goto $x1 + i1, ($y1 + $y2) / 2;
+        pen_down;
+        set_x $x2 - i1;
+        pen_up;
+    }
+    else {
+        i0 = floor(i0);
+        i1 = i0 / 2;
+        set_pen_size i0;
+        goto ($x1 + $x2) / 2, $y1 + i1;
+        pen_down;
+        set_y $y2 - i1;
+        pen_up;
+    }
+    until i0 < 2 {
+        i0 = 0.146446609 * i0;
+        i1 = i0 / 2;
+        set_pen_size i0;
+        goto $x1 + i1, $y1 + i1;
+        pen_down;
+        set_x $x2 - i1;
+        set_y $y2 - i1;
+        set_x $x1 + i1;
+        set_y $y1 + i1;
+        pen_up;
+    }
+}
+
 
 proc print x, y, size, text, align="" {
     plain_text round($x), round($y), $size, $text, $align;
