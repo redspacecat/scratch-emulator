@@ -48,10 +48,6 @@ onflag {
     highest_nesting_level = 0;
     broadcast "render_loop";
     broadcast "input_loop";
-
-    show dragged_block;
-    wait 0;
-    show roots;
 }
 
 on "render_loop" {

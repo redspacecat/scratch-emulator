@@ -29,7 +29,7 @@
 			}
 		},
         {
-			"label": "Build",
+			"label": "Build (post-process)",
 			"dependsOrder": "sequence",
 			"dependsOn": [
 				"goboscript: goboscript-build",
@@ -37,8 +37,27 @@
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			}
+		},
+		{
+			"label": "goboscript: build project",
+			"type": "shell",
+			"command": "goboscript",
+			"args": [
+				"build",
+				"-o", "Scratch Emulator.sb3"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+                "reveal": "silent",
+                "revealProblems": "onProblem",
+				"panel": "shared",
+            },
+			"problemMatcher": "$gcc"
 		}
     ]
 }
