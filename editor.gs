@@ -230,32 +230,34 @@ func find_hovered_block(x, y, scale, ignoreIdx=0) {
                     local width = bl_width(i);
                     local height = bl_height(i);
 
-                    if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) {
+                    if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
                         if shape == "reporter" {
                             local radius = height / 2;
                             if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
                             point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
                             point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                                if $ignoreIdx != i {
-                                    return b_id(i);
-                                }
+                                return b_id(i);
                             }
                         } elif shape == "boolean" {
                             local seg_l = height / 2; # segment length
                             if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
                             point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
                             point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                                if $ignoreIdx != i {
-                                    return b_id(i);
-                                }
+                                return b_id(i);
                             }
                         } elif shape == "stack" {
                             if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
                             point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
                             point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
-                                if $ignoreIdx != i {
-                                    return b_id(i);
-                                }
+                                return b_id(i);
+                            }
+                        } elif shape == "c" {
+                            local midy = y - bl_prong_1_height(i) - bl_slot_1_height(i) - c_block_prong_height;
+                            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: y - bl_prong_1_height(i), y2: y}) or 
+                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
+                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy - bl_slot_2_height(i) - c_block_prong_height, y2: midy - bl_slot_2_height(i)}) * (bl_slot_count(i) > 1){
+                                return b_id(i);
                             }
                         }
                     }
@@ -424,6 +426,7 @@ proc disconnect_block blockID, shift=false {
     if bl_nesting_level(blockIdx) == 0 {
         bl_next(prevIdx) = "";
         bl_previous(blockIdx) = "";
+        bl_parent(blockIdx) = "";
         # bl_next(blockIdx) = ""; # do this if you want to pick out this one stack block
         # bl_previous(b_idx(bl_next(blockIdx)));
     } else {
@@ -564,6 +567,8 @@ proc update_block_dimensions blockID, should_move_c_inputs=true {
     }
 
     if bshape == "c" {
+        # we want to measure the current position of the two block stacks,
+        # so when finished resizing we can move them to the correct spots
         local starting_slot_1_y = bl_y(blockIdx) - bl_prong_1_height(blockIdx);
         if bl_slot_count(blockIdx) > 1 {
             local starting_slot_2_y = bl_y(blockIdx) - bl_prong_1_height(blockIdx) - bl_slot_1_height(blockIdx) - c_block_prong_height;
