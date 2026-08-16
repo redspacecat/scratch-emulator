@@ -122,11 +122,11 @@ proc render_blocks {
             delete queue[1];
             render_one_block current, currentIdx;
 
-            if bl_nesting_level(currentIdx) > max_nesting_level {
-                max_nesting_level = bl_nesting_level(currentIdx);
+            if b_nesting_level(currentIdx) > max_nesting_level {
+                max_nesting_level = b_nesting_level(currentIdx);
             }
 
-            local next = bl_next(currentIdx);
+            local next = b_next(currentIdx);
             if next > "" and next not in visited {
                 add next to visited;
                 add next to queue;
@@ -134,8 +134,8 @@ proc render_blocks {
             local input1 = b_input1_nested_block(currentIdx);
             local input2 = b_input2_nested_block(currentIdx);
             local input3 = b_input3_nested_block(currentIdx);
-            local c_nested1 = bl_slot_1_nested_block(currentIdx); # blocks nested in c blocks
-            local c_nested2 = bl_slot_2_nested_block(currentIdx);
+            local c_nested1 = b_slot_1_nested_block(currentIdx); # blocks nested in c blocks
+            local c_nested2 = b_slot_2_nested_block(currentIdx);
             if input1 > "" and input1 not in visited { add input1 to visited; add input1 to queue; }
             if input2 > "" and input2 not in visited { add input2 to visited; add input2 to queue; }
             if input3 > "" and input3 not in visited { add input3 to visited; add input3 to queue; }
@@ -152,23 +152,23 @@ proc render_one_block blockID, blockIdx {
     # color and background color are obtained from index of category,
     # which is a number, in the colors list
 
-    if b_shape == "c" {
+    if b_shape(i) == "c" {
         render_c_block
-            x: b_x,
-            y: b_y,
-            width: b_width,
-            height: b_height,
-            slot_count: b_slot_count,
-            prong_1_height: b_prong_1_height,
+            x: b_x(i),
+            y: b_y(i),
+            width: b_width(i),
+            height: b_height(i),
+            slot_count: b_slot_count(i),
+            prong_1_height: b_prong_1_height(i),
             prong_2_height: c_block_prong_height,
             prong_3_height: c_block_prong_height,
-            prong_2_style: b_prong_2_style,
-            prong_3_style: b_prong_3_style,
-            end_style: b_end_style,
-            slot_1_height: b_slot_1_height,
-            slot_2_height: b_slot_2_height,
-            color: colors[b_category],
-            border_color: colors[b_category + 1];
+            prong_2_style: b_prong_2_style(i),
+            prong_3_style: b_prong_3_style(i),
+            end_style: b_end_style(i),
+            slot_1_height: b_slot_1_height(i),
+            slot_2_height: b_slot_2_height(i),
+            color: colors[b_category(i)],
+            border_color: colors[b_category(i) + 1];
         
         local counter = 0; # rendering text labels
         repeat 2 {
@@ -176,7 +176,7 @@ proc render_one_block blockID, blockIdx {
             if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
                 render_text_label
                     blocks[offset + 1],
-                    (b_y - (b_prong_1_height / 2)) + 4,
+                    (b_y(i) - (b_prong_1_height(i) / 2)) + 4,
                     blocks[offset],
                     scale;
             }
@@ -186,7 +186,7 @@ proc render_one_block blockID, blockIdx {
         if b_label3_x(i) > "" {
             render_text_label
                 b_label3_x(i),
-                (b_y - b_prong_1_height - b_slot_1_height - (c_block_prong_height / 2)) + 3,
+                (b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - (c_block_prong_height / 2)) + 3,
                 b_label3_text(i),
                 scale;
         }
@@ -194,13 +194,13 @@ proc render_one_block blockID, blockIdx {
         if b_input1_x(i) > "" {
             render_input
                 b_input1_x(i),
-                b_y - (b_prong_1_height / 2) + b_input1_height(i) / 2,
+                b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2,
                 b_input1_width(i),
                 b_input1_height(i),
                 b_input1_text(i),
                 b_input1_shape(i),
                 scale,
-                colors[b_category + 1],
+                colors[b_category(i) + 1],
                 is_highlighted: h_i.block == $blockID and h_i.input == 1;
         }
 
@@ -212,15 +212,15 @@ proc render_one_block blockID, blockIdx {
 
     } else {
         draw_block
-            colors[b_category],
-            b_width,
-            b_height,
-            b_x,
-            b_y,
-            b_shape,
+            colors[b_category(i)],
+            b_width(i),
+            b_height(i),
+            b_x(i),
+            b_y(i),
+            b_shape(i),
             scale,
-            colors[b_category + 1],
-            is_highlighted: h_i.block == b_parent and "editor"."highlighted_input_nested_block" == $blockID;
+            colors[b_category(i) + 1],
+            is_highlighted: h_i.block == b_parent(i) and "editor"."highlighted_input_nested_block" == $blockID;
 
         local counter = 0; # rendering text labels
         repeat 3 {
@@ -228,7 +228,7 @@ proc render_one_block blockID, blockIdx {
             if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
                 render_text_label
                     blocks[offset + 1],
-                    (b_y - (b_height / 2)) + 4,
+                    (b_y(i) - (b_height(i) / 2)) + 4,
                     blocks[offset],
                     scale;
             }
@@ -245,13 +245,13 @@ proc render_one_block blockID, blockIdx {
             if (blocks[offset] > "" and blocks[offset + b_input_nested_block] == "") {
                 render_input
                     blocks[offset + b_input_x],
-                    ((b_y + (b_y - b_height)) / 2) + blocks[offset + b_input_height] / 2,
+                    ((b_y(i) + (b_y(i) - b_height(i))) / 2) + blocks[offset + b_input_height] / 2,
                     blocks[offset + b_input_width],
                     blocks[offset + b_input_height],
                     blocks[offset + b_input_text],
                     blocks[offset + b_input_shape],
                     scale,
-                    colors[b_category + 1],
+                    colors[b_category(i) + 1],
                     is_highlighted: h_i.block == $blockID and h_i.input == inputNum;
             }
             counter += INPUT_LENGTH; # = number of properties in Input
