@@ -186,17 +186,18 @@ proc check_dragged_block bIdx {
 }
 
 proc init_blocks {
-    add_block "stack", Category.Control, -56, -42, 93, 21, parent: 3, next: 2, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
-    add_block "stack", Category.Control, -56, -63, 93, 21, parent: 1, next: "", label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
-    add_block "stack", Category.Motion, -56, -21, 189, 21, parent: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
+    add_block "stack", Category.Control, -42, 22, 93, 21, parent: 9, previous: 3, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
+    add_block "stack", Category.Control, -50, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
+    add_block "stack", Category.Motion, -42, 43, 189, 21, parent: 9, previous: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
     add_block "reporter", Category.Operators, -23, -142, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
     add_block "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
     add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
     add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
     add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
-    add_block "c", Category.Control, -90, 165, 85, 105, parent: "", next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -86, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
-    add_block "stack", Category.Looks, -82, 144, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
-    add_block "stack", Category.Sensing, -90, 81, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
+    add_block "c", Category.Control, -50, 100, 85, 105, parent: 12, next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, slot_2_nested_block: 3, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -45, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
+    add_block "stack", Category.Looks, -42, 79, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
+    add_block "stack", Category.Sensing, -50, -14, 189, 21, parent: 12, previous: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
+    add_block "c", Category.Control, -58, 121, 85, 105, parent: "", slot_count: 1, prong_1_height: 21, prong_2_style: "normal", end_style: "normal", slot_1_height: 12, slot_2_height: 12, slot_1_nested_block: 9, label1: TextLabel {x: -86, text: "repeat"}, input1: Input {shape: "reporter", x: -69, width: 18, height: 12, text: "100"}; 
 
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
@@ -297,6 +298,7 @@ proc add_block
         y,
         width,
         height,
+        previous="",
         parent="",
         next="",
         slot_count="",
@@ -322,6 +324,7 @@ proc add_block
     add $y to blocks;
     add $width to blocks;
     add $height to blocks;
+    add $previous to blocks;
     add $parent to blocks;
     add $next to blocks;
     add $nesting_level to blocks;
@@ -362,7 +365,7 @@ proc add_block
 
     local blockID = length blocks / BLOCK_LENGTH;
     # if a block is not being added as part of a script, add it to roots
-    if $parent == "" {
+    if $parent == "" and $previous == "" {
         add blockID to roots;
     }
 }
@@ -391,6 +394,7 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     }
 
     if ($update_sizes) {
+        log "starting size change propagation " & $parentID;
         propagate_size_change $parentID;
     }
 }
@@ -406,6 +410,9 @@ func get_script_root(blockIdx) {
     until bl_parent(idx) == "" {
         idx = b_idx(bl_parent(idx));
     }
+    until bl_previous(idx) == "" {
+        idx = b_idx(bl_previous(idx));
+    }
     return b_id(idx);
 }
 
@@ -413,15 +420,15 @@ proc disconnect_block blockID, shift=false {
     local blockIdx = b_idx($blockID);
     local parentID = bl_parent(blockIdx);
     local parentIdx = b_idx(parentID);
-    bl_parent(blockIdx) = "";
-    # bl_next(blockIdx) = ""; # this should be done if separating/disconnecting one single stack block
-
-    # if we're disconnecting a stack block, remove the parent's next so that
-    # it is fully disconnected and won't get moved around in the future
-    # if it's not a stack block, then removing the parent's next could remove a connection
-    # that shouldn't be removed
+    local prevIdx = b_idx(bl_previous(blockIdx));
     if bl_nesting_level(blockIdx) == 0 {
-        bl_next(parentIdx) = "";
+        bl_next(prevIdx) = "";
+        bl_previous(blockIdx) = "";
+        # bl_next(blockIdx) = ""; # do this if you want to pick out this one stack block
+        # bl_previous(b_idx(bl_next(blockIdx)));
+    } else {
+        bl_parent(blockIdx) = "";
+        # bl_next(parentIdx) = "";
     }
 
     delete roots[$blockID in roots]; # when a block is disconnected it's moved to the front
@@ -431,11 +438,18 @@ proc disconnect_block blockID, shift=false {
         move_block_position blockIdx, 10, -10;
     }
 
-    # go through parent's inputs and disconnect all places the block is referenced
-    if b_input1_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 1, b_input_nested_block, "";}
-    if b_input2_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 2, b_input_nested_block, "";}
-    if b_input3_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 3, b_input_nested_block, "";}
-    
+    if bl_nesting_level(blockIdx) == 0 {
+        # if it's top level, it could only be in a c block
+        # if so mark it as disconnected from that
+        if bl_slot_1_nested_block(parentIdx) == $blockID {bl_slot_1_nested_block(parentIdx) = "";}
+        if bl_slot_2_nested_block(parentIdx) == $blockID {bl_slot_2_nested_block(parentIdx) = "";}
+    } else {
+        # go through parent's inputs and disconnect all places the block is referenced
+        if b_input1_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 1, b_input_nested_block, "";}
+        if b_input2_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 2, b_input_nested_block, "";}
+        if b_input3_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 3, b_input_nested_block, "";}
+    }
+
     update_nesting_level blockIdx, useParent: false; # to make sure the nesting level is 0
     propagate_size_change parentID;
 }
@@ -444,7 +458,7 @@ proc propagate_size_change blockID {
     local idx = b_idx($blockID);
     # if it's not a top-level block, update the block then propagate to the parent
     if bl_nesting_level(idx) > 0 {
-        # log "updating block dimensions " & $blockID;
+        log "updating block dimensions " & $blockID;
         update_block_dimensions $blockID;
         if bl_parent(idx) > "" {
             propagate_size_change bl_parent(idx);
@@ -452,14 +466,19 @@ proc propagate_size_change blockID {
             # log "no parent, no propagating " & $blockID;
         }
     } else {
-        # log "updating stack block dimensions " & $blockID;
+        log "updating stack block dimensions " & $blockID;
         local height_before = bl_height(idx);
         update_block_dimensions $blockID;
         local height_change = bl_height(idx) - height_before;
-        # log "height change " & height_change & " next " & bl_next(idx);
+        log "height change " & height_change & " next " & bl_next(idx);
         if bl_next(idx) > "" {
             move_block_position b_idx(bl_next(idx)), 0, -height_change;
             # shift_next_block_down b_idx(bl_next(idx)), height_change;
+        }
+
+        # once we finish updating the size on the current block, go on to update any parents, like c blocks
+        if bl_parent(idx) > "" {
+            propagate_size_change bl_parent(idx);
         }
     }
 }
@@ -542,6 +561,13 @@ proc update_block_dimensions blockID, should_move_c_inputs=true {
         local block_total_height = 21;
     } else {
         local block_total_height = 16;
+    }
+
+    if bshape == "c" {
+        local starting_slot_1_y = bl_y(blockIdx) - bl_prong_1_height(blockIdx);
+        if bl_slot_count(blockIdx) > 1 {
+            local starting_slot_2_y = bl_y(blockIdx) - bl_prong_1_height(blockIdx) - bl_slot_1_height(blockIdx) - c_block_prong_height;
+        }
     }
 
     local i = 1;
@@ -686,16 +712,20 @@ proc update_block_dimensions blockID, should_move_c_inputs=true {
             bl_prong_1_height(blockIdx) + 
             bl_slot_1_height(blockIdx) +
             c_block_prong_height +
-            bl_slot_2_height(blockIdx) +
-            c_block_prong_height;
+            ((bl_slot_2_height(blockIdx) +
+            c_block_prong_height) * (bl_slot_count(blockIdx) > 1));
         
-        local height_change = bl_height(blockIdx) - block_starting_height;
-        log "height change " & height_change;
+        # local height_change = bl_height(blockIdx) - block_starting_height;
+        # log "height change " & height_change;
+        local slot_1_y_change = (bl_y(blockIdx) - bl_prong_1_height(blockIdx)) - starting_slot_1_y;
+        if bl_slot_count(blockIdx) > 1 {
+            local slot_2_y_change = (bl_y(blockIdx) - bl_prong_1_height(blockIdx) - bl_slot_1_height(blockIdx) - c_block_prong_height) - starting_slot_2_y;
+        }
         # log block_starting_height;
         # log block_total_height;
         if $should_move_c_inputs {
-            if (bl_slot_1_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_1_nested_block(blockIdx)), 0, -height_change;}
-            if (bl_slot_2_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_2_nested_block(blockIdx)), 0, -height_change;}
+            if (bl_slot_1_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_1_nested_block(blockIdx)), 0, slot_1_y_change;}
+            if (bl_slot_2_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_2_nested_block(blockIdx)), 0, slot_2_y_change;}
         }
     }
 }
@@ -706,8 +736,8 @@ func measure_stack_height(startID) {
     local end_reached = false;
     until end_reached {
         total_height += bl_height(idx);
-        idx = b_idx(bl_next(idx));
         end_reached = bl_next(idx) == "";
+        idx = b_idx(bl_next(idx));
     }
     return total_height;
 }
