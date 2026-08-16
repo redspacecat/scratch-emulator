@@ -191,7 +191,7 @@ proc render_one_block blockID, blockIdx {
                 scale;
         }
 
-        if b_input1_x(i) > "" {
+        if b_input1_x(i) > "" and b_input1_nested_block(i) == "" {
             render_input
                 b_input1_x(i),
                 b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2,
