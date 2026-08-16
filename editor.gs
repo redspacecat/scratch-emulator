@@ -121,16 +121,21 @@ proc handle_drag {
     local i = 1;
     repeat length blocks / BLOCK_LENGTH {
         if not (b_id(i) in dragged_blocks) { # avoid blocks we're currently holding
+            if bl_shape(i) == "c" {
+                local target_height = bl_prong_1_height(i);
+            } else {
+                local target_height = bl_height(i);
+            }
             local counter = 0;
             local inputNum = 1;
             repeat 3 {
                 local offset = i + b_inputs + counter;
                 if blocks[offset + b_input_shape] > "" {
                     if is_input_valid(bl_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
-                        if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (bl_y(i) - bl_height(i) / 2)) < 40 {
+                        if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (bl_y(i) - target_height / 2)) < 40 {
                             add InputRank {
                                 # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
-                                dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - bl_height(i) / 2),
+                                dist: DIST(t_x, t_y, blocks[offset + b_input_x], bl_y(i) - target_height / 2),
                                 block: b_id(i), 
                                 input: inputNum
                             } to tmp_input_ranking;
@@ -189,11 +194,13 @@ proc init_blocks {
     add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
     add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
     add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
-    add_block "c", Category.Control, -90, 165, 85, 105, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", slot_1_height: 42, slot_2_height: 12, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -86, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
+    add_block "c", Category.Control, -90, 165, 85, 105, parent: "", next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -86, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
+    add_block "stack", Category.Looks, -82, 144, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
+    add_block "stack", Category.Sensing, -90, 81, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
 
     i = 1;
-    repeat length blocks / BLOCK_LENGTH - 1 {
-        update_block_dimensions i;
+    repeat length blocks / BLOCK_LENGTH {
+        update_block_dimensions i, false; # we need to not move c block's inputs before the block is sized correctly
         i++;
     }
 }
@@ -364,8 +371,13 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     local parentIdx = b_idx($parentID);
     local childIdx = b_idx($childID);
     local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - bl_x(childIdx);
-    local y_change = ((bl_y(parentIdx) - bl_height(parentIdx) / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx);
-    if (bl_shape(parentIdx) == "stack") {
+    if bl_shape(parentIdx) == "c" {
+        local height = bl_prong_1_height(parentIdx);
+    } else {
+        local height = bl_height(parentIdx);
+    }
+    local y_change = ((bl_y(parentIdx) - height / 2) + (bl_height(childIdx) / 2)) - bl_y(childIdx);
+    if bl_shape(parentIdx) == "stack" or bl_shape(parentIdx) == "c" {
         y_change += 0.5;
     }
     set_block_idx_input parentIdx, $inputNumber, b_input_nested_block, $childID;
@@ -485,7 +497,7 @@ struct TMPInput {
 }
 
 list TMPInput tmp_item_order;
-proc update_block_dimensions blockID {
+proc update_block_dimensions blockID, should_move_c_inputs=true {
     # order text + inputs by x, left -> right
     # get width of each item, keeping track of a cumulative x position and adding padding
     # if input is a block, include that width
@@ -494,10 +506,16 @@ proc update_block_dimensions blockID {
     # update total block with when done
     delete tmp_item_order;
     local blockIdx = b_idx($blockID);
+    local bshape = bl_shape(blockIdx);
 
     local counter = 0;
     local index = 1;
-    repeat 3 {
+    if bshape == "c" { # ignore the last text label for c blocks since it would be "else" which is handled separately
+        local repeat_count = 2;
+    } else {
+        local repeat_count = 3;
+    }
+    repeat repeat_count {
         local offset = blockIdx + b_labels + counter;
         if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
             add TMPInput {x: blocks[offset + 1], index: index} to tmp_item_order;
@@ -519,20 +537,22 @@ proc update_block_dimensions blockID {
 
     local start_x = bl_x(blockIdx);
     local current_x = start_x;
-    # local block_total_height = bl_height(blockIdx);
-    local shape = bl_shape(blockIdx);
-    local block_total_height = 16;
-    if shape == "stack" {
-        block_total_height = 21;
+    local block_starting_height = bl_height(blockIdx);
+    if bshape == "stack" or bshape == "c" {
+        local block_total_height = 21;
     } else {
-        block_total_height = 16;
+        local block_total_height = 16;
     }
+
     local i = 1;
     repeat length tmp_item_order {
         local TMPInput item = tmp_item_order[i];
         if (item.index <= 3) {
             local text = get_block_idx_label(blockIdx, item.index, b_label_text);
             local text_width = width_of_text(text, 1) - 1;
+            if text == "if" and bshape == "c" {
+                text_width += 7;
+            }
             # log text;
             # log text_width;
             # log item.x;
@@ -556,12 +576,18 @@ proc update_block_dimensions blockID {
                 shape = bl_shape(b_idx(nested_block));
                 local input_width = bl_width(b_idx(nested_block));
                 local input_height = bl_height(b_idx(nested_block)) + 4; # = top and bottom padding
-                if bl_shape(blockIdx) == "stack" {
+                if bshape == "stack" or bshape == "c" {
                     input_height += 2;
                 }
                 if (input_height > block_total_height) { # expand the parent block's height if necessary
                     block_total_height = input_height;
-                    bl_height(blockIdx) = block_total_height; # update block height
+                    if bshape == "c" {
+                        # we don't want to update the block's total height,
+                        # just the first prong's height we're measuring
+                        bl_prong_1_height(blockIdx) = block_total_height;
+                    } else {
+                        bl_height(blockIdx) = block_total_height; # update block height
+                    }
                 }
                 # log "nested input width: " & input_width;
             } else {
@@ -584,9 +610,9 @@ proc update_block_dimensions blockID {
             }
 
             if (current_x == start_x) {
-                if (bl_shape(blockIdx) == shape) {
+                if (bshape == shape) {
                     current_x += edge_padding_same;
-                } elif (bl_shape(blockIdx) == "boolean") { # add more padding to boolean blocks
+                } elif (bshape == "boolean") { # add more padding to boolean blocks
                     current_x += boolean_edge_padding;
                 } else {
                     current_x += start_padding;
@@ -601,29 +627,37 @@ proc update_block_dimensions blockID {
     }
 
     if (item.index >= 4) {
-        if (bl_shape(blockIdx) == shape) {
+        if (bshape == shape) {
             current_x += edge_padding_same;
-        } elif (bl_shape(blockIdx) == "boolean") { # add more padding to the end of boolean blocks
+        } elif (bshape == "boolean") { # add more padding to the end of boolean blocks
             # have to add this or else the padding isn't the same as the start, and there isn't enough
             current_x += boolean_edge_padding;
         } else {
             current_x += end_padding_other;
         }
     } else {
-        if (bl_shape(blockIdx) == "boolean") { # add more padding to boolean blocks
+        if (bshape == "boolean") { # add more padding to boolean blocks
             current_x += boolean_edge_padding;
         } else {
             current_x += end_padding;
         }
     }
     local total_width = current_x - start_x;
+    if bshape == "c" {
+        total_width = MAX(c_block_min_width, total_width);
+    }
     bl_width(blockIdx) = total_width;
-    bl_height(blockIdx) = block_total_height; # update block height
+
+    if bshape == "c" {
+        bl_prong_1_height(blockIdx) = block_total_height;
+    } else {
+        bl_height(blockIdx) = block_total_height; # update block height
+    }
 
     # after updating block width, go over all embedded blocks and reposition them
     # we need to move the block to center it vertically in the input
     # since the y position stays the same otherwise
-    # additionally we need to update the x if something was inserted on an earlier input
+    # additionally we need to update the x if something was inserted in an earlier input
 
     local i = 1;
     repeat length tmp_item_order {
@@ -639,6 +673,43 @@ proc update_block_dimensions blockID {
         }
         i++;
     }
+
+    # c block handling
+    if bshape == "c" {
+        # we need to measure the slot heights and calculate the block's total height
+        bl_slot_1_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(bl_slot_1_nested_block(blockIdx)));
+        if bl_slot_count(blockIdx) > 1 {
+            bl_slot_2_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(bl_slot_2_nested_block(blockIdx)));
+        }
+
+        bl_height(blockIdx) =
+            bl_prong_1_height(blockIdx) + 
+            bl_slot_1_height(blockIdx) +
+            c_block_prong_height +
+            bl_slot_2_height(blockIdx) +
+            c_block_prong_height;
+        
+        local height_change = bl_height(blockIdx) - block_starting_height;
+        log "height change " & height_change;
+        # log block_starting_height;
+        # log block_total_height;
+        if $should_move_c_inputs {
+            if (bl_slot_1_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_1_nested_block(blockIdx)), 0, -height_change;}
+            if (bl_slot_2_nested_block(blockIdx) > "") {move_block_position b_idx(bl_slot_2_nested_block(blockIdx)), 0, -height_change;}
+        }
+    }
+}
+
+func measure_stack_height(startID) {
+    local total_height = 0;
+    local idx = b_idx($startID);
+    local end_reached = false;
+    until end_reached {
+        total_height += bl_height(idx);
+        idx = b_idx(bl_next(idx));
+        end_reached = bl_next(idx) == "";
+    }
+    return total_height;
 }
 
 proc set_block_input blockID, inputNum, key, val {
@@ -670,8 +741,15 @@ proc move_block_position bIdx, x_change, y_change, moveStack=true {
     if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
-    
+    log "shifting " + bl_slot_1_nested_block($bIdx);
+    if (bl_slot_1_nested_block($bIdx) > "") {move_block_position b_idx(bl_slot_1_nested_block($bIdx)), $x_change, $y_change;}
+    if (bl_slot_2_nested_block($bIdx) > "") {move_block_position b_idx(bl_slot_2_nested_block($bIdx)), $x_change, $y_change;}
+
     if bl_nesting_level($bIdx) == 0 and bl_next($bIdx) > "" and $moveStack {
         move_block_position b_idx(bl_next($bIdx)), $x_change, $y_change, $moveStack;
     }
+}
+
+onkey "c" {
+    update_block_dimensions 9;
 }

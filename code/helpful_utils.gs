@@ -31,6 +31,8 @@ enum Category {
 %define INPUT_LENGTH 6
 
 %define c_block_prong_height 15
+%define c_block_min_slot_height 12
+%define c_block_min_width 85
 
 %define wait_until(x) until x {}
 
