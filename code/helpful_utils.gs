@@ -95,8 +95,8 @@ enum Category {
 %define b_label_text 0
 %define b_label_x 1
 
-%define b_idx(blockID) (blockID - 1) * BLOCK_LENGTH + 1
-%define b_id(blockIdx) (blockIdx - 1) / BLOCK_LENGTH + 1
+%define b_idx(blockID) ((blockID - 1) * BLOCK_LENGTH + 1)
+%define b_id(blockIdx) ((blockIdx - 1) / BLOCK_LENGTH + 1)
 
 %define get_block_input(blockID, inputNum, key) blocks[b_idx(blockID) + b_inputs + (inputNum - 1) * INPUT_LENGTH + key]
 %define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + (inputNum - 1) * INPUT_LENGTH + key]

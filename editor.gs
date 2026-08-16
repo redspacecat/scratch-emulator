@@ -99,6 +99,11 @@ nowarp proc handle_input {
             highlighted_input = InputRank {};
             highlighted_input_nested_block = "";
         }
+        if highlighted_conn.block > "" {
+            connect_stack_block prevID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
+            move_script_to_front b_idx(highlighted_conn.block);
+            highlighted_conn = InputRank {};
+        }
         dragged_block = 0;
         dragged_block_idx = 0;
         delete dragged_blocks;
@@ -116,34 +121,49 @@ proc handle_drag {
 
     t_x = b_x(dragged_block_idx);
     t_y = b_y(dragged_block_idx) - b_height(dragged_block_idx) / 2;
+    t_shape = b_shape(dragged_block_idx);
 
     delete tmp_input_ranking;
     local i = 1;
     repeat length blocks / BLOCK_LENGTH {
         if not (b_id(i) in dragged_blocks) { # avoid blocks we're currently holding
-            if b_shape(i) == "c" {
-                local target_height = b_prong_1_height(i);
-            } else {
+            if t_shape == "stack" or t_shape == "c" {
+                # stack block, try to find valid places to connect it
                 local target_height = b_height(i);
-            }
-            local counter = 0;
-            local inputNum = 1;
-            repeat 3 {
-                local offset = i + b_inputs + counter;
-                if blocks[offset + b_input_shape] > "" {
-                    if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
-                        if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
-                            add InputRank {
-                                # dist: sqrt((blocks[offset + b_input_x] - t_x) * (blocks[offset + b_input_x] - t_x) + (blocks[offset + b_input_y] - t_y) * (blocks[offset + b_input_y] - t_y)),
-                                dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
-                                block: b_id(i), 
-                                input: inputNum
-                            } to tmp_input_ranking;
-                        }
+                if abs(t_x - b_x(i)) < 40 and abs(t_y - (b_y(i) - target_height)) < 40 {
+                    if b_shape(i) == "stack" {
+                        add InputRank {
+                            dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
+                            block: b_id(i), 
+                            input: 1
+                        } to tmp_input_ranking;
                     }
                 }
-                counter += INPUT_LENGTH;
-                inputNum++;
+            } else {
+                # try to put the block in an input
+                if b_shape(i) == "c" {
+                    local target_height = b_prong_1_height(i);
+                } else {
+                    local target_height = b_height(i);
+                }
+                local counter = 0;
+                local inputNum = 1;
+                repeat 3 {
+                    local offset = i + b_inputs + counter;
+                    if blocks[offset + b_input_shape] > "" {
+                        if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
+                            if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
+                                add InputRank {
+                                    dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
+                                    block: b_id(i), 
+                                    input: inputNum
+                                } to tmp_input_ranking;
+                            }
+                        }
+                    }
+                    counter += INPUT_LENGTH;
+                    inputNum++;
+                }
             }
         }
 
@@ -151,12 +171,20 @@ proc handle_drag {
     }
     INSERTION_SORT_BY_FIELD(InputRank, tmp_input_ranking, .dist);
 
-    if tmp_input_ranking[1].dist <= 20 {
-        InputRank highlighted_input = tmp_input_ranking[1];
-        highlighted_input_nested_block = get_block_idx_input(b_idx(highlighted_input.block), highlighted_input.input, b_input_nested_block); # if there's a block in the input we want it so we can render a custom border around it if highlighted
+    if t_shape == "stack" or t_shape == "c" {
+        if tmp_input_ranking[1].dist <= 35 {
+            InputRank highlighted_conn = tmp_input_ranking[1];
+        } else {
+            InputRank highlighted_conn = InputRank {};
+        }
     } else {
-        InputRank highlighted_input = InputRank {};
-        highlighted_input_nested_block = "";
+        if tmp_input_ranking[1].dist <= 20 {
+            InputRank highlighted_input = tmp_input_ranking[1];
+            highlighted_input_nested_block = get_block_idx_input(b_idx(highlighted_input.block), highlighted_input.input, b_input_nested_block); # if there's a block in the input we want it so we can render a custom border around it if highlighted
+        } else {
+            InputRank highlighted_input = InputRank {};
+            highlighted_input_nested_block = "";
+        }
     }
 
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
@@ -183,6 +211,12 @@ proc check_dragged_block bIdx {
     if (b_input1_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input1_nested_block($bIdx));}
     if (b_input2_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input2_nested_block($bIdx));}
     if (b_input3_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input3_nested_block($bIdx));}
+    if (b_slot_1_nested_block($bIdx) > "") {check_dragged_block b_idx(b_slot_1_nested_block($bIdx));}
+    if (b_slot_2_nested_block($bIdx) > "") {check_dragged_block b_idx(b_slot_2_nested_block($bIdx));}
+
+    if b_next($bIdx) {
+        check_dragged_block b_idx(b_next($bIdx));
+    }
 }
 
 proc init_blocks {
@@ -401,6 +435,58 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     }
 }
 
+proc connect_stack_block prevID, childID, location {
+    if $location == 1 {
+        local prevIdx = b_idx($prevID);
+        local childIdx = b_idx($childID);
+        local stack_height = measure_stack_height($childID);
+        local x_change = b_x(prevIdx) - b_x(childIdx);
+        local y_change = b_y(prevIdx) - b_height(prevIdx) - b_y(childIdx);
+        move_block_position childIdx, x_change, y_change;
+        inserting_in_middle = false;
+
+        b_previous(childIdx) = $prevID;
+        # b_next(childIdx) = b_next(prevIdx);
+        if b_next(prevIdx) > "" { # putting it in the middle of a stack
+            local last = b_idx(get_stack_bottom($childID));
+            b_next(childIdx) = b_next(prevIdx);
+            # b_previous(b_idx(b_next(childIdx))) = $childID;
+            # we need to set the next block in the place we're inserting
+            # to have the bottom block in our dragged stack as a previous
+            log "last " & b_id(last);
+            b_next(last) = b_next(prevIdx);
+            b_previous(b_idx(b_next(last))) = b_id(last);
+            inserting_in_middle = true;
+        }
+        b_next(prevIdx) = $childID;
+        b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
+        update_stack_parents $childID;
+
+        # if inserted in the middle of a stack, we need to move the blocks beneath us down
+        if inserting_in_middle {
+            log "moving lower stack down";
+            move_block_position b_idx(b_next(childIdx)), 0, -stack_height;
+        }
+        propagate_size_change b_parent(childIdx);
+    }
+}
+
+proc update_stack_parents startID {
+    # when connecting or disconnecting a stack of blocks,
+    # we need to update the block's parent
+    # start on the block after the current one
+    # local idx = b_next(b_idx($startID));
+    local idx = b_idx($startID);
+    local stop = false;
+    log "starting parent updates: idx " & idx;
+    until stop {
+        log "updating: idx " & idx;
+        b_parent(idx) = b_parent(b_idx(b_previous(idx)));
+        stop = b_next(idx) == "";
+        idx = b_idx(b_next(idx));
+    }
+}
+
 proc move_script_to_front blockIdx {
     local id = get_script_root($blockIdx);
     delete roots[id in roots]; # when a block is disconnected it's moved to the front
@@ -427,6 +513,7 @@ proc disconnect_block blockID, shift=false {
         b_next(prevIdx) = "";
         b_previous(blockIdx) = "";
         b_parent(blockIdx) = "";
+        update_stack_parents b_next(blockIdx);
         # b_next(blockIdx) = ""; # do this if you want to pick out this one stack block
         # b_previous(b_idx(b_next(blockIdx)));
     } else {
@@ -745,6 +832,17 @@ func measure_stack_height(startID) {
         idx = b_idx(b_next(idx));
     }
     return total_height;
+}
+
+func get_stack_bottom(startID) {
+    local idx = b_idx($startID);
+    # if there's only one block, we might want to stop immediately
+    local end_reached = b_next(idx) == "";
+    until end_reached {
+        idx = b_idx(b_next(idx));
+        end_reached = b_next(idx) == "";
+    }
+    return b_id(idx);
 }
 
 proc set_block_input blockID, inputNum, key, val {
