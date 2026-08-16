@@ -446,11 +446,13 @@ proc connect_stack_block prevID, childID, location {
         inserting_in_middle = false;
 
         b_previous(childIdx) = $prevID;
-        # b_next(childIdx) = b_next(prevIdx);
-        if b_next(prevIdx) > "" { # putting it in the middle of a stack
+
+        # putting it in the middle of a stack
+        # if the previous block start's out with a next,
+        # we know there must be something after it
+        if b_next(prevIdx) > "" {
             local last = b_idx(get_stack_bottom($childID));
-            b_next(childIdx) = b_next(prevIdx);
-            # b_previous(b_idx(b_next(childIdx))) = $childID;
+            local lastID = b_id(last);
             # we need to set the next block in the place we're inserting
             # to have the bottom block in our dragged stack as a previous
             log "last " & b_id(last);
@@ -465,7 +467,7 @@ proc connect_stack_block prevID, childID, location {
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
-            move_block_position b_idx(b_next(childIdx)), 0, -stack_height;
+            move_block_position b_idx(b_next(last)), 0, -stack_height;
         }
         propagate_size_change b_parent(childIdx);
     }
