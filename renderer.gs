@@ -406,8 +406,6 @@ proc draw_block color, width, height, x, y, shape, border_color, is_highlighted 
 
 proc render_c_block x, y, width, height, slot_count, prong_1_height, prong_2_height, prong_3_height=0, prong_2_style="normal", prong_3_style="normal", end_style="normal", slot_1_height, slot_2_height=0, color, border_color {
     set_pen_color $color;
-    c_x_offset = 8;
-    inner_offset = 8;
     local prong2y = $y - $prong_1_height - $slot_1_height;
     local prong3y = $y - $prong_1_height - $slot_1_height - $prong_2_height - $slot_2_height;
 
