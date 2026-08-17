@@ -24,12 +24,6 @@ on "render_blocks" {
     # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
 
-struct InputRank {
-    dist,
-    block,
-    input # input id in block
-}
-
 list queue;
 list visited;
 
@@ -177,8 +171,7 @@ proc render_one_block blockID, blockIdx {
                 render_text_label
                     blocks[offset + 1],
                     (b_y(i) - (b_prong_1_height(i) / 2)) + 4,
-                    blocks[offset],
-                    scale;
+                    blocks[offset];
             }
             counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
         }
@@ -187,8 +180,7 @@ proc render_one_block blockID, blockIdx {
             render_text_label
                 b_label3_x(i),
                 (b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - (c_block_prong_height / 2)) + 3,
-                b_label3_text(i),
-                scale;
+                b_label3_text(i);
         }
 
         if b_input1_x(i) > "" and b_input1_nested_block(i) == "" {
@@ -199,7 +191,6 @@ proc render_one_block blockID, blockIdx {
                 b_input1_height(i),
                 b_input1_text(i),
                 b_input1_shape(i),
-                scale,
                 colors[b_category(i) + 1],
                 is_highlighted: h_i.block == $blockID and h_i.input == 1;
         }
@@ -218,7 +209,6 @@ proc render_one_block blockID, blockIdx {
             b_x(i),
             b_y(i),
             b_shape(i),
-            scale,
             colors[b_category(i) + 1],
             is_highlighted: h_i.block == b_parent(i) and "editor"."highlighted_input_nested_block" == $blockID;
 
@@ -229,8 +219,7 @@ proc render_one_block blockID, blockIdx {
                 render_text_label
                     blocks[offset + 1],
                     (b_y(i) - (b_height(i) / 2)) + 4,
-                    blocks[offset],
-                    scale;
+                    blocks[offset];
             }
             counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
         }
@@ -250,7 +239,6 @@ proc render_one_block blockID, blockIdx {
                     blocks[offset + b_input_height],
                     blocks[offset + b_input_text],
                     blocks[offset + b_input_shape],
-                    scale,
                     colors[b_category(i) + 1],
                     is_highlighted: h_i.block == $blockID and h_i.input == inputNum;
             }
@@ -290,7 +278,7 @@ proc plain_text x, y, size, text, align {
     }
 }
 
-proc draw_block color, width, height, x, y, shape, scale, border_color, is_highlighted {
+proc draw_block color, width, height, x, y, shape, border_color, is_highlighted {
     if $shape == "stack" {
         set_pen_color $color;
         fill_rect $x + 2, $x + 7, $y - $height, $y, 1;
@@ -384,9 +372,9 @@ proc draw_block color, width, height, x, y, shape, scale, border_color, is_highl
     elif $shape == "boolean" {
         set_pen_color $color;
         local seg_amount = $height / 2;
-        tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y * scale, 1;
+        tri_fill $x + seg_amount, $y - $height, $x, $y - seg_amount, $x + seg_amount, $y, 1;
         fill_rect $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 1;
-        tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x * scale + $width - seg_amount, $y * scale, 1;
+        tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x + $width - seg_amount, $y, 1;
         
         goto $x + seg_amount, $y - $height - 1;
         set_pen_size 1;
@@ -615,12 +603,12 @@ proc render_c_block x, y, width, height, slot_count, prong_1_height, prong_2_hei
 
 }
 
-proc render_text_label x, y, text, scale {
+proc render_text_label x, y, text {
     set_pen_color "#ffffff";
     print $x, ($y) - 7, 1, $text;
 }
 
-proc render_input x, y, width, height, text, shape, scale, color, is_highlighted {
+proc render_input x, y, width, height, text, shape, color, is_highlighted {
     if $shape == "reporter" {
         if $is_highlighted {
             set_pen_color "#ffffff";

@@ -57,12 +57,6 @@ on "render_loop" {
     }
 }
 
-struct InputRank {
-    dist="",
-    block="",
-    input="" # input id in block
-}
-
 list InputRank tmp_input_ranking;
 list block_scripts;
 
@@ -76,7 +70,7 @@ nowarp proc handle_input {
     wait_until(mouse_down());
     mx = mouse_x() - SCROLL_X;
     my = mouse_y() - SCROLL_Y;
-    hovered_block = find_hovered_block(mx, my, scale);
+    hovered_block = find_hovered_block(mx, my);
     if hovered_block > 0 {
         dragged_block = hovered_block;
         dragged_block_idx = b_idx(dragged_block);
@@ -240,7 +234,7 @@ proc init_blocks {
     }
 }
 
-func find_hovered_block(x, y, scale, ignoreIdx=0) {
+func find_hovered_block(x, y, ignoreIdx=0) {
     local Point p = Point {x: $x, y: $y};
 
     delete block_scripts;
