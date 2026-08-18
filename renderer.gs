@@ -16,6 +16,7 @@ list colors = [
     "#ff661a", "#e64d00",
     "#ff6680", "#ff3355",
     "#0fbd8c", "#0b8e69",
+    "#c7c7c7", "#c7c7c7",
 ];
 
 on "render_blocks" {
@@ -28,76 +29,6 @@ list queue;
 list visited;
 
 proc render_blocks {
-    # render_c_block
-    #     x: 10,
-    #     y: 165,
-    #     width: 85,
-    #     height: 105,
-    #     slot_count: 2,
-    #     prong_1_height: 21,
-    #     prong_2_height: 15,
-    #     prong_3_height: 15,
-    #     prong_2_style: "normal",
-    #     prong_3_style: "normal",
-    #     end_style: "normal",
-    #     slot_1_height: 42,
-    #     slot_2_height: 12,
-    #     color: colors[Category.Control],
-    #     border_color: colors[Category.Control + 1];
-    # render_text_label 14, 158, "if", 1;
-    # render_input 31, 161, 18, 12, "", "boolean", 1, colors[Category.Control + 1], false;
-    # render_text_label 56, 158, "then", 1;
-    # render_text_label 14, 98, "else", 1;
-
-    # render_c_block
-    #     x: 10,
-    #     y: 45,
-    #     width: 85,
-    #     height: 48,
-    #     slot_count: 1,
-    #     prong_1_height: 21,
-    #     prong_2_height: 15,
-    #     prong_2_style: "cap",
-    #     end_style: "normal",
-    #     slot_1_height: 12,
-    #     color: colors[Category.Control],
-    #     border_color: colors[Category.Control + 1];
-    # render_text_label 14, 38, "if", 1;
-    # render_input 31, 41, 18, 12, "", "boolean", 1, colors[Category.Control + 1], false;
-    # render_text_label 56, 38, "then", 1;
-
-    # render_c_block
-    #     x: 120,
-    #     y: 135,
-    #     width: 85,
-    #     height: 48,
-    #     slot_count: 1,
-    #     prong_1_height: 21,
-    #     prong_2_height: 15,
-    #     prong_2_style: "normal",
-    #     end_style: "normal",
-    #     slot_1_height: 12,
-    #     color: colors[Category.Control],
-    #     border_color: colors[Category.Control + 1];
-    # render_text_label 124, 128, "repeat", 1;
-    # render_input 165, 131, 18, 12, "10", "reporter", 1, colors[Category.Control + 1], false;
-
-    # render_c_block
-    #     x: 120,
-    #     y: 66,
-    #     width: 85,
-    #     height: 48,
-    #     slot_count: 1,
-    #     prong_1_height: 21,
-    #     prong_2_height: 15,
-    #     prong_2_style: "normal",
-    #     end_style: "cap",
-    #     slot_1_height: 12,
-    #     color: colors[Category.Control],
-    #     border_color: colors[Category.Control + 1];
-    # render_text_label 124, 59, "forever", 1;
-
-
     # # render regular blocks
     max_nesting_level = 0;
     InputRank h_i = highlighted_input;

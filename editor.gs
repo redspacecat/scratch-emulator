@@ -39,6 +39,12 @@ struct Tri {
     y3
 }
 
+struct PreviewBlock {
+    id="",
+    input="",
+    previewID=""
+}
+
 onflag {
     erase_all;
     delete blocks;
@@ -94,6 +100,13 @@ nowarp proc handle_input {
             highlighted_input_nested_block = "";
         }
         if highlighted_conn.block > "" {
+            # if the preview placement block exists while we are
+            # trying to place the actual block, remove it
+            if h_c_placement.previewID > "" {
+                delete_block h_c_placement.previewID, true;
+            }
+            PreviewBlock h_c_placement = PreviewBlock {};
+
             connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
             move_script_to_front b_idx(highlighted_conn.block);
             highlighted_conn = InputRank {};
@@ -123,66 +136,69 @@ proc handle_drag {
     delete tmp_input_ranking;
     local i = 1;
     repeat length blocks / BLOCK_LENGTH {
-        if not (b_id(i) in dragged_blocks) { # avoid blocks we're currently holding
-            if t_shape == "stack" or t_shape == "c" {
-                # stack block, try to find valid places to connect it
-                local target_height = b_height(i);
-                if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
-                    local s = b_shape(i);
-                    if s == "stack" or s == "c" {
-                        add InputRank {
-                            dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
-                            block: b_id(i), 
-                            input: 1 # bottom of block
-                        } to tmp_input_ranking;
-
-                        if b_parent(i) == "" and b_previous(i) == "" {
-                            add InputRank {
-                                dist: DIST(t_x, t_y - b_height(dragged_block_idx), b_x(i), b_y(i)),
-                                block: b_id(i), 
-                                input: 0 # top of block
-                            } to tmp_input_ranking;
-                        }
-                    }
-                    if b_shape(i) == "c" {
-                        add InputRank {
-                            dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
-                            block: b_id(i), 
-                            input: 2 # top slot of c block
-                        } to tmp_input_ranking;
-                        if b_slot_count(i) > 1 {
-                            add InputRank {
-                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
-                                block: b_id(i), 
-                                input: 3 # bottom slot of c block
-                            } to tmp_input_ranking;
-                        }
-                    }
-                }
-            } else {
-                # try to put the block in an input
-                if b_shape(i) == "c" {
-                    local target_height = b_prong_1_height(i);
-                } else {
+        if blocks[i] > "" {
+            if b_id(i) not in dragged_blocks and b_id(i) != h_c_placement.previewID { # avoid blocks we're currently holding and the preview placement block
+                if t_shape == "stack" or t_shape == "c" {
+                    # stack block, try to find valid places to connect it
                     local target_height = b_height(i);
-                }
-                local counter = 0;
-                local inputNum = 1;
-                repeat 3 {
-                    local offset = i + b_inputs + counter;
-                    if blocks[offset + b_input_shape] > "" {
-                        if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
-                            if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
+                    if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
+                        local s = b_shape(i);
+                        if s == "stack" or s == "c" {
+                            add InputRank {
+                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
+                                block: b_id(i), 
+                                input: 1 # bottom of block
+                            } to tmp_input_ranking;
+
+                            # disabled top of block connections for now, finish full implementation later
+                            # if b_parent(i) == "" and b_previous(i) == "" {
+                            #     add InputRank {
+                            #         dist: DIST(t_x, t_y - b_height(dragged_block_idx), b_x(i), b_y(i)),
+                            #         block: b_id(i), 
+                            #         input: 0 # top of block
+                            #     } to tmp_input_ranking;
+                            # }
+                        }
+                        if b_shape(i) == "c" {
+                            add InputRank {
+                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
+                                block: b_id(i), 
+                                input: 2 # top slot of c block
+                            } to tmp_input_ranking;
+                            if b_slot_count(i) > 1 {
                                 add InputRank {
-                                    dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
+                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
                                     block: b_id(i), 
-                                    input: inputNum
+                                    input: 3 # bottom slot of c block
                                 } to tmp_input_ranking;
                             }
                         }
                     }
-                    counter += INPUT_LENGTH;
-                    inputNum++;
+                } else {
+                    # try to put the block in an input
+                    if b_shape(i) == "c" {
+                        local target_height = b_prong_1_height(i);
+                    } else {
+                        local target_height = b_height(i);
+                    }
+                    local counter = 0;
+                    local inputNum = 1;
+                    repeat 3 {
+                        local offset = i + b_inputs + counter;
+                        if blocks[offset + b_input_shape] > "" {
+                            if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
+                                if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
+                                    add InputRank {
+                                        dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
+                                        block: b_id(i), 
+                                        input: inputNum
+                                    } to tmp_input_ranking;
+                                }
+                            }
+                        }
+                        counter += INPUT_LENGTH;
+                        inputNum++;
+                    }
                 }
             }
         }
@@ -192,10 +208,42 @@ proc handle_drag {
     INSERTION_SORT_BY_FIELD(InputRank, tmp_input_ranking, .dist);
 
     if t_shape == "stack" or t_shape == "c" {
-        if tmp_input_ranking[1].dist <= 35 {
+        if length tmp_input_ranking > 0 and tmp_input_ranking[1].dist <= 35 {
             InputRank highlighted_conn = tmp_input_ranking[1];
+            # if the placement preview is not yet created, or the possible location
+            # has since changed, delete and recreate the block to update it
+            if h_c_placement.id == "" or h_c_placement.id != tmp_input_ranking[1].block or h_c_placement.input != tmp_input_ranking[1].input {
+                log "updating placement preview";
+                # delete old placement first
+                if h_c_placement.previewID > "" {
+                    delete_block h_c_placement.previewID, true;
+                }
+                add_block
+                    shape: b_shape(dragged_block_idx),
+                    category: Category.Preview,
+                    x: 0,
+                    y: 0,
+                    width: b_width(dragged_block_idx),
+                    height: b_height(dragged_block_idx),
+                    slot_count: b_slot_count(dragged_block_idx),
+                    prong_1_height: b_prong_1_height(dragged_block_idx),
+                    prong_2_style: b_prong_2_style(dragged_block_idx),
+                    prong_3_style: b_prong_3_style(dragged_block_idx),
+                    end_style: b_end_style(dragged_block_idx);
+                PreviewBlock h_c_placement = PreviewBlock {previewID: length blocks / BLOCK_LENGTH, id: highlighted_conn.block, input: highlighted_conn.input};
+                update_block_dimensions h_c_placement.previewID, update_preview: true;
+                log b_width(dragged_block_idx);
+                b_width(b_idx(h_c_placement.previewID)) = b_width(dragged_block_idx);
+                log highlighted_conn.block & " - " & h_c_placement.previewID;
+                connect_stack_block connectID: highlighted_conn.block, childID: h_c_placement.previewID, location: highlighted_conn.input;
+                propagate_size_change h_c_placement.previewID;
+            }
         } else {
             InputRank highlighted_conn = InputRank {};
+            if h_c_placement.previewID > "" {
+                delete_block h_c_placement.previewID, true;
+            }
+            PreviewBlock h_c_placement = PreviewBlock {};
         }
     } else {
         if tmp_input_ranking[1].dist <= 20 {
@@ -208,6 +256,44 @@ proc handle_drag {
     }
 
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
+}
+
+proc delete_block id, remove_items=false { # currently doesn't delete nested blocks
+    local blockIdx = b_idx($id);
+    local parentIdx = b_idx(b_parent(blockIdx));
+    if b_nesting_level(blockIdx) == 0 {
+        if b_previous(blockIdx) > "" {
+            b_next(b_idx(b_previous(blockIdx))) = b_next(blockIdx);
+        } else {
+            if b_slot_1_nested_block(parentIdx) == $id {
+                b_slot_1_nested_block(parentIdx) = b_next(blockIdx);
+            }
+            if b_slot_2_nested_block(parentIdx) == $id {
+                b_slot_2_nested_block(parentIdx) = b_next(blockIdx);
+            }
+        }
+        if b_next(blockIdx) > "" {
+            b_previous(b_idx(b_next(blockIdx))) = b_previous(blockIdx);
+            move_block_position b_idx(b_next(blockIdx)), 0, b_height(blockIdx);
+        }
+    }
+    if $remove_items {
+        repeat BLOCK_LENGTH {
+            delete blocks[blockIdx];
+        }
+    } else {
+        local i = blockIdx;
+        repeat BLOCK_LENGTH {
+            blocks[i] = "";
+            i++;
+        }
+    }
+    if parentIdx > "" {
+        propagate_size_change b_id(parentIdx);
+    }
+    if $id in roots {
+        delete roots[$id in roots];
+    }
 }
 
 func is_input_valid(sourceShape, targetShape) {
@@ -255,8 +341,10 @@ proc init_blocks {
 
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
-        update_block_dimensions i, false; # we need to not move c block's inputs before the block is sized correctly
-        i++;
+        if blocks[i] > "" {
+            update_block_dimensions b_id(i), false; # we need to not move c block's inputs before the block is sized correctly
+        }
+        i += BLOCK_LENGTH;
     }
 }
 
@@ -266,7 +354,11 @@ func find_hovered_block(x, y, ignoreIdx=0) {
     delete block_scripts;
     local i = 1;
     repeat length blocks / BLOCK_LENGTH {
-        add get_script_root(i) to block_scripts;
+        if blocks[i] > "" {
+            add get_script_root(i) to block_scripts;
+        } else {
+            add "" to block_scripts;
+        }
         i += BLOCK_LENGTH;
     }
 
@@ -277,41 +369,43 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         until nesting_level == -1 {
             local i = 1;
             repeat length blocks / BLOCK_LENGTH {
-                if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
-                    local shape = b_shape(i);
-                    local x = b_x(i);
-                    local y = b_y(i);
-                    local width = b_width(i);
-                    local height = b_height(i);
+                if blocks[i] > "" {
+                    if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
+                        local shape = b_shape(i);
+                        local x = b_x(i);
+                        local y = b_y(i);
+                        local width = b_width(i);
+                        local height = b_height(i);
 
-                    if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
-                        if shape == "reporter" {
-                            local radius = height / 2;
-                            if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
-                            point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
-                            point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                                return b_id(i);
-                            }
-                        } elif shape == "boolean" {
-                            local seg_l = height / 2; # segment length
-                            if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
-                            point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
-                            point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                                return b_id(i);
-                            }
-                        } elif shape == "stack" {
-                            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                            point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-                            point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
-                                return b_id(i);
-                            }
-                        } elif shape == "c" {
-                            local midy = y - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height;
-                            if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: y - b_prong_1_height(i), y2: y}) or 
-                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
-                            point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy - b_slot_2_height(i) - c_block_prong_height, y2: midy - b_slot_2_height(i)}) * (b_slot_count(i) > 1){
-                                return b_id(i);
+                        if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
+                            if shape == "reporter" {
+                                local radius = height / 2;
+                                if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+                                point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+                                point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                                    return b_id(i);
+                                }
+                            } elif shape == "boolean" {
+                                local seg_l = height / 2; # segment length
+                                if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+                                point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+                                point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                                    return b_id(i);
+                                }
+                            } elif shape == "stack" {
+                                if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                                point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+                                point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
+                                    return b_id(i);
+                                }
+                            } elif shape == "c" {
+                                local midy = y - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height;
+                                if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: y - b_prong_1_height(i), y2: y}) or 
+                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
+                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy - b_slot_2_height(i) - c_block_prong_height, y2: midy - b_slot_2_height(i)}) * (b_slot_count(i) > 1){
+                                    return b_id(i);
+                                }
                             }
                         }
                     }
@@ -460,6 +554,10 @@ proc connect_stack_block connectID, childID, location {
     local parentIdx = b_idx($connectID);
     local childIdx = b_idx($childID);
     local stack_height = measure_stack_height($childID);
+
+    if $childID in roots {
+        delete roots[$childID in roots];
+    }
 
     # location determines where the placement goes
     # 0 = top of stack block
@@ -620,6 +718,12 @@ proc move_script_to_front blockIdx {
     add id to roots;
 }
 
+proc move_script_to_back blockIdx {
+    local id = get_script_root($blockIdx);
+    delete roots[id in roots]; # when a block is disconnected it's moved to the front
+    insert id at roots[1];
+}
+
 func get_script_root(blockIdx) {
     local idx = $blockIdx;
     until b_parent(idx) == "" {
@@ -733,13 +837,18 @@ struct TMPInput {
 }
 
 list TMPInput tmp_item_order;
-proc update_block_dimensions blockID, should_move_c_inputs=true {
+proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=false {
     # order text + inputs by x, left -> right
     # get width of each item, keeping track of a cumulative x position and adding padding
     # if input is a block, include that width
     # block height = tallest input + 2px padding top and bottom
     # update positions of items as needed
     # update total block with when done
+
+    if $blockID == h_c_placement.previewID and $update_preview == false {
+        stop_this_script;
+    }
+
     delete tmp_item_order;
     local blockIdx = b_idx($blockID);
     local bshape = b_shape(blockIdx);

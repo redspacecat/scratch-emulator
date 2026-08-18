@@ -23,7 +23,8 @@ enum Category {
     Variables=15,
     Lists=17,
     CustomBlocks=19,
-    Extensions=21
+    Extensions=21,
+    Preview=23
 }
 
 %define BLOCK_LENGTH 43
