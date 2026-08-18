@@ -1,53 +1,10 @@
 {
     "version": "2.0.0",
     "tasks": [
-        {
-			"label": "post-process",
-			"type": "shell",
-			"command": "python",
-			"args": [
-				"post-processing/main.py",
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": false
-			},
-            "presentation": {
-                "reveal": "silent",
-                "revealProblems": "onProblem",
-				"panel": "dedicated",
-            },
-			"problemMatcher": {
-				"pattern": {
-					"regexp": "."
-				},
-				"background": {
-					"activeOnStart": true,
-					"beginsPattern": "^.*$",
-					"endsPattern": "saved" 
-				}
-			}
-		},
-        {
-			"label": "Build (post-process)",
-			"dependsOrder": "sequence",
-			"dependsOn": [
-				"goboscript: goboscript-build",
-				"post-process"
-			],
-			"group": {
-				"kind": "build",
-				"isDefault": false
-			}
-		},
 		{
-			"label": "goboscript: build project",
+			"label": "goboscript: build project (full)",
 			"type": "shell",
-			"command": "goboscript",
-			"args": [
-				"build",
-				"-o", "Scratch Emulator.sb3"
-			],
+			"command": "goboscript build -o 'Scratch Emulator.sb3' ; if ($?) { python post-processing/renamer.py }",
 			"group": {
 				"kind": "build",
 				"isDefault": true
