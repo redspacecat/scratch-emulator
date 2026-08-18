@@ -117,7 +117,7 @@ nowarp proc handle_input {
     }
 }
 
-proc handle_drag {
+proc handle_drag no_recurse=false {
     start_time = days_since_2000();
 
     mx = mouse_x() - SCROLL_X;
@@ -232,18 +232,28 @@ proc handle_drag {
                     end_style: b_end_style(dragged_block_idx);
                 PreviewBlock h_c_placement = PreviewBlock {previewID: length blocks / BLOCK_LENGTH, id: highlighted_conn.block, input: highlighted_conn.input};
                 update_block_dimensions h_c_placement.previewID, update_preview: true;
-                log b_width(dragged_block_idx);
+                # log b_width(dragged_block_idx);
                 b_width(b_idx(h_c_placement.previewID)) = b_width(dragged_block_idx);
-                log highlighted_conn.block & " - " & h_c_placement.previewID;
+                # log highlighted_conn.block & " - " & h_c_placement.previewID;
                 connect_stack_block connectID: highlighted_conn.block, childID: h_c_placement.previewID, location: highlighted_conn.input;
                 propagate_size_change h_c_placement.previewID;
             }
         } else {
+            if $no_recurse {
+                stop_this_script;
+            }
             InputRank highlighted_conn = InputRank {};
             if h_c_placement.previewID > "" {
                 delete_block h_c_placement.previewID, true;
+                PreviewBlock h_c_placement = PreviewBlock {};
+                
+                # after the block gets out range, we call the function again to recreate
+                # the placement preview on the same frame, so there's no visual jump
+                # since after getting rid of the old block it might've changed in a such
+                # a way that there's a new valid placement position
+                handle_drag no_recurse: true;
             }
-            PreviewBlock h_c_placement = PreviewBlock {};
+
         }
     } else {
         if tmp_input_ranking[1].dist <= 20 {
@@ -1110,7 +1120,7 @@ proc move_block_position bIdx, x_change, y_change, moveStack=true {
     if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
-    log "shifting " + b_slot_1_nested_block($bIdx);
+    # log "shifting " & b_slot_1_nested_block($bIdx);
     if (b_slot_1_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_slot_2_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_2_nested_block($bIdx)), $x_change, $y_change;}
 
