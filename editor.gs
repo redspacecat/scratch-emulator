@@ -49,9 +49,14 @@ onflag {
     erase_all;
     delete blocks;
     delete roots;
+    delete dragged_blocks;
     init_blocks;
     dragged_block = 0;
     highest_nesting_level = 0;
+    highlight_lightly = false;
+    InputRank highlighted_input = InputRank {};
+    InputRank highlighted_conn = InputRank {};
+    PreviewBlock h_c_placement = PreviewBlock {};
     broadcast "render_loop";
     broadcast "input_loop";
 }
@@ -78,42 +83,71 @@ nowarp proc handle_input {
     my = mouse_y() - SCROLL_Y;
     hovered_block = find_hovered_block(mx, my);
     if hovered_block > 0 {
-        dragged_block = hovered_block;
-        dragged_block_idx = b_idx(dragged_block);
-        drag_offset_x = mx - b_x(dragged_block_idx);
-        drag_offset_y = my - b_y(dragged_block_idx);
-        disconnect_block dragged_block;
-        find_dragged_blocks dragged_block_idx;
-        until not mouse_down() {
-            handle_drag;
-        }
-        if highlighted_input.block > "" {
-            if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
-                # if there's a currently embedded block, we need to disconnect it
-                # to get rid of its parent reference
-                disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+        wait_until((not mouse_down()) or abs(mouse_x() - SCROLL_X - mx) > 2 or abs(mouse_y() - SCROLL_Y - my) > 2);
+        if not mouse_down() {
+            hovered_input = find_hovered_input(mx, my, hovered_block);
+            if hovered_input > "" {
+                # hovered input, prompt to replace text
+                highlight_lightly = true;
+                InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
+                ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
+                local something_inputted = false;
+                if answer() == "" {
+                    ask "Do you want to set this input to an empty string? (y)";
+                    if "y" in answer() {
+                        inputted_text = "";
+                        something_inputted = true;
+                    }
+                } else {
+                    inputted_text = answer();
+                    something_inputted = true;
+                }
+                if something_inputted {
+                    set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
+                }
+                InputRank highlighted_input = InputRank {};
+                highlight_lightly = false;
+                propagate_size_change hovered_block;
             }
-            put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
-            # when a block is put into an input, it brings that script to the front
-            move_script_to_front b_idx(highlighted_input.block);
-            highlighted_input = InputRank {};
-            highlighted_input_nested_block = "";
-        }
-        if highlighted_conn.block > "" {
-            # if the preview placement block exists while we are
-            # trying to place the actual block, remove it
-            if h_c_placement.previewID > "" {
-                delete_block h_c_placement.previewID, true;
+        } else {
+            # dragging block
+            dragged_block = hovered_block;
+            dragged_block_idx = b_idx(dragged_block);
+            drag_offset_x = mx - b_x(dragged_block_idx);
+            drag_offset_y = my - b_y(dragged_block_idx);
+            disconnect_block dragged_block;
+            find_dragged_blocks dragged_block_idx;
+            while(mouse_down()) {
+                handle_drag;
             }
-            PreviewBlock h_c_placement = PreviewBlock {};
+            if highlighted_input.block > "" {
+                if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
+                    # if there's a currently embedded block, we need to disconnect it
+                    # to get rid of its parent reference
+                    disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+                }
+                put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
+                # when a block is put into an input, it brings that script to the front
+                move_script_to_front b_idx(highlighted_input.block);
+                highlighted_input = InputRank {};
+                highlighted_input_nested_block = "";
+            }
+            if highlighted_conn.block > "" {
+                # if the preview placement block exists while we are
+                # trying to place the actual block, remove it
+                if h_c_placement.previewID > "" {
+                    delete_block h_c_placement.previewID, true;
+                }
+                PreviewBlock h_c_placement = PreviewBlock {};
 
-            connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
-            move_script_to_front b_idx(highlighted_conn.block);
-            highlighted_conn = InputRank {};
+                connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
+                move_script_to_front b_idx(highlighted_conn.block);
+                highlighted_conn = InputRank {};
+            }
+            dragged_block = 0;
+            dragged_block_idx = 0;
+            delete dragged_blocks;
         }
-        dragged_block = 0;
-        dragged_block_idx = 0;
-        delete dragged_blocks;
     }
 }
 
@@ -430,6 +464,48 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         j--;
     }
     return 0;
+}
+
+func find_hovered_input(x, y, id) {
+    local Point p = Point {x: $x, y: $y};
+
+    local counter = 0;
+    local inputNum = 1;
+    local idx = b_idx($id);
+    repeat 3 {
+        local offset = idx + b_inputs + counter;
+        # checks if inputs[shape] > "", if so valid input
+        # also check that there's not a nested block inside
+        # if so, it's no editable so we can ignore it
+        log "checking input " & inputNum;
+        if (blocks[offset + b_input_shape] > "" and blocks[offset + b_input_nested_block] == "") {
+            log "valid input " & inputNum;
+            local shape = blocks[offset + b_input_shape];
+            local x = blocks[offset + b_input_x];
+            if b_shape(idx) == "c" {
+                local bheight = b_prong_1_height(idx);
+            } else {
+                local bheight = b_height(idx);
+            }
+            local y = b_y(idx) - bheight / 2 + blocks[offset + b_input_height] / 2;
+            local width = blocks[offset + b_input_width];
+            local height = blocks[offset + b_input_height];
+            log shape & ", " & x & ", " & y & ", " & width & ", " & height;
+            if blocks[offset + b_input_shape] == "reporter" {
+                local radius = height / 2;
+                if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
+                point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
+                point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                    return inputNum;
+                }
+            }
+        }
+
+        counter += INPUT_LENGTH; # = number of properties in Input
+        inputNum++;
+    }
+
+    return "";
 }
 
 func point_in_rect(Point p, Rect rect) {

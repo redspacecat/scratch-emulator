@@ -38,6 +38,7 @@ enum Category {
 %define inner_offset 8
 
 %define wait_until(x) until x {}
+%define while(x) until not x
 
 %define b_shape(i) blocks[i]
 %define b_category(i) blocks[i+1]

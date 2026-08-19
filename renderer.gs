@@ -16,7 +16,7 @@ list colors = [
     "#ff661a", "#e64d00",
     "#ff6680", "#ff3355",
     "#0fbd8c", "#0b8e69",
-    "#c7c7c7", "#c7c7c7",
+    "#d6d6d6", "#d6d6d6",
 ];
 
 on "render_blocks" {
@@ -541,6 +541,9 @@ proc render_input x, y, width, height, text, shape, color, is_highlighted {
     if $shape == "reporter" {
         if $is_highlighted {
             set_pen_color "#ffffff";
+            if "editor"."highlight_lightly" {
+                set_pen_transparency 50;
+            }
             pen_size = $height + 6;
             set_pen_size 0;
             goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
@@ -548,6 +551,8 @@ proc render_input x, y, width, height, text, shape, color, is_highlighted {
             set_pen_size pen_size;
             change_x $width - pen_size + 6;
             pen_up;
+
+            set_pen_transparency 0;
         }
         set_pen_color $color;
         pen_size = $height + 2;
