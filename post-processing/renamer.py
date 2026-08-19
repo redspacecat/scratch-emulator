@@ -5,6 +5,7 @@ import zipfile
 import os
 import tempfile
 import shutil
+import re
 from pathlib import Path
 
 class ScratchProjectEditor:
@@ -17,17 +18,81 @@ class ScratchProjectEditor:
     def __enter__(self):
         return self
 
-    def _format_identifier(self, name: str, is_var_or_list: bool = False) -> str:
+    def _format_identifier(self, name: str, is_var_or_list: bool = False, preserve_colon: bool = False) -> str:
         if not isinstance(name, str):
             return name
+        
+        def _decamelize(match):
+            char1 = match.group(1)
+            char2 = match.group(2)
+            if match.end(2) < len(name):
+                if name[match.end(2)].islower():
+                    return char1 + " " + char2.lower()
+                else:
+                    return char1 + " " + char2
+            else:
+                return char1 + " " + char2.lower()
+
+        name = re.sub(r'([a-z])([A-Z])', _decamelize, name)
+        
         if is_var_or_list:
-            name = name.replace(":", " - ").replace(".", " - ")
+            if re.match(r'^@\d+$', name):
+                return f"return val {name[1:]}"
+            if not preserve_colon:
+                name = name.replace(":", " - ")
+            name = name.replace(".", " - ")
         return name.replace("_", " ")
 
     def process_project(self):
         if "targets" not in self.project_data:
             return
 
+        # uild a map of custom block proccodes
+        proccode_map = {}
+        for target in self.project_data["targets"]:
+            if "blocks" in target and isinstance(target["blocks"], dict):
+                for block in target["blocks"].values():
+                    if not isinstance(block, dict):
+                        continue
+                    if "mutation" in block and isinstance(block["mutation"], dict):
+                        mutation = block["mutation"]
+                        if "proccode" in mutation and "argumentnames" in mutation:
+                            original_proccode = mutation["proccode"]
+                            
+                            arg_names = []
+                            if isinstance(mutation["argumentnames"], str):
+                                try:
+                                    parsed_args = json.loads(mutation["argumentnames"])
+                                    if isinstance(parsed_args, list):
+                                        arg_names = [self._format_identifier(name, is_var_or_list=True) for name in parsed_args]
+                                except json.JSONDecodeError:
+                                    pass
+
+                            proccode = self._format_identifier(original_proccode, is_var_or_list=True, preserve_colon=True)
+                            
+                            inserted_bar = False
+                            if len(arg_names) > 0:
+                                first_arg = arg_names[0]
+                                first_pct = proccode.find('%')
+                                if first_pct == -1:
+                                    first_pct = len(proccode)
+                                
+                                idx = proccode.rfind(first_arg, 0, first_pct)
+                                if idx != -1:
+                                    prefix = proccode[:idx].rstrip()
+                                    suffix = proccode[idx:]
+                                    if prefix:
+                                        proccode = prefix + " | " + suffix
+                                    else:
+                                        proccode = "| " + suffix
+                                    inserted_bar = True
+                            
+                            if not inserted_bar:
+                                proccode = re.sub(r'\s*(%[snb])', r' | \1', proccode, count=1)
+                                
+                            proccode_map[original_proccode] = proccode
+
+        # apply formatting rules to everything else
         for target in self.project_data["targets"]:
             # sprite names
             if "name" in target:
@@ -88,13 +153,17 @@ class ScratchProjectEditor:
                         mutation = block["mutation"]
                         
                         if "proccode" in mutation and isinstance(mutation["proccode"], str):
-                            mutation["proccode"] = self._format_identifier(mutation["proccode"])
+                            original_proccode = mutation["proccode"]
+                            if original_proccode in proccode_map:
+                                mutation["proccode"] = proccode_map[original_proccode]
+                            else:
+                                mutation["proccode"] = self._format_identifier(original_proccode, is_var_or_list=True, preserve_colon=True)
                         
                         if "argumentnames" in mutation and isinstance(mutation["argumentnames"], str):
                             try:
-                                arg_names = json.loads(mutation["argumentnames"])
-                                if isinstance(arg_names, list):
-                                    arg_names = [self._format_identifier(name, is_var_or_list=True) for name in arg_names]
+                                parsed_args = json.loads(mutation["argumentnames"])
+                                if isinstance(parsed_args, list):
+                                    arg_names = [self._format_identifier(name, is_var_or_list=True) for name in parsed_args]
                                     mutation["argumentnames"] = json.dumps(arg_names)
                             except json.JSONDecodeError:
                                 pass
