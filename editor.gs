@@ -579,6 +579,8 @@ proc add_block
     add $label3.text to blocks; add $label3.x to blocks;
 
     add $input1.shape to blocks;
+    add $input1.dropdown_shape to blocks;
+    add $input1.dropdown_list to blocks;
     add $input1.x to blocks;
     add $input1.width to blocks;
     add $input1.height to blocks;
@@ -586,6 +588,8 @@ proc add_block
     add $input1.nested_block to blocks;
 
     add $input2.shape to blocks;
+    add $input2.dropdown_shape to blocks;
+    add $input2.dropdown_list to blocks;
     add $input2.x to blocks;
     add $input2.width to blocks;
     add $input2.height to blocks;
@@ -593,6 +597,8 @@ proc add_block
     add $input2.nested_block to blocks;
 
     add $input3.shape to blocks;
+    add $input3.dropdown_shape to blocks;
+    add $input3.dropdown_list to blocks;
     add $input3.x to blocks;
     add $input3.width to blocks;
     add $input3.height to blocks;
