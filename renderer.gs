@@ -5,18 +5,18 @@ hide;
 %include std/math
 
 list colors = [
-    "#4c97ff", "#3373cc",
-    "#9966ff", "#774dcb",
-    "#cf63cf", "#bd42bd",
-    "#ffbf00", "#cc9900",
-    "#ffab19", "#cf8b17",
-    "#5cb1d6", "#2e8eb8",
-    "#59c059", "#389438",
-    "#ff8c1a", "#db6e00",
-    "#ff661a", "#e64d00",
-    "#ff6680", "#ff3355",
-    "#0fbd8c", "#0b8e69",
-    "#d6d6d6", "#d6d6d6",
+    "#4c97ff", "#3373cc", "#4280d7",
+    "#9966ff", "#774dcb", "#855cd6",
+    "#cf63cf", "#bd42bd", "#c94fc9",
+    "#ffbf00", "#cc9900", "#e6ac00",
+    "#ffab19", "#cf8b17", "#ec9c13",
+    "#5cb1d6", "#2e8eb8", "#3c9ec7",
+    "#59c059", "#389438", "#389438",
+    "#ff8c1a", "#db6e00", "#db6e00",
+    "#ff661a", "#e64d00", "#e64d00",
+    "#ff6680", "#ff3355", "#ff3355",
+    "#0fbd8c", "#0b8e69", "#0da57a",
+    "#d6d6d6", "#d6d6d6", "#d6d6d6",
 ];
 
 on "render_blocks" {
@@ -123,15 +123,10 @@ proc render_one_block blockID, blockIdx {
                 b_input1_text(i),
                 b_input1_shape(i),
                 colors[b_category(i) + 1],
-                is_highlighted: h_i.block == $blockID and h_i.input == 1;
+                is_highlighted: h_i.block == $blockID and h_i.input == 1,
+                dropdown_shape: b_input1_dropdown_shape(i),
+                dropdown_color: colors[b_category(i) + 2];
         }
-
-        # render_text_label 14, 158, "if", 1;
-        # render_input 31, 161, 18, 12, "", "boolean", 1, colors[Category.Control + 1], false;
-        # render_text_label 56, 158, "then", 1;
-        # render_text_label 14, 98, "else", 1;
-
-
     } else {
         draw_block
             colors[b_category(i)],
@@ -171,7 +166,9 @@ proc render_one_block blockID, blockIdx {
                     blocks[offset + b_input_text],
                     blocks[offset + b_input_shape],
                     colors[b_category(i) + 1],
-                    is_highlighted: h_i.block == $blockID and h_i.input == inputNum;
+                    is_highlighted: h_i.block == $blockID and h_i.input == inputNum,
+                    dropdown_shape: blocks[offset + b_input_dropdown_shape],
+                    dropdown_color: colors[b_category(i) + 2];
             }
             counter += INPUT_LENGTH; # = number of properties in Input
             inputNum++;
@@ -537,44 +534,116 @@ proc render_text_label x, y, text {
     print $x, ($y) - 7, 1, $text;
 }
 
-proc render_input x, y, width, height, text, shape, color, is_highlighted {
+proc render_input x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
     if $shape == "reporter" {
         if $is_highlighted {
-            set_pen_color "#ffffff";
-            if "editor"."highlight_lightly" {
-                set_pen_transparency 50;
+            # if dropdown shape is nothing or round, then we want to highlight if NOT editing an input (highlight_lightly)
+            # since when editing an input, for dropdowns it's rendered differently
+            # we also highlight it if dropdown shape is nothing and it's highlighted lightly,
+            # since that's just editing a regular text input
+            if ($dropdown_shape != "square" and not "editor"."highlight_lightly") or ($dropdown_shape == "" and "editor"."highlight_lightly") {
+                set_pen_color "#ffffff";
+                if "editor"."highlight_lightly" {
+                    set_pen_transparency 50;
+                }
+                pen_size = $height + 6;
+                set_pen_size 0;
+                goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
+                pen_down;
+                set_pen_size pen_size;
+                change_x $width - pen_size + 6;
+                pen_up;
+
+                set_pen_transparency 0;
+            } elif $dropdown_shape == "square" {
+                set_pen_color $color;
+                fill_rect $x + 1, $x + $width - 1, $y - $height - 1, $y + 1, 1;
             }
-            pen_size = $height + 6;
+        }
+        if $dropdown_shape != "square" {
+            set_pen_color $color;
+            pen_size = $height + 2;
             set_pen_size 0;
-            goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
+            goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
             pen_down;
             set_pen_size pen_size;
-            change_x $width - pen_size + 6;
+            change_x $width - pen_size + 2;
             pen_up;
 
-            set_pen_transparency 0;
+            if $dropdown_shape > "" {
+                set_pen_color $dropdown_color;
+            } else {
+                set_pen_color "#ffffff";
+            }
+            if (not $is_highlighted and $dropdown_shape == "round") or $dropdown_shape == "" {
+                pen_size = $height;
+                set_pen_size 0;
+                goto $x + pen_size / 2, $y - pen_size / 2;
+                pen_down;
+                set_pen_size pen_size;
+                change_x $width - pen_size;
+                pen_up;
+            }
+        } else {
+            local move_amount = 2 / 1.366; # amount to turn per spet
+
+            set_pen_size 1;
+            set_pen_color $color;
+
+            goto $x, $y - 1;
+            pen_down;
+            point_in_direction 0;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
+            goto $x + $width - 2, $y + 1;
+            point_in_direction 90;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
+            goto $x + $width, $y - $height + 0;
+            point_in_direction 180;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
+            goto $x + 2, $y - $height - 2;
+            point_in_direction 270;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
+            goto $x, $y - 2;
+            pen_up;
         }
-        set_pen_color $color;
-        pen_size = $height + 2;
-        set_pen_size 0;
-        goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
-        pen_down;
-        set_pen_size pen_size;
-        change_x $width - pen_size + 2;
-        pen_up;
 
-        pen_size = $height;
-        set_pen_size 0;
-        set_pen_color "#ffffff";
-        goto $x + pen_size / 2, $y - pen_size / 2;
-        pen_down;
-        set_pen_size pen_size;
-        change_x $width - pen_size;
-        pen_up;
+        if $dropdown_shape > "" {
+            pen_size = $height;
+            set_pen_color "#ffffff";
 
-        set_pen_color "#000000";
+            # dropdown arrow
+            goto $x + $width - pen_size / 2, round($y - pen_size / 2);
+            set_pen_size 0;
+            pen_down;
+            set_pen_size 1;
+            change_x -4;
+            goto x_position() + 2, y_position() - 2;
+            goto x_position() + 2, y_position() + 2;
+            pen_up;
+            goto x_position() - 1.5, y_position() - 0.5;
+            set_pen_size 2;
+            pen_down;
+            pen_up;
+        } else {
+            set_pen_color "#000000";
+        }
         local text_x = $x + ($width) / 2;
-        local text_y = ($y + ($y - $height)) / 2 - 4;
+        if $dropdown_shape > "" {
+            text_x -= 4;
+        }
+        local text_y = ($y + ($y - $height)) / 2 - 4 + 1 * ($dropdown_shape == "square");
         print text_x, text_y, 1, $text, align: "c";
     }
     elif $shape == "boolean" {

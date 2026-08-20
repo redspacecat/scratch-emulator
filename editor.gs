@@ -220,7 +220,7 @@ proc handle_drag no_recurse=false {
                     repeat 3 {
                         local offset = i + b_inputs + counter;
                         if blocks[offset + b_input_shape] > "" {
-                            if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape]) {
+                            if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
                                 if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
                                     add InputRank {
                                         dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
@@ -340,12 +340,14 @@ proc delete_block id, remove_items=false { # currently doesn't delete nested blo
     }
 }
 
-func is_input_valid(sourceShape, targetShape) {
-    if $sourceShape == "reporter" and $targetShape == "reporter" {
-        return true;
-    }
-    if $sourceShape == "boolean" and ($targetShape == "boolean" or $targetShape == "reporter") {
-        return true;
+func is_input_valid(sourceShape, targetShape, dropdownShape) {
+    if $dropdownShape != "square" {
+        if $sourceShape == "reporter" and $targetShape == "reporter" {
+            return true;
+        }
+        if $sourceShape == "boolean" and ($targetShape == "boolean" or $targetShape == "reporter") {
+            return true;
+        }
     }
     return false;
 }
@@ -382,6 +384,8 @@ proc init_blocks {
     add_block "stack", Category.Looks, -42, 79, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
     add_block "stack", Category.Sensing, -50, -14, 189, 21, parent: 12, previous: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
     add_block "c", Category.Control, -58, 121, 85, 105, parent: "", slot_count: 1, prong_1_height: 21, prong_2_style: "normal", end_style: "normal", slot_1_height: 12, slot_2_height: 12, slot_1_nested_block: 9, label1: TextLabel {x: -86, text: "repeat"}, input1: Input {shape: "reporter", x: -69, width: 18, height: 12, text: "100"}; 
+    add_block "stack", Category.Motion, 54, -82, 200, 21, next: 14, label1: TextLabel {x: -51, text: "go to"}, input1: Input {shape: "reporter", dropdown_shape: "round", dropdown_list: "sprites", x: -23, width: 16, height: 12, text: "random position"};
+    add_block "stack", Category.Looks, 54, -103, 200, 21, previous: 13, label1: TextLabel {x: -51, text: "change"}, label2: TextLabel {x: -10, text: "effect by"}, input1: Input {shape: "reporter", dropdown_shape: "square", dropdown_list: "graphicEffects", x: -23, width: 16, height: 12, text: "color"}, input2: Input {shape: "reporter", x: 20, width: 16, height: 12, text: "25"};
 
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
@@ -1041,6 +1045,9 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
                     local text = get_block_idx_input(blockIdx, inputNum, b_input_text);
                     # log "handling text: " & text;
                     local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
+                    if get_block_idx_input(blockIdx, inputNum, b_input_dropdown_shape) > "" { # if there's a dropdown, add extra padding for the arrow
+                        input_width += 12;
+                    }
                     # log input_width;
                     # local input_height = get_block_idx_input(blockIdx, inputNum, b_input_height) + 6;
                     # if input_height > block_total_height {

@@ -16,17 +16,17 @@ struct Input {
 
 enum Category {
     Motion=1,
-    Looks=3,
-    Sound=5,
-    Events=7,
-    Control=9,
-    Sensing=11,
-    Operators=13,
-    Variables=15,
-    Lists=17,
-    CustomBlocks=19,
-    Extensions=21,
-    Preview=23
+    Looks=4,
+    Sound=7,
+    Events=10,
+    Control=13,
+    Sensing=16,
+    Operators=19,
+    Variables=22,
+    Lists=25,
+    CustomBlocks=28,
+    Extensions=31,
+    Preview=34
 }
 
 %define BLOCK_LENGTH 49
@@ -70,24 +70,24 @@ enum Category {
 %define b_label3_x(i) blocks[i+24]
 
 %define b_input1_shape(i) blocks[i+25]
-%define b_input1_dropdown_shape blocks[i+26]
-%define b_input1_dropdown_list blocks[i+27]
+%define b_input1_dropdown_shape(i) blocks[i+26]
+%define b_input1_dropdown_list(i) blocks[i+27]
 %define b_input1_x(i) blocks[i+28]
 %define b_input1_width(i) blocks[i+29]
 %define b_input1_height(i) blocks[i+30]
 %define b_input1_text(i) blocks[i+31]
 %define b_input1_nested_block(i) blocks[i+32]
 %define b_input2_shape(i) blocks[i+33]
-%define b_input2_dropdown_shape blocks[i+34]
-%define b_input2_dropdown_list blocks[i+35]
+%define b_input2_dropdown_shape(i) blocks[i+34]
+%define b_input2_dropdown_list(i) blocks[i+35]
 %define b_input2_x(i) blocks[i+36]
 %define b_input2_width(i) blocks[i+37]
 %define b_input2_height(i) blocks[i+38]
 %define b_input2_text(i) blocks[i+39]
 %define b_input2_nested_block(i) blocks[i+40]
 %define b_input3_shape(i) blocks[i+41]
-%define b_input3_dropdown_shape blocks[i+42]
-%define b_input3_dropdown_list blocks[i+43]
+%define b_input3_dropdown_shape(i) blocks[i+42]
+%define b_input3_dropdown_list(i) blocks[i+43]
 %define b_input3_x(i) blocks[i+44]
 %define b_input3_width(i) blocks[i+45]
 %define b_input3_height(i) blocks[i+46]
