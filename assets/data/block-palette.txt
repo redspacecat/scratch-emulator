@@ -34,6 +34,22 @@ motion_sety,stack
 set y to,(0
 
 
+motion_ifonedgebounce,stack
+if on edge\, bounce
+
+
+motion_setrotationstyle,stack
+set rotation style,[rotationStyle|left-right
+
+
+motion_xposition,reporter
+x position
+motion_yposition,reporter
+y position
+motion_direction,reporter
+direction
+
+
 control_if_else,c,2
 if,<,then,else
 control_forever,c,1

@@ -195,7 +195,7 @@ proc parse_palette_block {
         if shape == "stack" {
             by -= 28;
         } elif shape == "reporter" or shape == "boolean" {
-            by -= 19;
+            by -= 21;
         }
     }
 
@@ -271,8 +271,10 @@ proc parse_palette_block {
 
 proc parse_token delimiter, string {
     token = "";
-    until $string[j] == $delimiter or j > length $string {
-        token &= $string[j];
+    until ($string[j] == $delimiter and $string[j - 1] != "\\") or j > length $string {
+        if $string[j] != "\\" { # don't include escape character
+            token &= $string[j];
+        }
         j++;
     }
     j++;

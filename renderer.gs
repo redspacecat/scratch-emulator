@@ -22,7 +22,7 @@ list colors = [
 on "render_blocks" {
     start_time = days_since_2000();
     render_blocks;
-    # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
+    log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
 
 list queue;
