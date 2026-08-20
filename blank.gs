@@ -1,1 +1,1 @@
-costumes "assets/blank.svg";
+costumes "assets/images/blank.svg";

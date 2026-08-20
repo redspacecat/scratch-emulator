@@ -1,6 +1,7 @@
-%include code/PTE_font.gs
+%include code/PTE_font
 
-%include code/helpful_utils.gs
+%include code/helpful_utils
+%include code/block_palette_parser
 %include std/list
 %include std/math
 
@@ -17,6 +18,7 @@ var boolean_edge_padding = 8; # padding around edges of boolean blocks
 
 var SCROLL_X = 0;
 var SCROLL_Y = 0;
+var PALETTE_SCROLL_Y = 0;
 
 struct Point {
     x,
@@ -50,6 +52,9 @@ onflag {
     delete blocks;
     delete roots;
     delete dragged_blocks;
+
+    parse_block_palette;
+
     init_blocks;
     dragged_block = 0;
     highest_nesting_level = 0;
@@ -372,20 +377,20 @@ proc check_dragged_block bIdx {
 }
 
 proc init_blocks {
-    add_block "stack", Category.Control, -42, 22, 93, 21, parent: 9, previous: 3, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
-    add_block "stack", Category.Control, -50, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
-    add_block "stack", Category.Motion, -42, 43, 189, 21, parent: 9, previous: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
-    add_block "reporter", Category.Operators, -23, -142, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
-    add_block "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
-    add_block "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
-    add_block "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
-    add_block "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
-    add_block "c", Category.Control, -50, 100, 85, 105, parent: 12, next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, slot_2_nested_block: 3, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -45, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
-    add_block "stack", Category.Looks, -42, 79, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
-    add_block "stack", Category.Sensing, -50, -14, 189, 21, parent: 12, previous: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
-    add_block "c", Category.Control, -58, 121, 85, 105, parent: "", slot_count: 1, prong_1_height: 21, prong_2_style: "normal", end_style: "normal", slot_1_height: 12, slot_2_height: 12, slot_1_nested_block: 9, label1: TextLabel {x: -86, text: "repeat"}, input1: Input {shape: "reporter", x: -69, width: 18, height: 12, text: "100"}; 
-    add_block "stack", Category.Motion, 54, -82, 200, 21, next: 14, label1: TextLabel {x: -51, text: "go to"}, input1: Input {shape: "reporter", dropdown_shape: "round", dropdown_list: "sprites", x: -23, width: 16, height: 12, text: "random position"};
-    add_block "stack", Category.Looks, 54, -103, 200, 21, previous: 13, label1: TextLabel {x: -51, text: "change"}, label2: TextLabel {x: -10, text: "effect by"}, input1: Input {shape: "reporter", dropdown_shape: "square", dropdown_list: "graphicEffects", x: -23, width: 16, height: 12, text: "color"}, input2: Input {shape: "reporter", x: 20, width: 16, height: 12, text: "25"};
+    # add_block "control_waituntil", "stack", Category.Control, -42, 22, 93, 21, parent: 9, previous: 3, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
+    # add_block "control_waitsecs", "stack", Category.Control, -50, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
+    # add_block "placeholder", "stack", Category.Motion, -42, 43, 189, 21, parent: 9, previous: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
+    # add_block "placeholder", "reporter", Category.Operators, -23, -142, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
+    # add_block "placeholder", "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
+    # add_block "placeholder", "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
+    # add_block "placeholder", "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
+    # add_block "placeholder", "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
+    # add_block "placeholder", "c", Category.Control, -50, 100, 85, 105, parent: 12, next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, slot_2_nested_block: 3, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -45, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
+    # add_block "placeholder", "stack", Category.Looks, -42, 79, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
+    # add_block "placeholder", "stack", Category.Sensing, -50, -14, 189, 21, parent: 12, previous: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
+    # add_block "placeholder", "c", Category.Control, -58, 121, 85, 105, parent: "", slot_count: 1, prong_1_height: 21, prong_2_style: "normal", end_style: "normal", slot_1_height: 12, slot_2_height: 12, slot_1_nested_block: 9, label1: TextLabel {x: -86, text: "repeat"}, input1: Input {shape: "reporter", x: -69, width: 18, height: 12, text: "100"}; 
+    # add_block "placeholder", "stack", Category.Motion, 54, -82, 200, 21, next: 14, label1: TextLabel {x: -51, text: "go to"}, input1: Input {shape: "reporter", dropdown_shape: "round", dropdown_list: "sprites", x: -23, width: 16, height: 12, text: "random position"};
+    # add_block "placeholder", "stack", Category.Looks, 54, -103, 200, 21, previous: 13, label1: TextLabel {x: -51, text: "change"}, label2: TextLabel {x: -10, text: "effect by"}, input1: Input {shape: "reporter", dropdown_shape: "square", dropdown_list: "graphicEffects", x: -23, width: 16, height: 12, text: "color"}, input2: Input {shape: "reporter", x: 20, width: 16, height: 12, text: "25"};
 
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
@@ -532,6 +537,7 @@ func point_in_tri(Point p, Tri t) {
 }
 
 proc add_block
+        opcode="placeholder",
         shape,
         category,
         x,
@@ -558,6 +564,7 @@ proc add_block
         Input input3=Input {},
         nesting_level=0 {
         
+    add $opcode to blocks;
     add $shape to blocks;
     add $category to blocks;
     add $x to blocks;

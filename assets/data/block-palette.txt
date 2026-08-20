@@ -1,0 +1,40 @@
+text,Motion
+
+motion_movesteps,stack
+move,(10,steps
+motion_turnright,stack
+turn CW,(15,degrees
+motion_turnleft,stack
+turn CCW,(15,degrees
+
+
+motion_goto,stack
+go to,{positions|random position
+motion_gotoxy,stack
+go to x:,(0,y:,(0
+motion_glideto,stack
+glide,(1,secs to,{positions|random position
+motion_glidesecstoxy,stack
+glide,(1,secs to x:,(0,y:,(0
+
+
+motion_pointindirection,stack
+point in direction,(90
+motion_pointtowards,stack
+point towards,{directions|mouse-pointer
+
+
+motion_changexby,stack
+change x by,(10
+motion_setx,stack
+set x to,(0
+motion_changeyby,stack
+change y by,(10
+motion_sety,stack
+set y to,(0
+
+
+control_if_else,c,2
+if,<,then,else
+control_forever,c,1
+forever

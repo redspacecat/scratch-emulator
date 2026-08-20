@@ -1,4 +1,4 @@
-costumes "assets/blank.svg" as "backdrop1";
+costumes "assets/images/blank.svg" as "backdrop1";
 
 list blocks;
 list roots; # holds block ids of script roots
