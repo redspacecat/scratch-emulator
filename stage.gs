@@ -15,3 +15,11 @@ var InputRank highlighted_input;
 # keeps a list of ids of dragged blocks so they can be avoided
 # for placement into and so they can be layered on top
 list dragged_blocks;
+
+var SCROLL_X = 30;
+var SCROLL_Y = 15;
+var PALETTE_SCROLL_Y = 0;
+var PALETTE_MIN_X = -210;
+var PALETTE_MAX_X = 0;
+var PALETTE_SHOWN = true;
+var PALETTE_END;

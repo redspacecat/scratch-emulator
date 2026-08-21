@@ -118,3 +118,5 @@ enum Category {
 
 %define get_block_label(blockID, labelNum, key) blocks[b_idx(blockID) + b_labels + (labelNum - 1) * TEXT_LABEL_LENGTH + key]
 %define get_block_idx_label(blockID, labelNum, key) blocks[blockID + b_labels + (labelNum - 1) * TEXT_LABEL_LENGTH + key]
+
+%define block_in_palette(i) i < PALETTE_END

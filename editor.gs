@@ -16,10 +16,6 @@ var end_padding_other = 5; # end padding for ending on other inputs
 var text_padding = 4; # padding around text in inputs
 var boolean_edge_padding = 8; # padding around edges of boolean blocks
 
-var SCROLL_X = 0;
-var SCROLL_Y = 0;
-var PALETTE_SCROLL_Y = 0;
-
 struct Point {
     x,
     y
@@ -66,6 +62,34 @@ onflag {
     broadcast "input_loop";
 }
 
+onkey "v" {
+    PALETTE_SHOWN = 1 - PALETTE_SHOWN;
+}
+
+onkey "up arrow" {
+    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+        PALETTE_SCROLL_Y += 30;
+    } else {
+        SCROLL_Y += 30;
+    }
+}
+
+onkey "down arrow" {
+    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+        PALETTE_SCROLL_Y -= 30;
+    } else {
+        SCROLL_Y -= 30;
+    }
+}
+
+onkey "left arrow" {
+    SCROLL_X -= 30;
+}
+
+onkey "right arrow" {
+    SCROLL_X += 30;
+}
+
 on "render_loop" {
     forever {
         erase_all;
@@ -84,11 +108,22 @@ on "input_loop" {
 
 nowarp proc handle_input {
     wait_until(mouse_down());
-    mx = mouse_x() - SCROLL_X;
-    my = mouse_y() - SCROLL_Y;
+    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+        log "palette coords";
+        local scroll_x_offset = 0;
+        local scroll_y_offset = PALETTE_SCROLL_Y;
+        local over_palette = true;
+    } else {
+        log "regular coords";
+        local scroll_x_offset = SCROLL_X;
+        local scroll_y_offset = SCROLL_Y;
+        local over_palette = false;
+    }
+    mx = mouse_x() + scroll_x_offset;
+    my = mouse_y() + scroll_y_offset;
     hovered_block = find_hovered_block(mx, my);
     if hovered_block > 0 {
-        wait_until((not mouse_down()) or abs(mouse_x() - SCROLL_X - mx) > 2 or abs(mouse_y() - SCROLL_Y - my) > 2);
+        wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
         if not mouse_down() {
             hovered_input = find_hovered_input(mx, my, hovered_block);
             if hovered_input > "" {
@@ -116,10 +151,17 @@ nowarp proc handle_input {
             }
         } else {
             # dragging block
-            dragged_block = hovered_block;
+            if over_palette {
+                local new_block_idx = duplicate_block(hovered_block);
+                dragged_block = new_block_idx;
+                scroll_x_offset = SCROLL_X;
+                scroll_y_offset = SCROLL_Y;
+            } else {
+                dragged_block = hovered_block;
+            }
             dragged_block_idx = b_idx(dragged_block);
-            drag_offset_x = mx - b_x(dragged_block_idx);
-            drag_offset_y = my - b_y(dragged_block_idx);
+            drag_offset_x = mx - (b_x(dragged_block_idx) + scroll_x_offset);
+            drag_offset_y = my - (b_y(dragged_block_idx) + scroll_y_offset);
             disconnect_block dragged_block;
             find_dragged_blocks dragged_block_idx;
             while(mouse_down()) {
@@ -147,7 +189,7 @@ nowarp proc handle_input {
 
                 connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
                 move_script_to_front b_idx(highlighted_conn.block);
-                highlighted_conn = InputRank {};
+                InputRank highlighted_conn = InputRank {};
             }
             dragged_block = 0;
             dragged_block_idx = 0;
@@ -159,10 +201,10 @@ nowarp proc handle_input {
 proc handle_drag no_recurse=false {
     start_time = days_since_2000();
 
-    mx = mouse_x() - SCROLL_X;
-    my = mouse_y() - SCROLL_Y;
-    target_x = mx - drag_offset_x;
-    target_y = my - drag_offset_y;
+    mx = mouse_x() + SCROLL_X;
+    my = mouse_y() + SCROLL_Y;
+    target_x = mx - drag_offset_x - SCROLL_X;
+    target_y = my - drag_offset_y - SCROLL_Y;
     move_block_position dragged_block_idx, target_x - b_x(dragged_block_idx), target_y - b_y(dragged_block_idx);
 
     t_shape = b_shape(dragged_block_idx);
@@ -307,6 +349,15 @@ proc handle_drag no_recurse=false {
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
+func duplicate_block(id) {
+    local i = b_idx($id);
+    repeat BLOCK_LENGTH {
+        add blocks[i] to blocks;
+        i++;
+    }
+    return length blocks / BLOCK_LENGTH;
+}
+
 proc delete_block id, remove_items=false { # currently doesn't delete nested blocks
     local blockIdx = b_idx($id);
     local parentIdx = b_idx(b_parent(blockIdx));
@@ -392,6 +443,8 @@ proc init_blocks {
     # add_block "placeholder", "stack", Category.Motion, 54, -82, 200, 21, next: 14, label1: TextLabel {x: -51, text: "go to"}, input1: Input {shape: "reporter", dropdown_shape: "round", dropdown_list: "sprites", x: -23, width: 16, height: 12, text: "random position"};
     # add_block "placeholder", "stack", Category.Looks, 54, -103, 200, 21, previous: 13, label1: TextLabel {x: -51, text: "change"}, label2: TextLabel {x: -10, text: "effect by"}, input1: Input {shape: "reporter", dropdown_shape: "square", dropdown_list: "graphicEffects", x: -23, width: 16, height: 12, text: "color"}, input2: Input {shape: "reporter", x: 20, width: 16, height: 12, text: "25"};
 
+    add_block "motion_movesteps", "stack", Category.Motion, 100, 43, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
+
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
@@ -415,51 +468,31 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         i += BLOCK_LENGTH;
     }
 
+    if PALETTE_SHOWN {
+        local i = 1;
+        until i == PALETTE_END {
+            local result = check_hovered_block(p, i, $ignoreIdx);
+            if result > 0 {
+                log "palette click detected";
+                return result;
+            }
+
+            i += BLOCK_LENGTH;
+        }
+    }
+
     local j = length roots;
     repeat length roots {
         local root = roots[j];
         local nesting_level = "renderer"."max_nesting_level";
         until nesting_level == -1 {
-            local i = 1;
+            local i = PALETTE_END;
             repeat length blocks / BLOCK_LENGTH {
                 if blocks[i] > "" {
                     if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
-                        local shape = b_shape(i);
-                        local x = b_x(i);
-                        local y = b_y(i);
-                        local width = b_width(i);
-                        local height = b_height(i);
-
-                        if point_in_rect(p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
-                            if shape == "reporter" {
-                                local radius = height / 2;
-                                if point_in_circle(p, Point {x: x + radius, y: y - radius}, radius) or 
-                                point_in_circle(p, Point {x: x + width - radius, y: y - radius}, radius) or
-                                point_in_rect(p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                                    return b_id(i);
-                                }
-                            } elif shape == "boolean" {
-                                local seg_l = height / 2; # segment length
-                                if point_in_tri(p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
-                                point_in_tri(p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
-                                point_in_rect(p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                                    return b_id(i);
-                                }
-                            } elif shape == "stack" {
-                                if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                                point_in_rect(p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-                                point_in_rect(p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
-                                    return b_id(i);
-                                }
-                            } elif shape == "c" {
-                                local midy = y - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height;
-                                if point_in_rect(p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
-                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: y - b_prong_1_height(i), y2: y}) or 
-                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
-                                point_in_rect(p, Rect {x1: x, x2: x + width, y1: midy - b_slot_2_height(i) - c_block_prong_height, y2: midy - b_slot_2_height(i)}) * (b_slot_count(i) > 1){
-                                    return b_id(i);
-                                }
-                            }
+                        local result = check_hovered_block(p, i, $ignoreIdx);
+                        if result > 0 {
+                            return result;
                         }
                     }
                 }
@@ -471,6 +504,47 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         }
 
         j--;
+    }
+    return 0;
+}
+
+func check_hovered_block(Point p, i, ignoreIdx) {
+    local shape = b_shape($i);
+    local x = b_x($i);
+    local y = b_y($i);
+    local width = b_width($i);
+    local height = b_height($i);
+
+    if point_in_rect($p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
+        if shape == "reporter" {
+            local radius = height / 2;
+            if point_in_circle($p, Point {x: x + radius, y: y - radius}, radius) or 
+            point_in_circle($p, Point {x: x + width - radius, y: y - radius}, radius) or
+            point_in_rect($p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
+                return b_id($i);
+            }
+        } elif shape == "boolean" {
+            local seg_l = height / 2; # segment length
+            if point_in_tri($p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
+            point_in_tri($p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
+            point_in_rect($p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
+                return b_id($i);
+            }
+        } elif shape == "stack" {
+            if point_in_rect($p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+            point_in_rect($p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
+            point_in_rect($p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
+                return b_id($i);
+            }
+        } elif shape == "c" {
+            local midy = y - b_prong_1_height($i) - b_slot_1_height($i) - c_block_prong_height;
+            if point_in_rect($p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
+            point_in_rect($p, Rect {x1: x, x2: x + width, y1: y - b_prong_1_height($i), y2: y}) or 
+            point_in_rect($p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
+            point_in_rect($p, Rect {x1: x, x2: x + width, y1: midy - b_slot_2_height($i) - c_block_prong_height, y2: midy - b_slot_2_height($i)}) * (b_slot_count($i) > 1){
+                return b_id($i);
+            }
+        }
     }
     return 0;
 }

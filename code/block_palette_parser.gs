@@ -18,7 +18,7 @@ list category_map = [
 proc parse_block_palette {
     local i = 1; # skip the first informational line of the list
     by = 170;
-    bx = -200;
+    bx = -205;
     block_stack_height = 21;
     block_reporter_height = 16;
 
@@ -52,6 +52,8 @@ proc parse_block_palette {
 
         parse_palette_block;
     }
+
+    PALETTE_END = length blocks + 1;
 }
 
 list parsed_inputs;
@@ -146,7 +148,7 @@ proc parse_palette_block {
                 add t to parsed_labels;
                 add i * 20 to parsed_labels;
                 if opcode == "control_if_else" and t == "else" {
-                    parsed_labels[length parsed_labels] = start_padding;
+                    parsed_labels[length parsed_labels] = bx + start_padding;
                 }
             }
             i++;
@@ -190,7 +192,7 @@ proc parse_palette_block {
             i++;
         }
 
-        add length blocks / BLOCK_LENGTH to roots;
+        # add length blocks / BLOCK_LENGTH to roots;
 
         if shape == "stack" {
             by -= 28;

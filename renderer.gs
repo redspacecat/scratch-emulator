@@ -21,17 +21,42 @@ list colors = [
 
 on "render_blocks" {
     start_time = days_since_2000();
+    render_background;
     render_blocks;
-    log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
+    # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
 
 list queue;
 list visited;
 
+proc render_background {
+    if PALETTE_SHOWN {
+        set_pen_size 240;
+        goto -120, 180;
+        set_pen_color "#e5f4f8";
+        pen_down;
+        change_y -360;
+        pen_up;
+    }
+}
+
 proc render_blocks {
     # # render regular blocks
     max_nesting_level = 0;
     InputRank h_i = highlighted_input;
+
+    local i = 1;
+    until i == PALETTE_END {
+        render_one_block b_id(i), i;
+        i += BLOCK_LENGTH;
+    }
+
+    set_pen_size 240;
+    goto 120, 180;
+    set_pen_color "#ffffff";
+    pen_down;
+    change_y -360;
+    pen_up;
     
     local i = 1;
     repeat length roots {
@@ -74,13 +99,23 @@ proc render_blocks {
 
 proc render_one_block blockID, blockIdx {
     local i = $blockIdx;
+    if block_in_palette(i) {
+        if not PALETTE_SHOWN {
+            stop_this_script;
+        }
+        local scroll_x_offset = 0;
+        local scroll_y_offset = PALETTE_SCROLL_Y;
+    } else {
+        local scroll_x_offset = SCROLL_X;
+        local scroll_y_offset = SCROLL_Y;
+    }
     # color and background color are obtained from index of category,
     # which is a number, in the colors list
 
     if b_shape(i) == "c" {
         render_c_block
-            x: b_x(i),
-            y: b_y(i),
+            x: b_x(i) - scroll_x_offset,
+            y: b_y(i) - scroll_y_offset,
             width: b_width(i),
             height: b_height(i),
             slot_count: b_slot_count(i),
@@ -98,10 +133,10 @@ proc render_one_block blockID, blockIdx {
         local counter = 0; # rendering text labels
         repeat 2 {
             local offset = i + b_labels + counter;
-            if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+            if (blocks[offset + b_label_x] > "") { # checking + 1 to check x instead of text, which could be blank
                 render_text_label
-                    blocks[offset + 1],
-                    (b_y(i) - (b_prong_1_height(i) / 2)) + 4,
+                    blocks[offset + b_label_x] - scroll_x_offset,
+                    (b_y(i) - (b_prong_1_height(i) / 2)) + 4 - scroll_y_offset,
                     blocks[offset];
             }
             counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
@@ -109,15 +144,15 @@ proc render_one_block blockID, blockIdx {
 
         if b_label3_x(i) > "" {
             render_text_label
-                b_label3_x(i),
-                (b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - (c_block_prong_height / 2)) + 3,
+                b_label3_x(i) - scroll_x_offset,
+                (b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - (c_block_prong_height / 2)) + 3 - scroll_y_offset,
                 b_label3_text(i);
         }
 
         if b_input1_x(i) > "" and b_input1_nested_block(i) == "" {
             render_input
-                b_input1_x(i),
-                b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2,
+                b_input1_x(i) - scroll_x_offset,
+                b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2 - scroll_y_offset,
                 b_input1_width(i),
                 b_input1_height(i),
                 b_input1_text(i),
@@ -132,8 +167,8 @@ proc render_one_block blockID, blockIdx {
             colors[b_category(i)],
             b_width(i),
             b_height(i),
-            b_x(i),
-            b_y(i),
+            b_x(i) - scroll_x_offset,
+            b_y(i) - scroll_y_offset,
             b_shape(i),
             colors[b_category(i) + 1],
             is_highlighted: h_i.block == b_parent(i) and "editor"."highlighted_input_nested_block" == $blockID;
@@ -141,10 +176,10 @@ proc render_one_block blockID, blockIdx {
         local counter = 0; # rendering text labels
         repeat 3 {
             local offset = i + b_labels + counter;
-            if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
+            if (blocks[offset + b_label_x] > "") { # checking + 1 to check x instead of text, which could be blank
                 render_text_label
-                    blocks[offset + 1],
-                    (b_y(i) - (b_height(i) / 2)) + 4,
+                    blocks[offset + b_label_x] - scroll_x_offset,
+                    (b_y(i) - (b_height(i) / 2)) + 4 - scroll_y_offset,
                     blocks[offset];
             }
             counter += TEXT_LABEL_LENGTH; # = number of properties in TextLabel
@@ -159,8 +194,8 @@ proc render_one_block blockID, blockIdx {
             # if so, no need to render it
             if (blocks[offset] > "" and blocks[offset + b_input_nested_block] == "") {
                 render_input
-                    blocks[offset + b_input_x],
-                    ((b_y(i) + (b_y(i) - b_height(i))) / 2) + blocks[offset + b_input_height] / 2,
+                    blocks[offset + b_input_x] - scroll_x_offset,
+                    ((b_y(i) + (b_y(i) - b_height(i))) / 2) + blocks[offset + b_input_height] / 2 - scroll_y_offset,
                     blocks[offset + b_input_width],
                     blocks[offset + b_input_height],
                     blocks[offset + b_input_text],
