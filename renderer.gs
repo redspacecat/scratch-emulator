@@ -21,7 +21,6 @@ list colors = [
 
 on "render_blocks" {
     start_time = days_since_2000();
-    render_background;
     render_blocks;
     # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
@@ -29,27 +28,10 @@ on "render_blocks" {
 list queue;
 list visited;
 
-proc render_background {
-    if PALETTE_SHOWN {
-        set_pen_size 240;
-        goto -120, 180;
-        set_pen_color "#e5f4f8";
-        pen_down;
-        change_y -360;
-        pen_up;
-    }
-}
-
 proc render_blocks {
     # # render regular blocks
     max_nesting_level = 0;
     InputRank h_i = highlighted_input;
-
-    local i = 1;
-    until i == PALETTE_END {
-        render_one_block b_id(i), i;
-        i += BLOCK_LENGTH;
-    }
 
     set_pen_size 240;
     goto 120, 180;
@@ -61,39 +43,69 @@ proc render_blocks {
     local i = 1;
     repeat length roots {
         local root = roots[i];
-        delete queue;
-        delete visited;
-
-        add root to queue;
-        add root to visited;
-        until length queue == 0 {
-            local current = queue[1];
-            local currentIdx = b_idx(current);
-            delete queue[1];
-            render_one_block current, currentIdx;
-
-            if b_nesting_level(currentIdx) > max_nesting_level {
-                max_nesting_level = b_nesting_level(currentIdx);
-            }
-
-            local next = b_next(currentIdx);
-            if next > "" and next not in visited {
-                add next to visited;
-                add next to queue;
-            }
-            local input1 = b_input1_nested_block(currentIdx);
-            local input2 = b_input2_nested_block(currentIdx);
-            local input3 = b_input3_nested_block(currentIdx);
-            local c_nested1 = b_slot_1_nested_block(currentIdx); # blocks nested in c blocks
-            local c_nested2 = b_slot_2_nested_block(currentIdx);
-            if input1 > "" and input1 not in visited { add input1 to visited; add input1 to queue; }
-            if input2 > "" and input2 not in visited { add input2 to visited; add input2 to queue; }
-            if input3 > "" and input3 not in visited { add input3 to visited; add input3 to queue; }
-            if c_nested1 > "" and c_nested1 not in visited { add c_nested1 to visited; add c_nested1 to queue; }
-            if c_nested2 > "" and c_nested2 not in visited { add c_nested2 to visited; add c_nested2 to queue; }
+        if root != "editor"."dragged_script_id" { # don't draw dragged blocks so they can be drawn on top
+            render_one_root root;
         }
         
         i++;
+    }
+
+    if PALETTE_SHOWN {
+        set_pen_size 0;
+        goto -120, 180;
+        set_pen_color "#e5f4f8";
+        set_pen_transparency 30;
+        pen_down;
+        set_pen_size 240;
+        change_y -360;
+        pen_up;
+
+        local i = 1;
+        until i == PALETTE_END {
+            render_one_block b_id(i), i;
+            i += BLOCK_LENGTH;
+        }
+    }
+
+    render_one_root "editor"."dragged_script_id";
+    # local i = 1;
+    # until i > length dragged_blocks {
+    #     render_one_block dragged_blocks[i], b_idx(dragged_blocks[i]);
+    #     i++;
+    # }
+}
+
+proc render_one_root root {
+    delete queue;
+    delete visited;
+
+    add $root to queue;
+    add $root to visited;
+    until length queue == 0 {
+        local current = queue[1];
+        local currentIdx = b_idx(current);
+        delete queue[1];
+        render_one_block current, currentIdx;
+
+        if b_nesting_level(currentIdx) > max_nesting_level {
+            max_nesting_level = b_nesting_level(currentIdx);
+        }
+
+        local next = b_next(currentIdx);
+        if next > "" and next not in visited {
+            add next to visited;
+            add next to queue;
+        }
+        local input1 = b_input1_nested_block(currentIdx);
+        local input2 = b_input2_nested_block(currentIdx);
+        local input3 = b_input3_nested_block(currentIdx);
+        local c_nested1 = b_slot_1_nested_block(currentIdx); # blocks nested in c blocks
+        local c_nested2 = b_slot_2_nested_block(currentIdx);
+        if input1 > "" and input1 not in visited { add input1 to visited; add input1 to queue; }
+        if input2 > "" and input2 not in visited { add input2 to visited; add input2 to queue; }
+        if input3 > "" and input3 not in visited { add input3 to visited; add input3 to queue; }
+        if c_nested1 > "" and c_nested1 not in visited { add c_nested1 to visited; add c_nested1 to queue; }
+        if c_nested2 > "" and c_nested2 not in visited { add c_nested2 to visited; add c_nested2 to queue; }
     }
 }
 

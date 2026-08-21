@@ -53,6 +53,7 @@ onflag {
 
     init_blocks;
     dragged_block = 0;
+    dragged_script_id = 0;
     highest_nesting_level = 0;
     highlight_lightly = false;
     InputRank highlighted_input = InputRank {};
@@ -60,6 +61,7 @@ onflag {
     PreviewBlock h_c_placement = PreviewBlock {};
     broadcast "render_loop";
     broadcast "input_loop";
+    broadcast "palette_display_loop";
 }
 
 onkey "v" {
@@ -103,6 +105,17 @@ list block_scripts;
 on "input_loop" {
     forever {
         handle_input;
+    }
+}
+
+on "palette_display_loop" {
+    forever {
+        if mouse_x() < PALETTE_MIN_X and PALETTE_SHOWN == false {
+            PALETTE_SHOWN = true;
+        }
+        if mouse_x() > PALETTE_HIDE_X and PALETTE_SHOWN == true {
+            PALETTE_SHOWN = false;
+        }
     }
 }
 
@@ -151,7 +164,7 @@ nowarp proc handle_input {
             }
         } else {
             # dragging block
-            if over_palette {
+            if over_palette and hovered_block * BLOCK_LENGTH < PALETTE_END {
                 local new_block_idx = duplicate_block(hovered_block);
                 dragged_block = new_block_idx;
                 scroll_x_offset = SCROLL_X;
@@ -163,35 +176,41 @@ nowarp proc handle_input {
             drag_offset_x = mx - (b_x(dragged_block_idx) + scroll_x_offset);
             drag_offset_y = my - (b_y(dragged_block_idx) + scroll_y_offset);
             disconnect_block dragged_block;
+            dragged_script_id = get_script_root(dragged_block_idx); # stores the dragged blocks root script id
             find_dragged_blocks dragged_block_idx;
             while(mouse_down()) {
                 handle_drag;
             }
-            if highlighted_input.block > "" {
-                if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
-                    # if there's a currently embedded block, we need to disconnect it
-                    # to get rid of its parent reference
-                    disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+                delete_block_stack dragged_block_idx;
+            } else {
+                if highlighted_input.block > "" {
+                    if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
+                        # if there's a currently embedded block, we need to disconnect it
+                        # to get rid of its parent reference
+                        disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+                    }
+                    put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
+                    # when a block is put into an input, it brings that script to the front
+                    move_script_to_front b_idx(highlighted_input.block);
+                    highlighted_input = InputRank {};
+                    highlighted_input_nested_block = "";
                 }
-                put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
-                # when a block is put into an input, it brings that script to the front
-                move_script_to_front b_idx(highlighted_input.block);
-                highlighted_input = InputRank {};
-                highlighted_input_nested_block = "";
-            }
-            if highlighted_conn.block > "" {
-                # if the preview placement block exists while we are
-                # trying to place the actual block, remove it
-                if h_c_placement.previewID > "" {
-                    delete_block h_c_placement.previewID, true;
-                }
-                PreviewBlock h_c_placement = PreviewBlock {};
+                if highlighted_conn.block > "" {
+                    # if the preview placement block exists while we are
+                    # trying to place the actual block, remove it
+                    if h_c_placement.previewID > "" {
+                        delete_block h_c_placement.previewID, true;
+                    }
+                    PreviewBlock h_c_placement = PreviewBlock {};
 
-                connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
-                move_script_to_front b_idx(highlighted_conn.block);
-                InputRank highlighted_conn = InputRank {};
+                    connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
+                    move_script_to_front b_idx(highlighted_conn.block);
+                    InputRank highlighted_conn = InputRank {};
+                }
             }
             dragged_block = 0;
+            dragged_script_id = 0;
             dragged_block_idx = 0;
             delete dragged_blocks;
         }
@@ -215,70 +234,72 @@ proc handle_drag no_recurse=false {
     }
 
     delete tmp_input_ranking;
-    local i = 1;
+    local i = PALETTE_END;
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
-            if b_id(i) not in dragged_blocks and b_id(i) != h_c_placement.previewID { # avoid blocks we're currently holding and the preview placement block
-                if t_shape == "stack" or t_shape == "c" {
-                    # stack block, try to find valid places to connect it
-                    local target_height = b_height(i);
-                    if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
-                        local s = b_shape(i);
-                        if s == "stack" or s == "c" {
-                            add InputRank {
-                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
-                                block: b_id(i), 
-                                input: 1 # bottom of block
-                            } to tmp_input_ranking;
-
-                            # disabled top of block connections for now, finish full implementation later
-                            # if b_parent(i) == "" and b_previous(i) == "" {
-                            #     add InputRank {
-                            #         dist: DIST(t_x, t_y - b_height(dragged_block_idx), b_x(i), b_y(i)),
-                            #         block: b_id(i), 
-                            #         input: 0 # top of block
-                            #     } to tmp_input_ranking;
-                            # }
-                        }
-                        if b_shape(i) == "c" {
-                            add InputRank {
-                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
-                                block: b_id(i), 
-                                input: 2 # top slot of c block
-                            } to tmp_input_ranking;
-                            if b_slot_count(i) > 1 {
-                                add InputRank {
-                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
-                                    block: b_id(i), 
-                                    input: 3 # bottom slot of c block
-                                } to tmp_input_ranking;
-                            }
-                        }
-                    }
-                } else {
-                    # try to put the block in an input
-                    if b_shape(i) == "c" {
-                        local target_height = b_prong_1_height(i);
-                    } else {
+            if PALETTE_SHOWN == false or (PALETTE_SHOWN == true and mouse_x() >= PALETTE_MAX_X) {
+                if b_id(i) not in dragged_blocks and b_id(i) != h_c_placement.previewID { # avoid blocks we're currently holding and the preview placement block
+                    if t_shape == "stack" or t_shape == "c" {
+                        # stack block, try to find valid places to connect it
                         local target_height = b_height(i);
-                    }
-                    local counter = 0;
-                    local inputNum = 1;
-                    repeat 3 {
-                        local offset = i + b_inputs + counter;
-                        if blocks[offset + b_input_shape] > "" {
-                            if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
-                                if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
+                        if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
+                            local s = b_shape(i);
+                            if s == "stack" or s == "c" {
+                                add InputRank {
+                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
+                                    block: b_id(i), 
+                                    input: 1 # bottom of block
+                                } to tmp_input_ranking;
+
+                                # disabled top of block connections for now, finish full implementation later
+                                # if b_parent(i) == "" and b_previous(i) == "" {
+                                #     add InputRank {
+                                #         dist: DIST(t_x, t_y - b_height(dragged_block_idx), b_x(i), b_y(i)),
+                                #         block: b_id(i), 
+                                #         input: 0 # top of block
+                                #     } to tmp_input_ranking;
+                                # }
+                            }
+                            if b_shape(i) == "c" {
+                                add InputRank {
+                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
+                                    block: b_id(i), 
+                                    input: 2 # top slot of c block
+                                } to tmp_input_ranking;
+                                if b_slot_count(i) > 1 {
                                     add InputRank {
-                                        dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
+                                        dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
                                         block: b_id(i), 
-                                        input: inputNum
+                                        input: 3 # bottom slot of c block
                                     } to tmp_input_ranking;
                                 }
                             }
                         }
-                        counter += INPUT_LENGTH;
-                        inputNum++;
+                    } else {
+                        # try to put the block in an input
+                        if b_shape(i) == "c" {
+                            local target_height = b_prong_1_height(i);
+                        } else {
+                            local target_height = b_height(i);
+                        }
+                        local counter = 0;
+                        local inputNum = 1;
+                        repeat 3 {
+                            local offset = i + b_inputs + counter;
+                            if blocks[offset + b_input_shape] > "" {
+                                if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
+                                    if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
+                                        add InputRank {
+                                            dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
+                                            block: b_id(i), 
+                                            input: inputNum
+                                        } to tmp_input_ranking;
+                                    }
+                                }
+                            }
+                            counter += INPUT_LENGTH;
+                            inputNum++;
+                        }
                     }
                 }
             }
@@ -358,7 +379,7 @@ func duplicate_block(id) {
     return length blocks / BLOCK_LENGTH;
 }
 
-proc delete_block id, remove_items=false { # currently doesn't delete nested blocks
+proc delete_block id, remove_items=false, entire_stack=false { # doesn't delete nested blocks
     local blockIdx = b_idx($id);
     local parentIdx = b_idx(b_parent(blockIdx));
     if b_nesting_level(blockIdx) == 0 {
@@ -393,6 +414,24 @@ proc delete_block id, remove_items=false { # currently doesn't delete nested blo
     }
     if $id in roots {
         delete roots[$id in roots];
+    }
+}
+
+proc delete_block_stack bIdx {
+    if (b_input1_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input1_nested_block($bIdx));}
+    if (b_input2_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input2_nested_block($bIdx));}
+    if (b_input3_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input3_nested_block($bIdx));}
+    if (b_slot_1_nested_block($bIdx) > "") {delete_block_stack b_idx(b_slot_1_nested_block($bIdx));}
+    if (b_slot_2_nested_block($bIdx) > "") {delete_block_stack b_idx(b_slot_2_nested_block($bIdx));}
+
+    if b_nesting_level($bIdx) == 0 and b_next($bIdx) > "" {
+        delete_block_stack b_idx(b_next($bIdx));
+    }
+
+    local i = $bIdx;
+    repeat BLOCK_LENGTH {
+        blocks[i] = "";
+        i++;
     }
 }
 
@@ -487,12 +526,15 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         local nesting_level = "renderer"."max_nesting_level";
         until nesting_level == -1 {
             local i = PALETTE_END;
-            repeat length blocks / BLOCK_LENGTH {
+            until i > length blocks * BLOCK_LENGTH {
                 if blocks[i] > "" {
-                    if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
-                        local result = check_hovered_block(p, i, $ignoreIdx);
-                        if result > 0 {
-                            return result;
+                    # prevent picking up blocks behind the bloc palette while it's shown
+                    if PALETTE_SHOWN and mouse_x() >= PALETTE_MAX_X or PALETTE_SHOWN == false {
+                        if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
+                            local result = check_hovered_block(p, i, $ignoreIdx);
+                            if result > 0 {
+                                return result;
+                            }
                         }
                     }
                 }
