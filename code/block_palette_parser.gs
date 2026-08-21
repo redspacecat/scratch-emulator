@@ -18,7 +18,7 @@ list category_map = [
 proc parse_block_palette {
     local i = 1; # skip the first informational line of the list
     by = 170;
-    bx = -210;
+    bx = -200;
     block_stack_height = 21;
     block_reporter_height = 16;
 
@@ -62,7 +62,7 @@ proc parse_palette_block {
     delete parsed_labels;
 
     if length toks_1 == 0 {
-        by -= 12;
+        by -= 10;
         stop_this_script;
     }
 
@@ -198,75 +198,6 @@ proc parse_palette_block {
             by -= 21;
         }
     }
-
-
-
-    # if line == "" {
-    #     by -= 15;
-    #     stop_this_script;
-    # }
-
-    # j = 1;
-    # parse_token ",", line;
-    # if token == "text" {
-    #     add bx to block_palette_text;
-    #     add by to block_palette_text;
-    #     add token to block_palette_text;
-    #     stop_this_script;
-    # }
-    # j = 1;
-    # parse_token "_", line;
-    # local category = category_map[token in category_map + 1];
-
-    # j = 1;
-    # parse_token ",", line;
-    # add token to blocks; # opcode
-    # parse_token ",", line;
-    # add token to blocks; # shape
-    # add category to blocks; # category
-    # add bx to blocks; # x
-    # add by to blocks; # y
-    # add 100 to blocks; # width (dimensions are placeholders)
-    # add 20 to blocks; # height
-    # add "" to blocks; # previous
-    # add "" to blocks; # parent
-    # add "" to blocks; # next
-    # add 0 to blocks; # nesting level
-    
-
-    # # add $opcode to blocks;
-    # # add $shape to blocks;
-    # add $category to blocks;
-    # add $x to blocks;
-    # add $y to blocks;
-    # add $width to blocks;
-    # add $height to blocks;
-    # add $previous to blocks;
-    # add $parent to blocks;
-    # add $next to blocks;
-    # add $nesting_level to blocks;
-    # add $slot_count to blocks;
-    # add $prong_1_height to blocks;
-    # add $prong_2_style to blocks;
-    # add $prong_3_style to blocks;
-    # add $end_style to blocks;
-    # add $slot_1_height to blocks;
-    # add $slot_2_height to blocks;
-    # add $slot_1_nested_block to blocks;
-    # add $slot_2_nested_block to blocks;
-    
-    # add $label1.text to blocks;
-    # add $label1.x to blocks;
-
-    # add $input1.shape to blocks;
-    # add $input1.dropdown_shape to blocks;
-    # add $input1.dropdown_list to blocks;
-    # add $input1.x to blocks;
-    # add $input1.width to blocks;
-    # add $input1.height to blocks;
-    # add $input1.text to blocks;
-    # add $input1.nested_block to blocks;
-
 }
 
 proc parse_token delimiter, string {
