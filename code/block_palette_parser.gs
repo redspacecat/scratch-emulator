@@ -1,5 +1,4 @@
 list block_palette "assets/data/block-palette.txt";
-list block_palette_text;
 list toks_1;
 list toks_2;
 list toks_3;
@@ -8,18 +7,21 @@ list category_map = [
     "motion", Category.Motion,
     "looks", Category.Looks,
     "sound", Category.Sound,
-    "events", Category.Events,
+    "event", Category.Events,
     "control", Category.Control,
     "sensing", Category.Sensing,
-    "operators", Category.Operators,
-    "data", Category.Variables
+    "operator", Category.Operators,
+    "data", Category.Variables,
+    "datalist", Category.Lists
 ];
 
 proc parse_block_palette {
     local i = 1; # skip the first informational line of the list
-    by = 170;
+    by = 165;
     bx = -205;
     block_stack_height = 21;
+    block_c_1_height = 48;
+    block_c_2_height = 75;
     block_reporter_height = 16;
 
     repeat length block_palette / 2 {
@@ -71,7 +73,8 @@ proc parse_palette_block {
     if toks_1[1] == "text" {
         add bx to block_palette_text;
         add by to block_palette_text;
-        add toks_1[1] to block_palette_text;
+        add toks_1[2] to block_palette_text;
+        by -= 10;
         stop_this_script;
     } else {
         j = 1;
@@ -80,7 +83,7 @@ proc parse_palette_block {
         local opcode = toks_1[1];
         local shape = toks_1[2];
         local slot_count = toks_1[3];
-        if opcode == "control_forever" {
+        if opcode == "control_forever" or opcode == "control_stop" or opcode == "control_delete_this_clone" {
             local end_style = "cap";
         } else {
             local end_style = "normal";
@@ -119,7 +122,6 @@ proc parse_palette_block {
                 parse_token "|", t; # dropdown list
                 local dropdown_list = token;
                 parse_token ",", t;
-                log "list " & dropdown_list;
                 add "reporter" to parsed_inputs;
                 add "round" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
@@ -134,7 +136,6 @@ proc parse_palette_block {
                 parse_token "|", t; # dropdown list
                 local dropdown_list = token;
                 parse_token ",", t;
-                log "list " & dropdown_list;
                 add "reporter" to parsed_inputs;
                 add "square" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
@@ -145,7 +146,8 @@ proc parse_palette_block {
                 add "" to parsed_inputs;
             } else {
                 # text label
-                add t to parsed_labels;
+                clean t;
+                add token to parsed_labels;
                 add i * 20 to parsed_labels;
                 if opcode == "control_if_else" and t == "else" {
                     parsed_labels[length parsed_labels] = bx + start_padding;
@@ -195,9 +197,15 @@ proc parse_palette_block {
         # add length blocks / BLOCK_LENGTH to roots;
 
         if shape == "stack" {
-            by -= 28;
+            by -= block_stack_height + 7;
         } elif shape == "reporter" or shape == "boolean" {
-            by -= 21;
+            by -= block_reporter_height + 5;
+        } elif shape == "c" {
+            if slot_count == 1 {
+                by -= block_c_1_height + 7;
+            } else {
+                by -= block_c_2_height + 7;
+            }
         }
     }
 }
@@ -205,10 +213,21 @@ proc parse_palette_block {
 proc parse_token delimiter, string {
     token = "";
     until ($string[j] == $delimiter and $string[j - 1] != "\\") or j > length $string {
-        if $string[j] != "\\" { # don't include escape character
+        if not ($string[j] == "\\" and $string[j+1] == $delimiter) { # don't include escape character
             token &= $string[j];
         }
         j++;
     }
     j++;
+}
+
+proc clean string {
+    local j = 1;
+    token = "";
+    until j > length $string {
+        if not (($string[j] == " " and (j == 1 or j == length $string)) or $string[j] == "\\") {
+            token &= $string[j];
+        }
+        j++;
+    }
 }

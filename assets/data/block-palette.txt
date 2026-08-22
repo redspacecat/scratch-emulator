@@ -50,7 +50,321 @@ motion_direction,reporter
 direction
 
 
-control_if_else,c,2
-if,<,then,else
+
+
+text,Looks
+
+looks_sayforsecs,stack
+say,(Hello!,for,(2,seconds
+looks_say,stack
+say,(Hello!
+looks_thinkforsecs,stack
+think,(Hmm...,for,(2,seconds
+looks_think,stack
+think,(Hmm...
+
+
+looks_switchcostumeto,stack
+switch costume to,{costumes|costume1
+looks_nextcostume,stack
+next costume
+looks_switchbackdropto,stack
+switch backdrop to,{backdrops|backdrop1
+looks_switchbackdroptoandwait,stack
+switch backdrop to,{backdrops|backdrop1,and wait
+looks_nextbackdrop,stack
+next backdrop
+
+
+looks_changesizeby,stack
+change size by,(10
+looks_setsizeto,stack
+set size to,(100,%
+
+
+looks_changeeffectby,stack
+change,[graphicEffects|color,effect by,(25
+looks_seteffectto,stack
+set,[graphicEffects|color,effect to,(0
+looks_cleargraphiceffects,stack
+clear graphic effects
+
+
+looks_show,stack
+show
+looks_hide,stack
+hide
+
+
+looks_gotofrontback,stack
+go to,[layers|front,layer
+looks_goforwardbackwardlayers,stack
+go,[layers|forward,(1,layers
+looks_costumenumbername,reporter
+costume,[numberName|number
+looks_backdropnumbername,reporter
+backdrop,[numberName|number
+looks_size,reporter
+size
+
+
+
+
+text,Sound
+
+sound_playuntildone,stack
+play sound,{sounds|,until done
+sound_play,stack
+start sound,{sounds|
+sound_stopallsounds,stack
+stop all sounds
+
+
+sound_changeeffectby,stack
+change,[soundEffects|pitch,effect by,(10
+sound_seteffectto,stack
+set,[soundEffects|pitch,effect to,(100
+sound_cleareffects,stack
+clear sound effects
+
+
+sound_changevolumeby,stack
+change volume by,(-10
+sound_setvolumeto,stack
+set volume to,(100,%
+sound_volume,reporter
+volume
+
+
+
+
+text,Events
+
+event_whenflagclicked,stack
+when green flag clicked
+event_whenkeypressed,stack
+when,[keys|space,key pressed
+event_whenthisspriteclicked,stack
+when this sprite clicked
+event_whenstageclicked,stack
+when stage clicked
+event_whenbackdropswitchesto,stack
+when backdrop switches to,{backdrops|backdrop1
+
+
+event_whengreaterthan,stack
+when,[greaterthan|loudness,>,(10
+
+
+event_whenbroadcastreceived,stack
+when I receive,[messages|message1
+event_broadcast,stack
+broadcast,{messages|message1
+event_broadcastandwait,stack
+broadcast,{messages|message1,and wait
+
+
+
+
+text,Control
+
+control_wait,stack
+wait,(1,seconds
+
+
+control_repeat,c,1
+repeat,(10
 control_forever,c,1
 forever
+
+
+control_if,c,1
+if,<,then
+control_if_else,c,2
+if,<,then,else
+control_wait_until,stack
+wait until,<
+control_repeat_until,c,1
+repeat until,<
+control_while,c,1
+while,<
+
+
+control_stop,stack
+stop,[stops|all
+
+
+control_start_as_clone,stack
+when I start as a clone
+control_create_clone_of,stack
+create clone of,{cloneOptions|myself
+control_delete_this_clone,stack
+delete this clone
+
+
+
+
+text,Sensing
+
+sensing_touchingobject,boolean
+touching,{touchingObjects|mouse-pointer
+sensing_touchingcolor,boolean
+touching color,(#abcdef,?
+sensing_coloristouchingcolor,boolean
+color,(#ff0000,is touching,(#0000ff,?
+sensing_distanceto,reporter
+distance to,{distanceTargets|mouse-pointer
+
+
+sensing_askandwait,stack
+ask,(What's your name?,and wait
+sensing_answer,reporter
+answer
+
+
+sensing_keypressed,boolean
+key,{keys|space,pressed?
+sensing_mousedown,boolean
+mouse down?
+sensing_mousex,reporter
+mouse x
+sensing_mousey,reporter
+mouse y
+
+
+sensing_setdragmode,stack
+set drag mode,[dragModes|draggable
+
+
+sensing_loudness,reporter
+loudness
+
+
+sensing_timer,reporter
+timer
+sensing_resettimer,stack
+reset timer
+
+
+sensing_of,reporter
+[spriteProperties|backdrop #,of,{sprites|Stage
+
+
+sensing_current,reporter
+current,[currentx|year
+sensing_dayssince2000,reporter
+days since 2000
+
+
+sensing_online,boolean
+online?
+sensing_username,reporter
+username
+
+
+
+
+text,Operators
+
+operator_add,reporter
+(,+,(
+operator_subtract,reporter
+(,-,(
+operator_multiply,reporter
+(,*,(
+operator_divide,reporter
+(,/,(
+
+
+operator_random,reporter
+pick random,(1,to,(10
+
+
+operator_gt,boolean
+(,>,(50
+operator_lt,boolean
+(,\<,(50
+operator_equals,boolean
+(,=,(50
+
+
+operator_and,boolean
+<,and,<
+operator_or,boolean
+<,or,<
+operator_not,boolean
+not,<
+
+
+operator_join,reporter
+join,(apple,(banana
+operator_letter_of,reporter
+letter,(1,of,(apple
+operator_length,reporter
+length of,(apple
+operator_contains,boolean
+(apple,contains,(a,?
+
+
+operator_mod,reporter
+(,mod,(
+operator_round,reporter
+round,(
+
+
+operator_mathop,reporter
+[mathop|abs,of,(
+
+
+
+
+text,Variables
+
+data_variable,reporter
+my variable
+
+
+data_setvariableto,stack
+set,[variables|my variable,to,(0
+data_changevariableby,stack
+change,[variables|my variable,by,(1
+data_showvariable,stack
+show variable,[variables|my variable
+data_hidevariable,stack
+hide variable,[variables|my variable
+
+
+
+
+text,Lists
+
+datalist_listcontents,reporter
+my list
+
+
+datalist_addtolist,stack
+add,(thing,to,[lists|my list
+
+
+datalist_deleteoflist,stack
+delete,(1,of,[lists|my list
+datalist_deletealloflist,stack
+delete all of,[lists|my list
+datalist_insertatlist,stack
+insert,(thing,at,(1,of,[lists|my list
+datalist_replaceitemoflist,stack
+replace item,(1,of,[lists|my list,with,(thing
+
+
+datalist_itemoflist,reporter(thing
+item,(1,of,[lists|my list
+datalist_itemnumoflist,reporter
+item # of,(thing,in,[lists|my list
+datalist_lengthoflist,reporter
+length of,[lists|my list
+datalist_listcontainsitem,boolean
+[lists|my list,contains,(thing
+datalist_showlist,stack
+show list,[lists|my list
+datalist_hidelist,stack
+hide list,[lists|my list

@@ -24,3 +24,5 @@ var PALETTE_MAX_X = 0;
 var PALETTE_HIDE_X = -100;
 var PALETTE_SHOWN = true;
 var PALETTE_END;
+
+list block_palette_text;

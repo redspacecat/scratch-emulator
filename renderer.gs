@@ -65,6 +65,8 @@ proc render_blocks {
             render_one_block b_id(i), i;
             i += BLOCK_LENGTH;
         }
+
+        render_palette_text;
     }
 
     render_one_root "editor"."dragged_script_id";
@@ -73,6 +75,15 @@ proc render_blocks {
     #     render_one_block dragged_blocks[i], b_idx(dragged_blocks[i]);
     #     i++;
     # }
+}
+
+proc render_palette_text {
+    set_pen_color "#000000";
+    local i  = 1;
+    repeat length block_palette_text / 3 {
+        plain_text block_palette_text[i], block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l";
+        i += 3;
+    }
 }
 
 proc render_one_root root {
