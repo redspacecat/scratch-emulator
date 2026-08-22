@@ -50,6 +50,10 @@ onflag {
     delete dragged_blocks;
 
     parse_block_palette;
+    target_palette_x = 0;
+    target_palette_y = 0;
+    target_palette_x_time = 0;
+    target_palette_y_time = 0;
 
     init_blocks;
     dragged_block = 0;
@@ -69,16 +73,22 @@ onkey "v" {
 }
 
 onkey "up arrow" {
-    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
         PALETTE_SCROLL_Y += 20;
+        if PALETTE_SCROLL_Y > 0 {
+            PALETTE_SCROLL_Y = 0;
+        }
     } else {
         SCROLL_Y += 20;
     }
 }
 
 onkey "down arrow" {
-    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
         PALETTE_SCROLL_Y -= 20;
+        if PALETTE_SCROLL_Y < palette_y_max {
+            PALETTE_SCROLL_Y = palette_y_max;
+        }
     } else {
         SCROLL_Y -= 20;
     }
@@ -110,18 +120,44 @@ on "input_loop" {
 
 on "palette_display_loop" {
     forever {
-        if mouse_x() < PALETTE_MIN_X and PALETTE_SHOWN == false {
+        if mouse_x() < PALETTE_MIN_X and PALETTE_SHOWN == false and target_palette_x_time == 0 {
             PALETTE_SHOWN = true;
+            PALETTE_SCROLL_X = 150;
+            target_palette_x = 0;
+            target_palette_x_time = 10;
         }
-        if mouse_x() > PALETTE_HIDE_X and PALETTE_SHOWN == true {
-            PALETTE_SHOWN = false;
+        if mouse_x() > PALETTE_HIDE_X and PALETTE_SHOWN == true and target_palette_x_time == 0 {
+            # PALETTE_SHOWN = false;
+            target_palette_x = 220;
+            target_palette_x_time = 6;
+        }
+        if mouse_down() and mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+            clicked_category = floor((177 - mouse_y()) / 30) + 1;
+            target_palette_y = category_y[clicked_category];
+            target_palette_y_time = 20;
+            log clicked_category;
+        }
+
+        if target_palette_y_time > 0 {
+            PALETTE_SCROLL_Y += round((target_palette_y - PALETTE_SCROLL_Y) / 2.5);
+            target_palette_y_time--;
+        }
+        if target_palette_x_time > 0 {
+            PALETTE_SCROLL_X += round((target_palette_x - PALETTE_SCROLL_X) / 2.5);
+            target_palette_x_time--;
+            if target_palette_x_time == 0 and target_palette_x > 0 {
+                PALETTE_SHOWN = false;
+            }
+            if target_palette_x_time == 0 and target_palette_x == 0 {
+                PALETTE_SCROLL_X = 0;
+            }
         }
     }
 }
 
 nowarp proc handle_input {
     wait_until(mouse_down());
-    if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
+    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
         log "palette coords";
         local scroll_x_offset = 0;
         local scroll_y_offset = PALETTE_SCROLL_Y;
@@ -263,7 +299,7 @@ proc handle_drag no_recurse=false {
                                 #     } to tmp_input_ranking;
                                 # }
                             }
-                            if b_shape(i) == "c" {
+                            if b_shape(i) == "c" and b_start_style(dragged_block_idx) != "hat" { # don't allow hat blocks where they shouldn't go
                                 add InputRank {
                                     dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
                                     block: b_id(i), 

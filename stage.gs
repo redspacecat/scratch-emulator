@@ -18,11 +18,12 @@ list dragged_blocks;
 
 var SCROLL_X = 30;
 var SCROLL_Y = 15;
+var PALETTE_SCROLL_X = 0;
 var PALETTE_SCROLL_Y = 0;
-var PALETTE_MIN_X = -210;
+var PALETTE_MIN_X = -205;
 var PALETTE_MAX_X = 0;
 var PALETTE_HIDE_X = -100;
-var PALETTE_SHOWN = true;
+var PALETTE_SHOWN = false;
 var PALETTE_END;
 
 list block_palette_text;

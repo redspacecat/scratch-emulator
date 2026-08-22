@@ -1,7 +1,7 @@
 list block_palette "assets/data/block-palette.txt";
 list toks_1;
 list toks_2;
-list toks_3;
+list category_y;
 
 list category_map = [
     "motion", Category.Motion,
@@ -16,6 +16,8 @@ list category_map = [
 ];
 
 proc parse_block_palette {
+    delete category_y;
+
     local i = 1; # skip the first informational line of the list
     by = 165;
     bx = -205;
@@ -24,6 +26,8 @@ proc parse_block_palette {
     block_c_1_height = 48;
     block_c_2_height = 75;
     block_reporter_height = 16;
+
+    current_category = "";
 
     repeat length block_palette / 2 {
         local l = block_palette[i];
@@ -44,19 +48,11 @@ proc parse_block_palette {
         }
         i++;
 
-        # local l = block_palette[i];
-        # delete toks_3;
-        # j = 1;
-        # until j > length l {
-        #     parse_token ",", l;
-        #     add token to toks_3;
-        # }
-        # i++;
-
         parse_palette_block;
     }
 
     PALETTE_END = length blocks + 1;
+    palette_y_max = by + 165;
 }
 
 list parsed_inputs;
@@ -75,12 +71,14 @@ proc parse_palette_block {
         add bx to block_palette_text;
         add by to block_palette_text;
         add toks_1[2] to block_palette_text;
+
+        add by - 165 to category_y;
         by -= 10;
         stop_this_script;
     } else {
         j = 1;
         parse_token "_", toks_1[1];
-        local category = category_map[(token in category_map) + 1];
+        category = category_map[(token in category_map) + 1];
         local opcode = toks_1[1];
         local shape = toks_1[2];
         local slot_count = toks_1[3];

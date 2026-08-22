@@ -22,6 +22,7 @@ list colors = [
 on "render_blocks" {
     start_time = days_since_2000();
     render_blocks;
+    render_palette_sidebar;
     # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
 }
 
@@ -52,11 +53,11 @@ proc render_blocks {
 
     if PALETTE_SHOWN {
         set_pen_size 0;
-        goto -120, 180;
+        goto -102 - PALETTE_SCROLL_X, 180;
         set_pen_color "#e5f4f8";
         set_pen_transparency 30;
         pen_down;
-        set_pen_size 240;
+        set_pen_size 205;
         change_y -360;
         pen_up;
 
@@ -81,8 +82,38 @@ proc render_palette_text {
     set_pen_color "#000000";
     local i  = 1;
     repeat length block_palette_text / 3 {
-        plain_text block_palette_text[i], block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l";
+        plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l";
         i += 3;
+    }
+}
+
+proc render_palette_sidebar {
+    # if not PALETTE_SHOWN {
+        set_pen_size 0;
+        goto -223, 180;
+        set_pen_color "#e5f4f8";
+        set_pen_transparency 30;
+        pen_down;
+        set_pen_size 35;
+        change_y -360;
+        pen_up;
+    # }
+
+    goto -223, 162;
+    i = 1;
+    repeat 9 {
+        set_pen_size 22;
+        set_pen_color colors[i+1];
+        pen_down;
+        pen_up;
+        
+        set_pen_size 20;
+        set_pen_color colors[i];
+        pen_down;
+        pen_up;
+
+        i += 3;
+        change_y -30;
     }
 }
 
@@ -126,7 +157,7 @@ proc render_one_block blockID, blockIdx {
         if not PALETTE_SHOWN {
             stop_this_script;
         }
-        local scroll_x_offset = 0;
+        local scroll_x_offset = PALETTE_SCROLL_X;
         local scroll_y_offset = PALETTE_SCROLL_Y;
     } else {
         local scroll_x_offset = SCROLL_X;
