@@ -20,6 +20,7 @@ proc parse_block_palette {
     by = 165;
     bx = -205;
     block_stack_height = 21;
+    block_hat_height = 12;
     block_c_1_height = 48;
     block_c_2_height = 75;
     block_reporter_height = 16;
@@ -87,6 +88,14 @@ proc parse_palette_block {
             local end_style = "cap";
         } else {
             local end_style = "normal";
+        }
+        if "when" in opcode or opcode == "control_start_as_clone" {
+            local start_style = "hat";
+            if start_style == "hat" {
+                by -= block_hat_height;
+            }
+        } else {
+            local start_style = "normal";
         }
 
         local i = 1;
@@ -179,6 +188,7 @@ proc parse_palette_block {
         add "normal" to blocks;
         add "normal" to blocks;
         add end_style to blocks;
+        add start_style to blocks;
         add c_block_min_slot_height to blocks;
         add c_block_min_slot_height to blocks;
         add "" to blocks;

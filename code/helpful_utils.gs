@@ -29,7 +29,7 @@ enum Category {
     Preview=34
 }
 
-%define BLOCK_LENGTH 50
+%define BLOCK_LENGTH 51
 %define TEXT_LABEL_LENGTH 2
 %define INPUT_LENGTH 8
 
@@ -58,45 +58,46 @@ enum Category {
 %define b_prong_2_style(i) blocks[i+13]
 %define b_prong_3_style(i) blocks[i+14]
 %define b_end_style(i) blocks[i+15]
-%define b_slot_1_height(i) blocks[i+16]
-%define b_slot_2_height(i) blocks[i+17]
-%define b_slot_1_nested_block(i) blocks[i+18]
-%define b_slot_2_nested_block(i) blocks[i+19]
+%define b_start_style(i) blocks[i+16]
+%define b_slot_1_height(i) blocks[i+17]
+%define b_slot_2_height(i) blocks[i+18]
+%define b_slot_1_nested_block(i) blocks[i+19]
+%define b_slot_2_nested_block(i) blocks[i+20]
 
-%define b_label1_text(i) blocks[i+20]
-%define b_label1_x(i) blocks[i+21]
-%define b_label2_text(i) blocks[i+22]
-%define b_label2_x(i) blocks[i+23]
-%define b_label3_text(i) blocks[i+24]
-%define b_label3_x(i) blocks[i+25]
+%define b_label1_text(i) blocks[i+21]
+%define b_label1_x(i) blocks[i+22]
+%define b_label2_text(i) blocks[i+23]
+%define b_label2_x(i) blocks[i+24]
+%define b_label3_text(i) blocks[i+25]
+%define b_label3_x(i) blocks[i+26]
 
-%define b_input1_shape(i) blocks[i+26]
-%define b_input1_dropdown_shape(i) blocks[i+27]
-%define b_input1_dropdown_list(i) blocks[i+28]
-%define b_input1_x(i) blocks[i+29]
-%define b_input1_width(i) blocks[i+30]
-%define b_input1_height(i) blocks[i+31]
-%define b_input1_text(i) blocks[i+32]
-%define b_input1_nested_block(i) blocks[i+33]
-%define b_input2_shape(i) blocks[i+34]
-%define b_input2_dropdown_shape(i) blocks[i+35]
-%define b_input2_dropdown_list(i) blocks[i+36]
-%define b_input2_x(i) blocks[i+37]
-%define b_input2_width(i) blocks[i+38]
-%define b_input2_height(i) blocks[i+39]
-%define b_input2_text(i) blocks[i+40]
-%define b_input2_nested_block(i) blocks[i+41]
-%define b_input3_shape(i) blocks[i+42]
-%define b_input3_dropdown_shape(i) blocks[i+43]
-%define b_input3_dropdown_list(i) blocks[i+44]
-%define b_input3_x(i) blocks[i+45]
-%define b_input3_width(i) blocks[i+46]
-%define b_input3_height(i) blocks[i+47]
-%define b_input3_text(i) blocks[i+48]
-%define b_input3_nested_block(i) blocks[i+49]
+%define b_input1_shape(i) blocks[i+27]
+%define b_input1_dropdown_shape(i) blocks[i+28]
+%define b_input1_dropdown_list(i) blocks[i+29]
+%define b_input1_x(i) blocks[i+30]
+%define b_input1_width(i) blocks[i+31]
+%define b_input1_height(i) blocks[i+32]
+%define b_input1_text(i) blocks[i+33]
+%define b_input1_nested_block(i) blocks[i+34]
+%define b_input2_shape(i) blocks[i+35]
+%define b_input2_dropdown_shape(i) blocks[i+36]
+%define b_input2_dropdown_list(i) blocks[i+37]
+%define b_input2_x(i) blocks[i+38]
+%define b_input2_width(i) blocks[i+39]
+%define b_input2_height(i) blocks[i+40]
+%define b_input2_text(i) blocks[i+41]
+%define b_input2_nested_block(i) blocks[i+42]
+%define b_input3_shape(i) blocks[i+43]
+%define b_input3_dropdown_shape(i) blocks[i+44]
+%define b_input3_dropdown_list(i) blocks[i+45]
+%define b_input3_x(i) blocks[i+46]
+%define b_input3_width(i) blocks[i+47]
+%define b_input3_height(i) blocks[i+48]
+%define b_input3_text(i) blocks[i+49]
+%define b_input3_nested_block(i) blocks[i+50]
 
-%define b_labels 20
-%define b_inputs 26
+%define b_labels 21
+%define b_inputs 27
 
 %define b_input_shape 0
 %define b_input_dropdown_shape 1

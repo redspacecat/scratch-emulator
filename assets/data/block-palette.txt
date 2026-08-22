@@ -70,8 +70,6 @@ looks_nextcostume,stack
 next costume
 looks_switchbackdropto,stack
 switch backdrop to,{backdrops|backdrop1
-looks_switchbackdroptoandwait,stack
-switch backdrop to,{backdrops|backdrop1,and wait
 looks_nextbackdrop,stack
 next backdrop
 
@@ -146,8 +144,6 @@ event_whenkeypressed,stack
 when,[keys|space,key pressed
 event_whenthisspriteclicked,stack
 when this sprite clicked
-event_whenstageclicked,stack
-when stage clicked
 event_whenbackdropswitchesto,stack
 when backdrop switches to,{backdrops|backdrop1
 
@@ -364,6 +360,8 @@ datalist_lengthoflist,reporter
 length of,[lists|my list
 datalist_listcontainsitem,boolean
 [lists|my list,contains,(thing
+
+
 datalist_showlist,stack
 show list,[lists|my list
 datalist_hidelist,stack

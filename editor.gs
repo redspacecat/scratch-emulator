@@ -70,26 +70,26 @@ onkey "v" {
 
 onkey "up arrow" {
     if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
-        PALETTE_SCROLL_Y += 30;
+        PALETTE_SCROLL_Y += 20;
     } else {
-        SCROLL_Y += 30;
+        SCROLL_Y += 20;
     }
 }
 
 onkey "down arrow" {
     if mouse_x() < PALETTE_MAX_X and mouse_x() > PALETTE_MIN_X and PALETTE_SHOWN {
-        PALETTE_SCROLL_Y -= 30;
+        PALETTE_SCROLL_Y -= 20;
     } else {
-        SCROLL_Y -= 30;
+        SCROLL_Y -= 20;
     }
 }
 
 onkey "left arrow" {
-    SCROLL_X -= 30;
+    SCROLL_X -= 20;
 }
 
 onkey "right arrow" {
-    SCROLL_X += 30;
+    SCROLL_X += 20;
 }
 
 on "render_loop" {
@@ -245,11 +245,14 @@ proc handle_drag no_recurse=false {
                         if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
                             local s = b_shape(i);
                             if s == "stack" or s == "c" {
-                                add InputRank {
-                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
-                                    block: b_id(i), 
-                                    input: 1 # bottom of block
-                                } to tmp_input_ranking;
+                                if b_start_style(dragged_block_idx) != "hat" {
+                                    log "start style " & b_start_style(i);
+                                    add InputRank {
+                                        dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
+                                        block: b_id(i), 
+                                        input: 1 # bottom of block
+                                    } to tmp_input_ranking;
+                                }
 
                                 # disabled top of block connections for now, finish full implementation later
                                 # if b_parent(i) == "" and b_previous(i) == "" {
@@ -557,7 +560,8 @@ func check_hovered_block(Point p, i, ignoreIdx) {
     local width = b_width($i);
     local height = b_height($i);
 
-    if point_in_rect($p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y}) and $ignoreIdx != i {
+    # check if in initial bounding box, making sure to check for hat blocks too
+    if point_in_rect($p, Rect {x1: x - 5, y1: y - height, x2: x + width + 5, y2: y + 13}) and $ignoreIdx != i {
         if shape == "reporter" {
             local radius = height / 2;
             if point_in_circle($p, Point {x: x + radius, y: y - radius}, radius) or 
@@ -573,9 +577,14 @@ func check_hovered_block(Point p, i, ignoreIdx) {
                 return b_id($i);
             }
         } elif shape == "stack" {
+            log b_start_style($i);
             if point_in_rect($p, Rect {x1: x, x2: x + 8, y1: y - height, y2: y}) or
             point_in_rect($p, Rect {x1: x + 8, y1: y - height - 3, x2: x + 18, y2: y - 3}) or
-            point_in_rect($p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) {
+            point_in_rect($p, Rect {x1: x + 18, y1: y - height, x2: x + width, y2: y}) or
+            ((point_in_rect($p, Rect {x1: x, y1: y - 1, x2: x + 55, y2: y + 4}) or
+            point_in_tri($p, Tri {x1: x, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3}) or 
+            point_in_tri($p, Tri {x1: x + 60, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3})
+            ) and b_start_style($i) == "hat") {
                 return b_id($i);
             }
         } elif shape == "c" {
@@ -668,6 +677,7 @@ proc add_block
         prong_2_style="",
         prong_3_style="",
         end_style="",
+        start_style="",
         slot_1_height="",
         slot_2_height="",
         slot_1_nested_block="",
@@ -696,6 +706,7 @@ proc add_block
     add $prong_2_style to blocks;
     add $prong_3_style to blocks;
     add $end_style to blocks;
+    add $start_style to blocks;
     add $slot_1_height to blocks;
     add $slot_2_height to blocks;
     add $slot_1_nested_block to blocks;
@@ -1126,13 +1137,13 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
             if text == "if" and bshape == "c" {
                 text_width += 7;
             }
-            # log text;
-            # log text_width;
-            # log item.x;
-            # log item.index;
 
             if (current_x == start_x) {
-                current_x += start_padding;
+                if bshape == "boolean" {
+                    current_x += boolean_edge_padding;
+                } else {
+                    current_x += start_padding;
+                }
             } else {
                 current_x += padding;
             }

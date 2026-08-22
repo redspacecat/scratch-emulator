@@ -132,6 +132,15 @@ proc render_one_block blockID, blockIdx {
         local scroll_x_offset = SCROLL_X;
         local scroll_y_offset = SCROLL_Y;
     }
+
+    # don't render offscreen blocks
+    if not ( b_x(i) - scroll_x_offset + b_width(i) > -240 and
+    b_x(i) - scroll_x_offset < 240 and
+    b_y(i) - scroll_y_offset > -180 and
+    b_y(i) - scroll_y_offset - b_height(i) < 180) {
+        stop_this_script;
+    }
+
     # color and background color are obtained from index of category,
     # which is a number, in the colors list
 
@@ -174,6 +183,7 @@ proc render_one_block blockID, blockIdx {
 
         if b_input1_x(i) > "" and b_input1_nested_block(i) == "" {
             render_input
+                b_shape(i),
                 b_input1_x(i) - scroll_x_offset,
                 b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2 - scroll_y_offset,
                 b_input1_width(i),
@@ -193,6 +203,8 @@ proc render_one_block blockID, blockIdx {
             b_x(i) - scroll_x_offset,
             b_y(i) - scroll_y_offset,
             b_shape(i),
+            b_end_style(i),
+            b_start_style(i),
             colors[b_category(i) + 1],
             is_highlighted: h_i.block == b_parent(i) and "editor"."highlighted_input_nested_block" == $blockID;
 
@@ -217,6 +229,7 @@ proc render_one_block blockID, blockIdx {
             # if so, no need to render it
             if (blocks[offset] > "" and blocks[offset + b_input_nested_block] == "") {
                 render_input
+                    b_shape(i),
                     blocks[offset + b_input_x] - scroll_x_offset,
                     ((b_y(i) + (b_y(i) - b_height(i))) / 2) + blocks[offset + b_input_height] / 2 - scroll_y_offset,
                     blocks[offset + b_input_width],
@@ -264,34 +277,63 @@ proc plain_text x, y, size, text, align {
     }
 }
 
-proc draw_block color, width, height, x, y, shape, border_color, is_highlighted {
+proc draw_block color, width, height, x, y, shape, end_style, start_style, border_color, is_highlighted {
     if $shape == "stack" {
         set_pen_color $color;
-        fill_rect $x + 2, $x + 7, $y - $height, $y, 1;
         set_pen_size 4;
-        goto $x + 2, $y - 2;
+        goto $x + 2, $y - 2 + (3 * ($start_style == "hat"));
         pen_down;
         goto $x + 2, $y - $height + 3;
         pen_up;
-        fill_rect $x + 19, $x + $width - 2, $y - $height + 1, $y, 1;
         set_pen_size 4;
         goto $x + $width - 2, $y - 2;
         pen_down;
         goto $x + $width - 2, $y - $height + 2;
         pen_up;
-        fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 1;
-        tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
-        tri_fill $x + 19, $y, $x + 19, $y - 3, $x + 16, $y - 3, 0.5;
-        tri_fill $x + 8, $y - $height, $x + 11, $y - $height - 2, $x + 19, $y - $height, 0.5;
-        tri_fill $x + 19, $y - $height, $x + 16, $y - $height - 2, $x + 10, $y - $height - 2, 0.5; # change numbers to make tri more accurate
+        if $start_style != "hat" {
+            fill_rect $x + 2, $x + 7, $y - $height, $y, 1;
+            fill_rect $x + 19, $x + $width - 2, $y - $height + 1, $y, 1;
+
+            fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 1;
+            tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
+            tri_fill $x + 19, $y, $x + 19, $y - 3, $x + 16, $y - 3, 0.5;
+        } else {
+            fill_rect $x + 2, $x + $width - 2, $y - $height, $y, 1;
+            goto $x + 5, $y + 1;
+            set_pen_size 10;
+            point_in_direction 60;
+            pen_down;
+            repeat 8 {
+                move 7;
+                turn_right 10;
+            }
+            goto $x + 10, $y + 3;
+            pen_up;
+        }
+        if $end_style != "cap" {
+            tri_fill $x + 8, $y - $height, $x + 11, $y - $height - 2, $x + 19, $y - $height, 0.5;
+            tri_fill $x + 19, $y - $height, $x + 16, $y - $height - 2, $x + 10, $y - $height - 2, 0.5; # change numbers to make tri more accurate
+        }
         set_pen_size 1;
         set_pen_color $border_color;
-        goto $x + 3, $y;
-        pen_down;
-        goto $x + 7, $y;
-        goto $x + 10, $y - 3;
-        goto $x + 16, $y - 3;
-        goto $x + 19, $y;
+        if $start_style != "hat" {
+            goto $x + 3, $y;
+            pen_down;
+            goto $x + 7, $y;
+            goto $x + 10, $y - 3;
+            goto $x + 16, $y - 3;
+            goto $x + 19, $y;
+        } else {
+            goto $x, $y;
+            pen_down;
+            change_y 3;
+            point_in_direction 58;
+            repeat 9 {
+                move 7;
+                turn_right 8.5;
+            }
+            goto x_position() + 1, $y;
+        }
         goto $x + $width - 2, $y;
         point_in_direction 90;
         local move_amount = 2 / 1.366;
@@ -306,23 +348,29 @@ proc draw_block color, width, height, x, y, shape, border_color, is_highlighted 
             turn_right 30;
             move move_amount;
         }
-        goto $x + 19, $y - $height;
-        goto $x + 16, $y - $height - 3;
-        goto $x + 10, $y - $height - 3;
-        goto $x + 7, $y - $height;
+        if $end_style != "cap" {
+            goto $x + 19, $y - $height;
+            goto $x + 16, $y - $height - 3;
+            goto $x + 10, $y - $height - 3;
+            goto $x + 7, $y - $height;
+        }
         goto $x + 2, $y - $height;
         point_in_direction 270;
         repeat 2 {
             turn_right 30;
             move move_amount;
         }
-        goto $x, $y - 2;
-        point_in_direction 0;
-        repeat 2 {
-            turn_right 30;
-            move move_amount;
+        if $start_style != "hat" {
+            goto $x, $y - 2;
+            point_in_direction 0;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
+            goto $x + 3, $y;
+        } else {
+            goto $x, $y;
         }
-        goto $x + 3, $y;
         pen_up;
     }
     elif $shape == "reporter" {
@@ -592,7 +640,7 @@ proc render_text_label x, y, text {
     print $x, ($y) - 7, 1, $text;
 }
 
-proc render_input x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
+proc render_input block_shape, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
     if $shape == "reporter" {
         if $is_highlighted {
             # if dropdown shape is nothing or round, then we want to highlight if NOT editing an input (highlight_lightly)
@@ -615,7 +663,11 @@ proc render_input x, y, width, height, text, shape, color, is_highlighted, dropd
                 set_pen_transparency 0;
             } elif $dropdown_shape == "square" {
                 set_pen_color $color;
-                fill_rect $x + 1, $x + $width - 1, $y - $height - 1, $y + 1, 1;
+                if $block_shape == "reporter" or $block_shape == "boolean" {
+                    fill_rect $x + 1, $x + $width - 2, $y - $height, $y - 1, 1;
+                } else {
+                    fill_rect $x + 1, $x + $width - 1, $y - $height - 1, $y + 1, 1;
+                }
             }
         }
         if $dropdown_shape != "square" {
@@ -648,32 +700,61 @@ proc render_input x, y, width, height, text, shape, color, is_highlighted, dropd
             set_pen_size 1;
             set_pen_color $color;
 
-            goto $x, $y - 1;
-            pen_down;
-            point_in_direction 0;
-            repeat 2 {
-                turn_right 30;
-                move move_amount;
+            if $block_shape == "reporter" or $block_shape == "boolean" {
+                goto $x, $y - 2.5;
+                pen_down;
+                point_in_direction 0;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + $width - 3, $y - 0.5;
+                point_in_direction 90;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + $width - 1, $y - $height + 1.5;
+                point_in_direction 180;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + 2, $y - $height - 0.5;
+                point_in_direction 270;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x, $y - 3.5;
+            } else {
+                goto $x, $y - 1;
+                pen_down;
+                point_in_direction 0;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + $width - 2, $y + 1;
+                point_in_direction 90;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + $width, $y - $height + 0;
+                point_in_direction 180;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x + 2, $y - $height - 2;
+                point_in_direction 270;
+                repeat 2 {
+                    turn_right 30;
+                    move move_amount;
+                }
+                goto $x, $y - 2;
             }
-            goto $x + $width - 2, $y + 1;
-            point_in_direction 90;
-            repeat 2 {
-                turn_right 30;
-                move move_amount;
-            }
-            goto $x + $width, $y - $height + 0;
-            point_in_direction 180;
-            repeat 2 {
-                turn_right 30;
-                move move_amount;
-            }
-            goto $x + 2, $y - $height - 2;
-            point_in_direction 270;
-            repeat 2 {
-                turn_right 30;
-                move move_amount;
-            }
-            goto $x, $y - 2;
             pen_up;
         }
 
