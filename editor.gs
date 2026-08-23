@@ -174,11 +174,7 @@ nowarp proc handle_input {
     }
     mx = mouse_x() + scroll_x_offset;
     my = mouse_y() + scroll_y_offset;
-    if mouse_x() > PALETTE_MIN_X {
-        hovered_block = find_hovered_block(mx, my);
-    } else {
-        hovered_block = 0;
-    }
+    hovered_block = if (mouse_x() > PALETTE_MIN_X) find_hovered_block(mx, my) else 0;
     if hovered_block > 0 {
         wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
         if not mouse_down() {
@@ -324,11 +320,7 @@ proc handle_drag no_recurse=false {
                         }
                     } else {
                         # try to put the block in an input
-                        if b_shape(i) == "c" {
-                            local target_height = b_prong_1_height(i);
-                        } else {
-                            local target_height = b_height(i);
-                        }
+                        local target_height = if (b_shape(i) == "c") b_prong_1_height(i) else b_height(i);
                         local counter = 0;
                         local inputNum = 1;
                         repeat 3 {
@@ -659,12 +651,8 @@ func find_hovered_input(x, y, id) {
         if (blocks[offset + b_input_shape] > "" and blocks[offset + b_input_nested_block] == "") {
             log "valid input " & inputNum;
             local shape = blocks[offset + b_input_shape];
+            local bheight = if (b_shape(idx) == "c") b_prong_1_height(idx) else b_height(idx);
             local x = blocks[offset + b_input_x];
-            if b_shape(idx) == "c" {
-                local bheight = b_prong_1_height(idx);
-            } else {
-                local bheight = b_height(idx);
-            }
             local y = b_y(idx) - bheight / 2 + blocks[offset + b_input_height] / 2;
             local width = blocks[offset + b_input_width];
             local height = blocks[offset + b_input_height];
@@ -798,11 +786,7 @@ proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
     local parentIdx = b_idx($parentID);
     local childIdx = b_idx($childID);
     local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - b_x(childIdx);
-    if b_shape(parentIdx) == "c" {
-        local height = b_prong_1_height(parentIdx);
-    } else {
-        local height = b_height(parentIdx);
-    }
+    local height = if (b_shape(parentIdx) == "c") b_prong_1_height(parentIdx) else b_height(parentIdx);
     local y_change = ((b_y(parentIdx) - height / 2) + (b_height(childIdx) / 2)) - b_y(childIdx);
     if b_shape(parentIdx) == "stack" or b_shape(parentIdx) == "c" {
         y_change += 0.5;
@@ -1129,11 +1113,7 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
 
     local counter = 0;
     local index = 1;
-    if bshape == "c" { # ignore the last text label for c blocks since it would be "else" which is handled separately
-        local repeat_count = 2;
-    } else {
-        local repeat_count = 3;
-    }
+    local repeat_count = if (bshape == "c") 2 else 3; # ignore the last text label for c blocks since it would be "else" which is handled separately
     repeat repeat_count {
         local offset = blockIdx + b_labels + counter;
         if (blocks[offset + 1] > "") { # checking + 1 to check x instead of text, which could be blank
@@ -1157,11 +1137,7 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
     local start_x = b_x(blockIdx);
     local current_x = start_x;
     local block_starting_height = b_height(blockIdx);
-    if bshape == "stack" or bshape == "c" {
-        local block_total_height = 21;
-    } else {
-        local block_total_height = 16;
-    }
+    local block_total_height = if (bshape == "stack" or bshape == "c") 21 else 16;
 
     if bshape == "c" {
         # we want to measure the current position of the two block stacks,
@@ -1387,7 +1363,6 @@ proc move_block_position bIdx, x_change, y_change, moveStack=true {
     if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
     if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
-    # log "shifting " & b_slot_1_nested_block($bIdx);
     if (b_slot_1_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_1_nested_block($bIdx)), $x_change, $y_change;}
     if (b_slot_2_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_2_nested_block($bIdx)), $x_change, $y_change;}
 
