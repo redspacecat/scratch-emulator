@@ -1,5 +1,7 @@
 costumes "assets/images/blank.svg" as "backdrop1";
 
+%include code/helpful_utils
+
 list blocks;
 list roots; # holds block ids of script roots
 
@@ -12,6 +14,7 @@ struct InputRank {
 var InputRank highlighted_input;
 
 onclick {
+    wait_until(not mouse_down());
     broadcast "stage_click";
 }
 

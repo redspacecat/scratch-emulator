@@ -150,11 +150,12 @@ on "palette_display_loop" {
 }
 
 on "stage_click" {
-    if mouse_down() and mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+    if mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
         clicked_category = floor((177 - mouse_y()) / 30) + 1;
-        target_palette_y = category_y[clicked_category];
-        target_palette_y_time = 20;
-        log clicked_category;
+        if clicked_category <= length category_y {
+            target_palette_y = category_y[clicked_category];
+            target_palette_y_time = 20;
+        }
     }
 }
 
@@ -173,7 +174,11 @@ nowarp proc handle_input {
     }
     mx = mouse_x() + scroll_x_offset;
     my = mouse_y() + scroll_y_offset;
-    hovered_block = find_hovered_block(mx, my);
+    if mouse_x() > PALETTE_MIN_X {
+        hovered_block = find_hovered_block(mx, my);
+    } else {
+        hovered_block = 0;
+    }
     if hovered_block > 0 {
         wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
         if not mouse_down() {

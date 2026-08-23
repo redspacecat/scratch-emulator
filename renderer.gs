@@ -67,6 +67,13 @@ proc render_blocks {
             i += BLOCK_LENGTH;
         }
 
+        set_pen_size 4;
+        set_pen_color "#bebebe";
+        goto -2 - PALETTE_SCROLL_X, 177 - (360 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
+        pen_down;
+        change_y -30;
+        pen_up;
+
         render_palette_text;
     }
 
