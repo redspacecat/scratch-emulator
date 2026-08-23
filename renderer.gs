@@ -57,7 +57,7 @@ proc render_blocks {
         set_pen_color "#e5f4f8";
         set_pen_transparency 30;
         pen_down;
-        set_pen_size 205;
+        set_pen_size 208;
         change_y -360;
         pen_up;
 
@@ -88,16 +88,14 @@ proc render_palette_text {
 }
 
 proc render_palette_sidebar {
-    # if not PALETTE_SHOWN {
-        set_pen_size 0;
-        goto -223, 180;
-        set_pen_color "#e5f4f8";
-        set_pen_transparency 30;
-        pen_down;
-        set_pen_size 35;
-        change_y -360;
-        pen_up;
-    # }
+    set_pen_size 0;
+    goto -223, 180;
+    set_pen_color "#e5f4f8";
+    set_pen_transparency 30;
+    pen_down;
+    set_pen_size 35;
+    change_y -360;
+    pen_up;
 
     goto -223, 162;
     i = 1;

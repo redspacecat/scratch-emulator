@@ -11,6 +11,10 @@ struct InputRank {
 
 var InputRank highlighted_input;
 
+onclick {
+    broadcast "stage_click";
+}
+
 
 # keeps a list of ids of dragged blocks so they can be avoided
 # for placement into and so they can be layered on top

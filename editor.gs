@@ -131,12 +131,6 @@ on "palette_display_loop" {
             target_palette_x = 220;
             target_palette_x_time = 6;
         }
-        if mouse_down() and mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
-            clicked_category = floor((177 - mouse_y()) / 30) + 1;
-            target_palette_y = category_y[clicked_category];
-            target_palette_y_time = 20;
-            log clicked_category;
-        }
 
         if target_palette_y_time > 0 {
             PALETTE_SCROLL_Y += round((target_palette_y - PALETTE_SCROLL_Y) / 2.5);
@@ -152,6 +146,15 @@ on "palette_display_loop" {
                 PALETTE_SCROLL_X = 0;
             }
         }
+    }
+}
+
+on "stage_click" {
+    if mouse_down() and mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+        clicked_category = floor((177 - mouse_y()) / 30) + 1;
+        target_palette_y = category_y[clicked_category];
+        target_palette_y_time = 20;
+        log clicked_category;
     }
 }
 

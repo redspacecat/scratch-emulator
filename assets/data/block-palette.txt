@@ -352,7 +352,7 @@ datalist_replaceitemoflist,stack
 replace item,(1,of,[lists|my list,with,(thing
 
 
-datalist_itemoflist,reporter(thing
+datalist_itemoflist,reporter
 item,(1,of,[lists|my list
 datalist_itemnumoflist,reporter
 item # of,(thing,in,[lists|my list
