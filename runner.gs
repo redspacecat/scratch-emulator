@@ -10,8 +10,14 @@ onkey "r" {
     run;
 }
 
+struct Var {
+    name,
+    val
+}
+
 list stack;
 list args;
+list Var vars;
 
 proc pop arg_count {
     delete args;
@@ -31,8 +37,12 @@ proc push item {
 }
 
 nowarp proc run {
+    delete vars;
+
     show;
     goto 0, 0;
+    clear_graphic_effects;
+    point_in_direction 90;
     p = 1;
     until p > length code {
         if code[p].type == "text" {
@@ -76,10 +86,10 @@ proc exec_cmd cmd {
                 if $cmd > Opcode.looks_size {
                     exec_count $cmd; # sound
                 } else {
-                    exec_looks $cmd # looks
+                    exec_looks $cmd; # looks
                 }
             } else {
-                exec_motion $cmd # motion
+                exec_motion $cmd; # motion
             }
         }
     }
@@ -97,20 +107,31 @@ proc execute cmd {
     } elif $cmd == "operator_not" {
         pop 1;
         push not args[1] == "true";
+    } elif $cmd == "operator_equals" {
+        pop 2;
+        push args[1] == args[2];
+    } elif $cmd == "operator_join" {
+        pop 2;
+        push args[1] & args[2];
     } elif $cmd == "jump_if" {
         pop 2;
         if args[1] == "true" {
             p = args[2] - 1;
         }
-    } elif $cmd == "jump" {
+    } elif $cmd == "jump" or $cmd == "jump_yield" {
         pop 1;
         p = args[1] - 1;
     } elif $cmd == "looks_sayforsecs" {
         pop 2;
         say args[1], args[2];
+    } elif $cmd == "looks_say" {
+        pop 1;
+        say args[1];
     } elif $cmd == "sensing_keypressed" {
         pop 1;
         push key_pressed(args[1]);
+    } elif $cmd == "sensing_mousedown" {
+        push mouse_down();
     } elif $cmd == "looks_changeeffectby" {
         pop 2;
         if args[1] == "color" {
@@ -127,5 +148,28 @@ proc execute cmd {
     } elif $cmd == "motion_movesteps" {
         pop 1;
         move args[1];
+    } elif $cmd == "data_setvariableto" {
+        pop 2;
+        if args[1] not in vars.name {
+            add Var {name: args[1], val: 0} to vars;
+        }
+        vars[args[1] in vars.name].val = args[2];
+    } elif $cmd == "data_changevariableby" {
+        pop 2;
+        if args[1] not in vars.name {
+            add Var {name: args[1], val: 0} to vars;
+        }
+        vars[args[1] in vars.name].val += args[2];
+    } elif $cmd == "data_variable" {
+        pop 1;
+        if args[1] not in vars.name {
+            add Var {name: args[1], val: 0} to vars;
+        }
+        push vars[args[1] in vars.name].val;
+    } elif $cmd == "motion_goto" {
+        pop 1;
+        if args[1] == "random position" {
+            goto "_random_";
+        }
     }
 }
