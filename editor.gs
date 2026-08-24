@@ -467,6 +467,10 @@ proc delete_block_stack bIdx {
         delete_block_stack b_idx(b_next($bIdx));
     }
 
+    if b_id($bIdx) in roots {
+        delete roots[b_id($bIdx) in roots];
+    }
+
     local i = $bIdx;
     repeat BLOCK_LENGTH {
         blocks[i] = "";
