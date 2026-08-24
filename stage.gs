@@ -34,3 +34,10 @@ var PALETTE_SHOWN = false;
 var PALETTE_END;
 
 list block_palette_text;
+
+struct Token {
+    type,
+    val
+}
+
+list Token code;

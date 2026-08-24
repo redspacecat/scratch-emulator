@@ -2,13 +2,6 @@ costumes "assets/images/blank.svg";
 
 %include code/helpful_utils
 
-struct Token {
-    type,
-    val
-}
-
-list Token code;
-
 onkey "c" {
     compile;
 }

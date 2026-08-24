@@ -1,0 +1,88 @@
+costumes "assets/images/dango-cat.svg";
+
+set_x 0;
+set_y 0;
+hide;
+
+onkey "r" {
+    run;
+}
+
+list stack;
+list args;
+
+proc pop arg_count {
+    delete args;
+    repeat $arg_count {
+        pop_one;
+        insert popped_val at args[1];
+    }
+}
+
+proc pop_one {
+    popped_val = stack[1];
+    delete stack[1];
+}
+
+proc push item {
+    insert $item at stack[1];
+}
+
+nowarp proc run {
+    show;
+    goto 0, 0;
+    p = 1;
+    until p > length code {
+        if code[p].type == "text" {
+            push code[p].val;
+        } elif code[p].type == "command" {
+            execute code[p].val;
+        }
+        p++;
+    }
+}
+
+proc execute cmd {
+    if $cmd == "sensing_askandwait" {
+        pop 1;
+        ask args[1];
+    } elif $cmd == "sensing_answer" {
+        push answer();
+    } elif $cmd == "operator_contains" {
+        pop 2;
+        push args[2] in args[1];
+    } elif $cmd == "operator_not" {
+        pop 1;
+        push not args[1] == "true";
+    } elif $cmd == "jump_if" {
+        pop 2;
+        if args[1] == "true" {
+            p = args[2] - 1;
+        }
+    } elif $cmd == "jump" {
+        pop 1;
+        p = args[1] - 1;
+    } elif $cmd == "looks_sayforsecs" {
+        pop 2;
+        say args[1], args[2];
+    } elif $cmd == "sensing_keypressed" {
+        pop 1;
+        push key_pressed(args[1]);
+    } elif $cmd == "looks_changeeffectby" {
+        pop 2;
+        if args[1] == "color" {
+            change_color_effect args[2];
+        }
+    } elif $cmd == "motion_turnright" {
+        pop 1;
+        turn_right args[1];
+    } elif $cmd == "control_wait" {
+        pop 1;
+        wait args[1];
+    } elif $cmd == "looks_hide" {
+        hide;
+    } elif $cmd == "motion_movesteps" {
+        pop 1;
+        move args[1];
+    }
+}
