@@ -1,5 +1,7 @@
 costumes "assets/images/dango-cat.svg";
 
+%include code/opcodes
+
 set_x 0;
 set_y 0;
 hide;
@@ -37,8 +39,49 @@ nowarp proc run {
             push code[p].val;
         } elif code[p].type == "command" {
             execute code[p].val;
+            # exec_cmd code[p].val;
         }
         p++;
+    }
+}
+
+proc exec_cmd cmd {
+    if $cmd > Opcode.sensing_username { # operators - end
+        if $cmd > Opcode.datalist_hidelist {
+            # extensions & custom blocks
+        } else { # operators - lists
+            if $cmd > Opcode.operator_mathop { # variables - lists
+                if $cmd > Opcode.data_hidevariable {
+                    exec_lists $cmd; # lists
+                } else {
+                    exec_variables $cmd; # variables
+                }
+            } else {
+                exec_operators $cmd; # operators
+            }
+        }
+    } else { # motion - sensing
+        if $cmd > Opcode.sound_volume { # events - sensing
+            if $cmd > Opcode.control_delete_this_clone {
+                exec_sensing $cmd; # sensing
+            } else {  # events - control
+                if $cmd > Opcode.event_broadcastandwait {
+                    exec_control $cmd; # control
+                } else {
+                    exec_events $cmd; # events
+                }
+            }
+        } else { # motion - sound
+            if $cmd > Opcode.motion_direction { # looks - sound
+                if $cmd > Opcode.looks_size {
+                    exec_count $cmd; # sound
+                } else {
+                    exec_looks $cmd # looks
+                }
+            } else {
+                exec_motion $cmd # motion
+            }
+        }
     }
 }
 
