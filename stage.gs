@@ -41,3 +41,5 @@ struct Token {
 }
 
 list Token code;
+list events;
+list opcode_lookup "assets/data/opcodes.txt";
