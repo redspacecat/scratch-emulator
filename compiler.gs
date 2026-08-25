@@ -1,6 +1,9 @@
 costumes "assets/images/blank.svg";
 
 %include code/helpful_utils
+%include code/opcodes
+
+list opcode_lookup "assets/data/opcodes.txt";
 
 onkey "c" {
     compile;
@@ -17,6 +20,14 @@ proc compile {
         }
         i++;
     }
+
+    # local i = 1;
+    # repeat length code {
+    #     if code[i].type == "command" {
+    #         code[i].val = code[i].val in opcode_lookup;
+    #     }
+    #     i++;
+    # }
 }
 
 proc compile_root root {

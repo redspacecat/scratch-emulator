@@ -1,3 +1,6 @@
+jump
+jump_if
+jump_yield
 motion_movesteps
 motion_turnright
 motion_turnleft
