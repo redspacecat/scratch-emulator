@@ -64,10 +64,14 @@ nowarp proc run {
     clear_graphic_effects;
     point_in_direction 90;
 
+    soundI = 0;
+    askI = 0;
+    timer_base = 0;
+
     threadI = 1;
     repeat length events {
         if events[threadI] == "event_whenflagclicked" {
-            start_thread events[threadI+2];
+            start_thread events[threadI + 2];
         }
         threadI++;
     }
@@ -128,6 +132,7 @@ proc exec_one_thread threadPos {
     }
 
     stop = false;
+    stop_level = "";
     yield = "";
     p = threads[current_thread];
     until stop or yield > "" {
@@ -143,8 +148,24 @@ proc exec_one_thread threadPos {
         threads[current_thread] = yield; # update the stored position of the thread to come back to next frame
     }
     if stop {
-        stop_thread current_thread;
+        if stop_level == "script" {
+            stop_thread current_thread;
+        } elif stop_level == "sprite" {
+            stop_all_threads;
+        } else {
+            stop_all_execution;
+        }
     }
+}
+
+proc stop_all_threads {
+    until length threads == 0 {
+        stop_thread 1;
+    }
+}
+
+proc stop_all_execution {
+    stop_all_threads;
 }
 
 proc exec_cmd cmd {
