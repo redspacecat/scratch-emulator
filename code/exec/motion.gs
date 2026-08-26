@@ -25,18 +25,14 @@ proc exec_motion cmd {
             if $cmd < Opcode.motion_pointindirection { # glide to - glidetoxy
                 if $cmd < Opcode.motion_glidesecstoxy {
                     # glide to
-                    if glideI == 0 {
-                        pop 2;
-                        broadcast "exec_glide_to";
-                        pause_current_thread;
-                    }
+                    pop 2;
+                    broadcast "exec_glide_to";
+                    pause_current_thread args[1];
                 } else {
                     # glide secs to xy
-                    if glideI == 0 {
-                        pop 3;
-                        broadcast "exec_glide_to_xy";
-                        pause_current_thread;
-                    }
+                    pop 3;
+                    broadcast "exec_glide_to_xy";
+                    pause_current_thread args[1];
                 }
             } else { # point in direction - point towards
                 if $cmd < Opcode.motion_pointtowards { # point in direction
@@ -95,17 +91,11 @@ proc exec_motion cmd {
 }
 
 on "exec_glide_to" {
-    glideI = current_thread;
     glide special_targets(2), args[1];
-    unpause_thread glideI;
     log "finished glide";
-    glideI = 0;
 }
 
 on "exec_glide_to_xy" {
-    glideI = current_thread;
     glide args[2], args[3], args[1];
-    unpause_thread glideI;
     log "finished glide to xy";
-    glideI = 0;
 }

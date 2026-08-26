@@ -58,7 +58,6 @@ proc push item {
 nowarp proc run {
     delete vars;
     delete threads; # thread has: pos, status, start time
-    glideI = 0; # reset gliding status
 
     show;
     goto 0, 0;
@@ -81,7 +80,7 @@ nowarp proc run {
 proc start_thread pos {
     add $pos to threads;
     add "" to threads;
-    add 0 to threads;
+    add "" to threads;
 }
 
 proc stop_thread pos {
@@ -90,11 +89,15 @@ proc stop_thread pos {
     }
 }
 
-proc pause_current_thread {
+proc pause_current_thread secs="" {
     # pauses the current thread to let a longer running action take place
     # yield is set so that when the action finishes, the thread automatically
     # picks up where it left off
     threads[current_thread + 1] = "wait";
+    if $secs > "" {
+        threads[current_thread + 2] = timer() + $secs;
+        log "delayed thread " & current_thread & " for " & $secs;
+    }
     yield = p + 1;
 }
 
@@ -115,7 +118,13 @@ proc exec_one_thread threadPos {
     current_thread = $threadPos;
 
     if threads[current_thread + 1] == "wait" { # yield if waiting on a command to complete
-        stop_this_script;
+        if threads[current_thread + 2] > "" and timer() > threads[current_thread + 2] { # handle threads delayed for a time
+            log "ending thread wait " & current_thread & " " & threads[current_thread + 2];
+            threads[current_thread + 1] = "";
+            threads[current_thread + 2] = "";
+        } else {
+            stop_this_script;
+        }
     }
 
     stop = false;
