@@ -4,6 +4,7 @@ proc exec_looks cmd {
             if $cmd < Opcode.looks_thinkforsecs { # say
                 if $cmd < Opcode.looks_say { # say for secs
                     pop 2;
+                    copy_args_to_tmp;
                     broadcast "exec_say";
                     pause_current_thread args[2]; # pause for length of block execution
                 } else { # say
@@ -13,11 +14,12 @@ proc exec_looks cmd {
             } else { # think
                 if $cmd < Opcode.looks_think { # think for secs
                     pop 2;
+                    copy_args_to_tmp;
                     broadcast "exec_think";
                     pause_current_thread args[2];
                 } else { # think
                     pop 1;
-                    say args[1];
+                    think args[1];
                 }
             }
         } else { # switch costume - set size
@@ -131,11 +133,13 @@ proc exec_looks cmd {
 }
 
 on "exec_say" {
-    say args[1], args[2];
+    say tmp_args[1], tmp_args[2];
+    pop_tmp_args 2;
     log "finished say";
 }
 
 on "exec_think" {
-    say args[1], args[2];
+    think tmp_args[1], tmp_args[2];
+    pop_tmp_args 2;
     log "finished think";
 }

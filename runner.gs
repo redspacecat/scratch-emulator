@@ -28,6 +28,7 @@ struct Var {
 
 list stack;
 list args;
+list tmp_args; # for storing args for longer running blocks
 list Var vars;
 list threads;
 
@@ -55,18 +56,46 @@ proc push item {
     insert $item at stack[1];
 }
 
+proc pop_tmp_args arg_count {
+    repeat $arg_count {
+        delete tmp_args[length tmp_args];
+    }
+}
+
+proc copy_args_to_tmp {
+    local i = 1;
+    repeat length args {
+        add args[i] to tmp_args;
+        i++;
+    }
+}
+
+proc init_sprite {
+    switch_costume base_costume;
+    clear_graphic_effects;
+    show;
+    set_size 100;
+    say "";
+    think "";
+    clear_sound_effects;
+    set_drag_mode_not_draggable;
+    set_rotation_style_left_right;
+    point_in_direction 90;
+    goto 0, 0;
+    pen_up;
+}
+
 nowarp proc run {
     delete vars;
     delete threads; # thread has: pos, status, start time
 
-    show;
-    goto 0, 0;
-    clear_graphic_effects;
-    point_in_direction 90;
+    base_costume = 1;
+    init_sprite;
 
     soundI = 0;
     askI = 0;
-    timer_base = 0;
+    delete tmp_args;
+    timer_base = timer();
 
     threadI = 1;
     repeat length events {
@@ -91,6 +120,9 @@ proc stop_thread pos {
     repeat 3 {
         delete threads[$pos];
     }
+    # shift down later indexes appropriately to ensure thread unpausing still works
+    if $pos < askI {askI -= 3;}
+    if $pos < soundI {soundI -= 3;}
 }
 
 proc pause_current_thread secs="" {

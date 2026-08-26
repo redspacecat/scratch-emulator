@@ -48,7 +48,7 @@ proc exec_operators cmd {
                     push args[1] == "true" or args[2] == "true";
                 } else { # not
                     pop 1;
-                    push not args[1] == "true";
+                    push not (args[1] == "true");
                 }
             } else {
                 if $cmd < Opcode.operator_letter_of { # join

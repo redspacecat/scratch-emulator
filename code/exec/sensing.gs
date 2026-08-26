@@ -4,7 +4,7 @@ proc exec_sensing cmd {
             if $cmd < Opcode.sensing_coloristouchingcolor {
                 if $cmd < Opcode.sensing_touchingcolor { # touching object
                     pop 1;
-                    push touching(special_targets(args[1]));
+                    push touching(special_targets(1));
                 } else { # touching color
                     pop 1;
                     push touching_color(args[1]);
@@ -15,7 +15,7 @@ proc exec_sensing cmd {
                     push color_is_touching_color(args[1], args[2]);
                 } else { # distance to
                     pop 1;
-                    push distance_to(special_targets(args[1]));
+                    push distance_to(special_targets(1));
                 }
             }
         } else { # ask - mouse y
@@ -24,6 +24,7 @@ proc exec_sensing cmd {
                     pop 1;
                     if askI == 0 {
                         askI = current_thread;
+                        copy_args_to_tmp;
                         broadcast "exec_ask";
                         pause_current_thread;
                     }
@@ -99,7 +100,8 @@ proc exec_sensing cmd {
 }
 
 on "exec_ask" {
-    ask args[1];
+    ask tmp_args[1];
+    pop_tmp_args 1;
     unpause_thread askI;
     askI = 0;
 }
