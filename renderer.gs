@@ -333,6 +333,10 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             fill_rect $x + 7, $x + 19, $y - $height, $y - 3, 1;
             tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
             tri_fill $x + 19, $y, $x + 19, $y - 3, $x + 16, $y - 3, 0.5;
+            set_pen_size 3;
+            goto $x + 5, $y - 2;
+            pen_down;
+            pen_up;
         } else {
             fill_rect $x + 2, $x + $width - 2, $y - $height, $y, 1;
             goto $x + 5, $y + 1;
@@ -510,7 +514,7 @@ proc render_c_block x, y, width, height, slot_count, prong_1_height, prong_2_hei
 
     # top prong top nub
     fill_rect $x + 7, $x + $width - 2, $y - $prong_1_height, $y - 3, 1;
-    tri_fill $x + 7, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5;
+    tri_fill $x + 4, $y, $x + 10, $y - 3, $x + 7, $y - 3, 0.5; # x + 4 instead of 7 is because of rendering imperfections
     tri_fill $x + 19, $y, $x + 16, $y - 3, $x + 19, $y - 3, 0.5;
 
     fill_rect $x + 19, $x + $width - 2, $y - 3, $y, 1; # fill top line
