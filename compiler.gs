@@ -36,9 +36,7 @@ proc compile {
 
 proc compile_root root {
     compile_script b_idx($root);
-
-    add_text "this script"; # stop the current thread so it doesn't go on and execute random things
-    add_cmd "control_stop";
+    add_cmd "end"; # stop the current thread so it doesn't go on and execute other scripts
 }
 
 proc compile_script idx {
@@ -48,9 +46,15 @@ proc compile_script idx {
     }
 }
 
+proc compile_inner_script id {
+    if $id > "" {
+        compile_script b_idx($id);
+    }
+}
+
 proc compile_block idx {
     log "compiling block: " & b_opcode($idx) & " with id: " & b_id($idx);
-    if b_slot_1_nested_block($idx) > "" {        
+    if b_shape($idx) == "c" or b_opcode($idx) == "control_wait_until" {   
         if b_opcode($idx) == "control_if" or b_opcode($idx) == "control_if_else" {
             # compile block condition
             compile_input 1, $idx;
@@ -59,7 +63,7 @@ proc compile_block idx {
             add_placeholder "IF-ELSE", $idx;
             add_cmd "jump_if";
             # compile if true statement
-            compile_script b_idx(b_slot_1_nested_block($idx));
+            compile_inner_script b_slot_1_nested_block($idx);
             if b_slot_2_nested_block($idx) > "" {
                 # compile if false statement
                 add_placeholder "IF-END", $idx;
@@ -67,12 +71,12 @@ proc compile_block idx {
 
                 replace_placeholder "IF-ELSE", $idx;
 
-                compile_script b_idx(b_slot_2_nested_block($idx));
+                compile_inner_script b_slot_2_nested_block($idx);
                 replace_placeholder "IF-END", $idx;
             } else {
                 replace_placeholder "IF-ELSE", $idx;
             }
-        } elif b_opcode($idx) == "control_repeat_until" or b_opcode($idx) == "control_while" or b_opcode($idx) == "control_forever" {
+        } elif b_opcode($idx) == "control_repeat_until" or b_opcode($idx) == "control_wait_until" or b_opcode($idx) == "control_while" or b_opcode($idx) == "control_forever" {
             set_tmp "LOOP-START-" & $idx, length code + 1;
             if b_opcode($idx) != "control_forever" {
                 # compile block condition
@@ -84,7 +88,7 @@ proc compile_block idx {
                 add_cmd "jump_if";
             }
             # compile the loop inner stack of blocks
-            compile_script b_idx(b_slot_1_nested_block($idx));
+            compile_inner_script b_slot_1_nested_block($idx);
             # go back to top of loop
             get_tmp "LOOP-START-" & $idx;
             add_text tmp_val;
