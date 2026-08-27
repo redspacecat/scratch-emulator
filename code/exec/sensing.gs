@@ -24,7 +24,7 @@ proc exec_sensing cmd {
                     pop 1;
                     if askI == 0 {
                         askI = current_thread;
-                        copy_args_to_tmp;
+                        tmp_args[11] = args[1];
                         broadcast "exec_ask";
                         pause_current_thread;
                     }
@@ -100,12 +100,7 @@ proc exec_sensing cmd {
 }
 
 on "exec_ask" {
-    exec_ask tmp_args[1];
+    ask tmp_args[11];
     unpause_thread askI;
     askI = 0;
-}
-
-nowarp proc exec_ask arg1 {
-    pop_tmp_args 1;
-    ask $arg1;
 }

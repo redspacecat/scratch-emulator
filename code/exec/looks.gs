@@ -4,7 +4,8 @@ proc exec_looks cmd {
             if $cmd < Opcode.looks_thinkforsecs { # say
                 if $cmd < Opcode.looks_say { # say for secs
                     pop 2;
-                    copy_args_to_tmp;
+                    tmp_args[6] = args[1];
+                    tmp_args[7] = args[2];
                     broadcast "exec_say";
                     pause_current_thread args[2]; # pause for length of block execution
                 } else { # say
@@ -14,7 +15,8 @@ proc exec_looks cmd {
             } else { # think
                 if $cmd < Opcode.looks_think { # think for secs
                     pop 2;
-                    copy_args_to_tmp;
+                    tmp_args[8] = args[1];
+                    tmp_args[9] = args[2];
                     broadcast "exec_think";
                     pause_current_thread args[2];
                 } else { # think
@@ -133,21 +135,11 @@ proc exec_looks cmd {
 }
 
 on "exec_say" {
-    exec_say tmp_args[1], tmp_args[2];
+    say tmp_args[6], tmp_args[7];
     log "finished say";
 }
 
 on "exec_think" {
-    exec_think tmp_args[1], tmp_args[2];
+    think tmp_args[8], tmp_args[9];
     log "finished think";
-}
-
-nowarp proc exec_say arg1, arg2 {
-    pop_tmp_args 2;
-    say $arg1, $arg2;
-}
-
-nowarp proc exec_think arg1, arg2 {
-    pop_tmp_args 2;
-    think $arg1, $arg2;
 }

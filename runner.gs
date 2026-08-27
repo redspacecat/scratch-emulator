@@ -63,14 +63,6 @@ proc pop_tmp_args arg_count {
     }
 }
 
-proc copy_args_to_tmp {
-    local i = 1;
-    repeat length args {
-        add args[i] to tmp_args;
-        i++;
-    }
-}
-
 proc init_sprite {
     switch_costume base_costume;
     clear_graphic_effects;
@@ -96,6 +88,9 @@ nowarp proc run {
     soundI = 0;
     askI = 0;
     delete tmp_args;
+    repeat 11 { # fill up with blank space so it can be replaced by arguments when needed
+        add "" to tmp_args;
+    }
     timer_base = timer();
 
     threadI = 1;
