@@ -100,8 +100,12 @@ proc exec_sensing cmd {
 }
 
 on "exec_ask" {
-    ask tmp_args[1];
-    pop_tmp_args 1;
+    exec_ask tmp_args[1];
     unpause_thread askI;
     askI = 0;
+}
+
+nowarp proc exec_ask arg1 {
+    pop_tmp_args 1;
+    ask $arg1;
 }

@@ -133,13 +133,21 @@ proc exec_looks cmd {
 }
 
 on "exec_say" {
-    say tmp_args[1], tmp_args[2];
-    pop_tmp_args 2;
+    exec_say tmp_args[1], tmp_args[2];
     log "finished say";
 }
 
 on "exec_think" {
-    think tmp_args[1], tmp_args[2];
-    pop_tmp_args 2;
+    exec_think tmp_args[1], tmp_args[2];
     log "finished think";
+}
+
+nowarp proc exec_say arg1, arg2 {
+    pop_tmp_args 2;
+    say $arg1, $arg2;
+}
+
+nowarp proc exec_think arg1, arg2 {
+    pop_tmp_args 2;
+    think $arg1, $arg2;
 }

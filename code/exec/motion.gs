@@ -26,11 +26,13 @@ proc exec_motion cmd {
                 if $cmd < Opcode.motion_glidesecstoxy {
                     # glide to
                     pop 2;
+                    copy_args_to_tmp;
                     broadcast "exec_glide_to";
                     pause_current_thread args[1];
                 } else {
                     # glide secs to xy
                     pop 3;
+                    copy_args_to_tmp;
                     broadcast "exec_glide_to_xy";
                     pause_current_thread args[1];
                 }
@@ -91,11 +93,21 @@ proc exec_motion cmd {
 }
 
 on "exec_glide_to" {
-    glide special_targets(2), args[1];
+    exec_glide_to special_targets_tmp(2), tmp_args[1];
     log "finished glide";
 }
 
 on "exec_glide_to_xy" {
-    glide args[2], args[3], args[1];
+    exec_glide_to_xy tmp_args[2], tmp_args[3], tmp_args[1];
     log "finished glide to xy";
+}
+
+nowarp proc exec_glide_to arg1, arg2 {
+    pop_tmp_args 2;
+    glide $arg1, $arg2;
+}
+
+nowarp proc exec_glide_to_xy arg1, arg2, arg3 {
+    pop_tmp_args 3;
+    glide $arg1, $arg2, $arg3;
 }

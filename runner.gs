@@ -1,6 +1,7 @@
 costumes "assets/images/dango-cat.svg";
 
 %define special_targets(num) if (args[num] in target_arg_lookup) target_arg_lookup[(args[num] in target_arg_lookup) + 1] else args[num]
+%define special_targets_tmp(num) if (tmp_args[num] in target_arg_lookup) target_arg_lookup[(tmp_args[num] in target_arg_lookup) + 1] else tmp_args[num]
 
 %include code/opcodes
 %include code/exec/extras
@@ -58,7 +59,7 @@ proc push item {
 
 proc pop_tmp_args arg_count {
     repeat $arg_count {
-        delete tmp_args[length tmp_args];
+        delete tmp_args[1];
     }
 }
 

@@ -54,8 +54,12 @@ proc exec_sound cmd {
 }
 
 on "exec_play_sound" {
-    play_sound_until_done tmp_args[1];
-    pop_tmp_args 1;
+    exec_play_sound tmp_args[1];
     unpause_thread soundI;
     soundI = 0;
+}
+
+proc exec_play_sound arg1 {
+    pop_tmp_args 1;
+    play_sound_until_done $arg1;
 }
