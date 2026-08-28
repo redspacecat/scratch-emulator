@@ -4,7 +4,7 @@
 		{
 			"label": "goboscript: build project (full)",
 			"type": "shell",
-			"command": "goboscript build -o 'Scratch Emulator.sb3' ; if ($?) { python processing/renamer.py }",
+			"command": "goboscript build -o 'Scratch Emulator.sb3' ; if ($?) { python processing/main.py }",
 			"group": {
 				"kind": "build",
 				"isDefault": true

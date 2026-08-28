@@ -1,16 +1,21 @@
 import os
+import tempfile
+import shutil
 import post_processing
+import renamer
 
+fd, temp_path = tempfile.mkstemp(suffix=".sb3")
+os.close(fd)
+
+PROJECT_NAME = "Scratch Emulator.sb3"
+renamer.process_renaming(PROJECT_NAME)
 
 ROOT_DIR = ''
-PATH_SOURCE_PROJECT = os.path.join(ROOT_DIR, 'scratch-emulator.sb3')
-PATH_TARGET_PROJECT = os.path.join(ROOT_DIR, 'Scratch Emulator.sb3')
-
-
+PATH_SOURCE_PROJECT = os.path.join(ROOT_DIR, PROJECT_NAME)
+PATH_TARGET_PROJECT = temp_path
 
 with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as project:
-    project.order_sprites(['editor', 'renderer', 'blank'])
-    project.clean_up_blocks()
+    project.order_sprites(['blank', 'editor', 'renderer', 'compiler', 'runner'])
     project.remove_field_text()
     project.move_turbowarp_comment()
 
@@ -38,4 +43,4 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
 
     # project.add_build_comment('Scratch Emulator\nCreated by redspacecat', "blank")
 
-
+shutil.move(temp_path, PATH_SOURCE_PROJECT)

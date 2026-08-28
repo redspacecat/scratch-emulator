@@ -53,7 +53,7 @@ class ScratchProject:
                 for item in self._additional_assets:
                     new_archive.writestr(item[0], item[1])
 
-            print(f'saved to {self.destination_path}')
+            print(f'Saved!')
         else:
             print('saving cancelled due to exception')
 
@@ -183,7 +183,7 @@ class ScratchProject:
                     if isinstance(field, list) and field[0] == 'make gh issue if this bothers u':
                         field[0] = ''
                         fields_updated_count += 1
-        print(f'fields updated: {fields_updated_count}')
+        # print(f'fields updated: {fields_updated_count}')
 
 
 

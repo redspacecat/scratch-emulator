@@ -198,13 +198,13 @@ class ScratchProjectEditor:
             self.project_archive.close()
 
 
-if __name__ == "__main__":
-    input_sb3 = "Scratch Emulator.sb3"
-    output_sb3 = "Scratch Emulator.sb3"
+def process_renaming(file_name):
+    input_sb3 = file_name
+    output_sb3 = file_name
 
     print("Post-processing project...")
 
     with ScratchProjectEditor(input_sb3, output_sb3) as editor:
         pass
 
-    print("Done!")
+    print("Done renaming...")
