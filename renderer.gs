@@ -220,6 +220,7 @@ proc render_one_block blockID, blockIdx {
         if b_input1_x(i) > "" and b_input1_nested_block(i) == "" {
             render_input
                 b_shape(i),
+                b_input1_type(i),
                 b_input1_x(i) - scroll_x_offset,
                 b_y(i) - (b_prong_1_height(i) / 2) + b_input1_height(i) / 2 - scroll_y_offset,
                 b_input1_width(i),
@@ -266,6 +267,7 @@ proc render_one_block blockID, blockIdx {
             if (blocks[offset] > "" and blocks[offset + b_input_nested_block] == "") {
                 render_input
                     b_shape(i),
+                    blocks[offset + b_input_type],
                     blocks[offset + b_input_x] - scroll_x_offset,
                     ((b_y(i) + (b_y(i) - b_height(i))) / 2) + blocks[offset + b_input_height] / 2 - scroll_y_offset,
                     blocks[offset + b_input_width],
@@ -680,7 +682,7 @@ proc render_text_label x, y, text {
     print $x, ($y) - 7, 1, $text;
 }
 
-proc render_input block_shape, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
+proc render_input block_shape, type, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
     if $shape == "reporter" {
         if $is_highlighted {
             # if dropdown shape is nothing or round, then we want to highlight if NOT editing an input (highlight_lightly)
@@ -723,7 +725,11 @@ proc render_input block_shape, x, y, width, height, text, shape, color, is_highl
             if $dropdown_shape > "" {
                 set_pen_color $dropdown_color;
             } else {
-                set_pen_color "#ffffff";
+                if $type == b_input_type_color {
+                    set_pen_color $text;
+                } else {
+                    set_pen_color "#ffffff";
+                }
             }
             if (not $is_highlighted and $dropdown_shape == "round") or $dropdown_shape == "" {
                 pen_size = $height;
@@ -818,12 +824,14 @@ proc render_input block_shape, x, y, width, height, text, shape, color, is_highl
         } else {
             set_pen_color "#000000";
         }
-        local text_x = $x + ($width) / 2;
-        if $dropdown_shape > "" {
-            text_x -= 4;
+        if $type != b_input_type_color { # don't display text for color inputs
+            local text_x = $x + ($width) / 2;
+            if $dropdown_shape > "" {
+                text_x -= 4;
+            }
+            local text_y = ($y + ($y - $height)) / 2 - 4 + 1 * ($dropdown_shape == "square");
+            print text_x, text_y, 1, $text, align: "c";
         }
-        local text_y = ($y + ($y - $height)) / 2 - 4 + 1 * ($dropdown_shape == "square");
-        print text_x, text_y, 1, $text, align: "c";
     }
     elif $shape == "boolean" {
         set_pen_color $color;

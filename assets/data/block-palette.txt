@@ -55,13 +55,13 @@ direction
 text,Looks
 
 looks_sayforsecs,stack
-say,(Hello!,for,(2,seconds
+say,$Hello!,for,(2,seconds
 looks_say,stack
-say,(Hello!
+say,$Hello!
 looks_thinkforsecs,stack
-think,(Hmm...,for,(2,seconds
+think,$Hmm...,for,(2,seconds
 looks_think,stack
-think,(Hmm...
+think,$Hmm...
 
 
 looks_switchcostumeto,stack
@@ -205,15 +205,15 @@ text,Sensing
 sensing_touchingobject,boolean
 touching,{touchingObjects|mouse-pointer
 sensing_touchingcolor,boolean
-touching color,(#abcdef,?
+touching color,##abcdef,?
 sensing_coloristouchingcolor,boolean
-color,(#ff0000,is touching,(#0000ff,?
+color,##ffaa00,is touching,##bbffcc,?
 sensing_distanceto,reporter
 distance to,{distanceTargets|mouse-pointer
 
 
 sensing_askandwait,stack
-ask,(What's your name?,and wait
+ask,$What's your name?,and wait
 sensing_answer,reporter
 answer
 
@@ -293,13 +293,13 @@ not,<
 
 
 operator_join,reporter
-join,(apple,(banana
+join,$apple,$banana
 operator_letter_of,reporter
-letter,(1,of,(apple
+letter,(1,of,$apple
 operator_length,reporter
-length of,(apple
+length of,$apple
 operator_contains,boolean
-(apple,contains,(a,?
+$apple,contains,$a,?
 
 
 operator_mod,reporter
@@ -321,7 +321,7 @@ my variable
 
 
 data_setvariableto,stack
-set,[variables|my variable,to,(0
+set,[variables|my variable,to,$0
 data_changevariableby,stack
 change,[variables|my variable,by,(1
 data_showvariable,stack
@@ -339,7 +339,7 @@ my list
 
 
 datalist_addtolist,stack
-add,(thing,to,[lists|my list
+add,$thing,to,[lists|my list
 
 
 datalist_deleteoflist,stack
@@ -347,19 +347,19 @@ delete,(1,of,[lists|my list
 datalist_deletealloflist,stack
 delete all of,[lists|my list
 datalist_insertatlist,stack
-insert,(thing,at,(1,of,[lists|my list
+insert,$thing,at,(1,of,[lists|my list
 datalist_replaceitemoflist,stack
-replace item,(1,of,[lists|my list,with,(thing
+replace item,(1,of,[lists|my list,with,$thing
 
 
 datalist_itemoflist,reporter
 item,(1,of,[lists|my list
 datalist_itemnumoflist,reporter
-item # of,(thing,in,[lists|my list
+item # of,$thing,in,[lists|my list
 datalist_lengthoflist,reporter
 length of,[lists|my list
 datalist_listcontainsitem,boolean
-[lists|my list,contains,(thing
+[lists|my list,contains,$thing
 
 
 datalist_showlist,stack

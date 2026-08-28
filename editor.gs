@@ -198,11 +198,14 @@ nowarp proc handle_input {
                     something_inputted = true;
                 }
                 if something_inputted {
+                    if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
+                        inputted_text = filter_only_numbers(inputted_text);
+                    }
                     set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
+                    propagate_size_change hovered_block;
                 }
                 InputRank highlighted_input = InputRank {};
                 highlight_lightly = false;
-                propagate_size_change hovered_block;
             }
         } else {
             # dragging block
@@ -783,6 +786,7 @@ proc add_block
     add $label3.text to blocks; add $label3.x to blocks;
 
     add $input1.shape to blocks;
+    add $input1.type to blocks;
     add $input1.dropdown_shape to blocks;
     add $input1.dropdown_list to blocks;
     add $input1.x to blocks;
@@ -792,6 +796,7 @@ proc add_block
     add $input1.nested_block to blocks;
 
     add $input2.shape to blocks;
+    add $input2.type to blocks;
     add $input2.dropdown_shape to blocks;
     add $input2.dropdown_list to blocks;
     add $input2.x to blocks;
@@ -801,6 +806,7 @@ proc add_block
     add $input2.nested_block to blocks;
 
     add $input3.shape to blocks;
+    add $input3.type to blocks;
     add $input3.dropdown_shape to blocks;
     add $input3.dropdown_list to blocks;
     add $input3.x to blocks;
@@ -1146,7 +1152,7 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
     # if input is a block, include that width
     # block height = tallest input + 2px padding top and bottom
     # update positions of items as needed
-    # update total block with when done
+    # update total block dimensions when done
 
     if $blockID == h_c_placement.previewID and $update_preview == false {
         stop_this_script;
@@ -1242,16 +1248,14 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
             } else {
                 if (shape == "reporter") {
                     local text = get_block_idx_input(blockIdx, inputNum, b_input_text);
-                    # log "handling text: " & text;
                     local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
                     if get_block_idx_input(blockIdx, inputNum, b_input_dropdown_shape) > "" { # if there's a dropdown, add extra padding for the arrow
                         input_width += 12;
                     }
-                    # log input_width;
-                    # local input_height = get_block_idx_input(blockIdx, inputNum, b_input_height) + 6;
-                    # if input_height > block_total_height {
-                    #     block_total_height = input_height;
-                    # }
+                    if get_block_idx_input(blockIdx, inputNum, b_input_type) == b_input_type_color { # if there's a color input, make it regular sized
+                        input_width = 16;
+                    }
+
                     set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
                 } elif (shape == "boolean") { # boolean inputs don't have text, so use just set width
                     local input_width = base_boolean_width;
@@ -1414,4 +1418,16 @@ proc move_block_position bIdx, x_change, y_change, moveStack=true {
     if b_nesting_level($bIdx) == 0 and b_next($bIdx) > "" and $moveStack {
         move_block_position b_idx(b_next($bIdx)), $x_change, $y_change, $moveStack;
     }
+}
+
+func filter_only_numbers(input) {
+    local i = 1;
+    local output = "";
+    repeat length $input {
+        if ($input[i] >= 0 and $input[i] <= 9) or $input[i] == "e" {
+            output &= $input[i];
+        }
+        i++;
+    }
+    return output;
 }

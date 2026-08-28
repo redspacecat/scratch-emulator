@@ -99,11 +99,13 @@ proc parse_palette_block {
         local i = 1;
         repeat length toks_2 {
             local t = toks_2[i];
-            if t[1] == "(" {
+            if t[1] == "(" or t[1] == "$" or t[1] == "#" {
                 # reporter input
+                local type = if (t[1] == "(") b_input_type_number else (if (t[1] == "#") b_input_type_color else b_input_type_text);
                 j = 2;
                 parse_token ",", t; # input default
                 add "reporter" to parsed_inputs;
+                add type to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
                 add i * 20 to parsed_inputs;
@@ -118,6 +120,7 @@ proc parse_palette_block {
                 add "boolean" to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
+                add "" to parsed_inputs;
                 add i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
@@ -130,6 +133,7 @@ proc parse_palette_block {
                 local dropdown_list = token;
                 parse_token ",", t;
                 add "reporter" to parsed_inputs;
+                add b_input_type_text to parsed_inputs;
                 add "round" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
                 add i * 20 to parsed_inputs;
@@ -144,6 +148,7 @@ proc parse_palette_block {
                 local dropdown_list = token;
                 parse_token ",", t;
                 add "reporter" to parsed_inputs;
+                add b_input_type_text to parsed_inputs;
                 add "square" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
                 add i * 20 to parsed_inputs;

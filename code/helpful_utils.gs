@@ -5,6 +5,7 @@ struct TextLabel {
 
 struct Input {
     shape="",
+    type="",
     dropdown_shape="",
     dropdown_list="",
     x="",
@@ -29,9 +30,9 @@ enum Category {
     Preview=34
 }
 
-%define BLOCK_LENGTH 51
+%define BLOCK_LENGTH 54
 %define TEXT_LABEL_LENGTH 2
-%define INPUT_LENGTH 8
+%define INPUT_LENGTH 9
 
 %define c_block_prong_height 15
 %define c_block_min_slot_height 12
@@ -72,44 +73,52 @@ enum Category {
 %define b_label3_x(i) blocks[i+26]
 
 %define b_input1_shape(i) blocks[i+27]
-%define b_input1_dropdown_shape(i) blocks[i+28]
-%define b_input1_dropdown_list(i) blocks[i+29]
-%define b_input1_x(i) blocks[i+30]
-%define b_input1_width(i) blocks[i+31]
-%define b_input1_height(i) blocks[i+32]
-%define b_input1_text(i) blocks[i+33]
-%define b_input1_nested_block(i) blocks[i+34]
-%define b_input2_shape(i) blocks[i+35]
-%define b_input2_dropdown_shape(i) blocks[i+36]
-%define b_input2_dropdown_list(i) blocks[i+37]
-%define b_input2_x(i) blocks[i+38]
-%define b_input2_width(i) blocks[i+39]
-%define b_input2_height(i) blocks[i+40]
-%define b_input2_text(i) blocks[i+41]
-%define b_input2_nested_block(i) blocks[i+42]
-%define b_input3_shape(i) blocks[i+43]
-%define b_input3_dropdown_shape(i) blocks[i+44]
-%define b_input3_dropdown_list(i) blocks[i+45]
-%define b_input3_x(i) blocks[i+46]
-%define b_input3_width(i) blocks[i+47]
-%define b_input3_height(i) blocks[i+48]
-%define b_input3_text(i) blocks[i+49]
-%define b_input3_nested_block(i) blocks[i+50]
+%define b_input1_type(i) blocks[i+28]
+%define b_input1_dropdown_shape(i) blocks[i+29]
+%define b_input1_dropdown_list(i) blocks[i+30]
+%define b_input1_x(i) blocks[i+31]
+%define b_input1_width(i) blocks[i+32]
+%define b_input1_height(i) blocks[i+33]
+%define b_input1_text(i) blocks[i+34]
+%define b_input1_nested_block(i) blocks[i+35]
+%define b_input2_shape(i) blocks[i+36]
+%define b_input2_type(i) blocks[i+37]
+%define b_input2_dropdown_shape(i) blocks[i+38]
+%define b_input2_dropdown_list(i) blocks[i+39]
+%define b_input2_x(i) blocks[i+40]
+%define b_input2_width(i) blocks[i+41]
+%define b_input2_height(i) blocks[i+42]
+%define b_input2_text(i) blocks[i+43]
+%define b_input2_nested_block(i) blocks[i+44]
+%define b_input3_shape(i) blocks[i+45]
+%define b_input3_type(i) blocks[i+46]
+%define b_input3_dropdown_shape(i) blocks[i+47]
+%define b_input3_dropdown_list(i) blocks[i+48]
+%define b_input3_x(i) blocks[i+49]
+%define b_input3_width(i) blocks[i+50]
+%define b_input3_height(i) blocks[i+51]
+%define b_input3_text(i) blocks[i+52]
+%define b_input3_nested_block(i) blocks[i+53]
 
 %define b_labels 21
 %define b_inputs 27
 
 %define b_input_shape 0
-%define b_input_dropdown_shape 1
-%define b_input_dropdown_list 2
-%define b_input_x 3
-%define b_input_width 4
-%define b_input_height 5
-%define b_input_text 6
-%define b_input_nested_block 7
+%define b_input_type 1
+%define b_input_dropdown_shape 2
+%define b_input_dropdown_list 3
+%define b_input_x 4
+%define b_input_width 5
+%define b_input_height 6
+%define b_input_text 7
+%define b_input_nested_block 8
 
 %define b_label_text 0
 %define b_label_x 1
+
+%define b_input_type_text 1
+%define b_input_type_number 2
+%define b_input_type_color 3
 
 %define b_idx(blockID) ((blockID - 1) * BLOCK_LENGTH + 1)
 %define b_id(blockIdx) ((blockIdx - 1) / BLOCK_LENGTH + 1)
