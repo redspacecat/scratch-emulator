@@ -58,6 +58,8 @@ onflag {
     init_blocks;
     dragged_block = 0;
     dragged_script_id = 0;
+    dragged_stack_end = 0;
+    dragged_stack_end_idx = 0;
     highest_nesting_level = 0;
     highlight_lightly = false;
     InputRank highlighted_input = InputRank {};
@@ -217,6 +219,8 @@ nowarp proc handle_input {
             drag_offset_y = my - (b_y(dragged_block_idx) + scroll_y_offset);
             disconnect_block dragged_block;
             dragged_script_id = get_script_root(dragged_block_idx); # stores the dragged blocks root script id
+            dragged_stack_end = get_stack_bottom(dragged_block);
+            dragged_stack_end_idx = b_idx(dragged_stack_end);
             find_dragged_blocks dragged_block_idx;
             while(mouse_down()) {
                 handle_drag;
@@ -251,6 +255,8 @@ nowarp proc handle_input {
             }
             dragged_block = 0;
             dragged_script_id = 0;
+            dragged_stack_end = 0;
+            dragged_stack_end_idx = 0;
             dragged_block_idx = 0;
             delete dragged_blocks;
         }
@@ -286,12 +292,20 @@ proc handle_drag no_recurse=false {
                             local s = b_shape(i);
                             if s == "stack" or s == "c" {
                                 if b_start_style(dragged_block_idx) != "hat" {
-                                    log "start style " & b_start_style(i);
-                                    add InputRank {
-                                        dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
-                                        block: b_id(i), 
-                                        input: 1 # bottom of block
-                                    } to tmp_input_ranking;
+                                    # prevent cap blocks being put in the middle of a stack
+                                    # allow if the next is the preview block, since it's the block
+                                    # we're planning to place anyway. causes flickering between choices otherwise
+                                    if (b_end_style(dragged_stack_end_idx) == "cap" and (b_next(i) == "" or b_next(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
+                                        # prevent attaching to the end of cap blocks
+                                        if b_end_style(i) != "cap" {
+                                            log "start style " & b_start_style(i);
+                                            add InputRank {
+                                                dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
+                                                block: b_id(i), 
+                                                input: 1 # bottom of block
+                                            } to tmp_input_ranking;
+                                        }
+                                    }
                                 }
 
                                 # disabled top of block connections for now, finish full implementation later
@@ -304,17 +318,23 @@ proc handle_drag no_recurse=false {
                                 # }
                             }
                             if b_shape(i) == "c" and b_start_style(dragged_block_idx) != "hat" { # don't allow hat blocks where they shouldn't go
-                                add InputRank {
-                                    dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
-                                    block: b_id(i), 
-                                    input: 2 # top slot of c block
-                                } to tmp_input_ranking;
-                                if b_slot_count(i) > 1 {
+                                # prevent cap blocks being put in the middle of a stack
+                                if (b_end_style(dragged_stack_end_idx) == "cap" and (b_slot_1_nested_block(i) == "" or b_slot_1_nested_block(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
                                     add InputRank {
-                                        dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
+                                        dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
                                         block: b_id(i), 
-                                        input: 3 # bottom slot of c block
+                                        input: 2 # top slot of c block
                                     } to tmp_input_ranking;
+                                }
+
+                                if b_slot_count(i) > 1 {
+                                    if (b_end_style(dragged_stack_end_idx) == "cap" and (b_slot_2_nested_block(i) == "" or b_slot_2_nested_block(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
+                                        add InputRank {
+                                            dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
+                                            block: b_id(i), 
+                                            input: 3 # bottom slot of c block
+                                        } to tmp_input_ranking;
+                                    }
                                 }
                             }
                         }
@@ -418,10 +438,20 @@ func duplicate_block(id) {
     return length blocks / BLOCK_LENGTH;
 }
 
+# update c prong end style
+proc update_c_end_styles idx {
+    local slot_1_end_style = b_end_style(b_idx(get_stack_bottom(b_slot_1_nested_block($idx))));
+    local slot_2_end_style = b_end_style(b_idx(get_stack_bottom(b_slot_2_nested_block($idx))));
+    b_prong_2_style($idx) = if (slot_1_end_style > "") slot_1_end_style else "normal";
+    b_prong_3_style($idx) = if (slot_2_end_style > "") slot_2_end_style else "normal";
+}
+
 proc delete_block id, remove_items=false, entire_stack=false { # doesn't delete nested blocks
     local blockIdx = b_idx($id);
     local parentIdx = b_idx(b_parent(blockIdx));
     if b_nesting_level(blockIdx) == 0 {
+        update_c_end_styles parentIdx;
+
         if b_previous(blockIdx) > "" {
             b_next(b_idx(b_previous(blockIdx))) = b_next(blockIdx);
         } else {
@@ -571,7 +601,7 @@ func find_hovered_block(x, y, ignoreIdx=0) {
             local i = PALETTE_END;
             until i > length blocks * BLOCK_LENGTH {
                 if blocks[i] > "" {
-                    # prevent picking up blocks behind the bloc palette while it's shown
+                    # prevent picking up blocks behind the block palette while it's shown
                     if PALETTE_SHOWN and mouse_x() >= PALETTE_MAX_X or PALETTE_SHOWN == false {
                         if b_nesting_level(i) == nesting_level and block_scripts[b_id(i)] == root {
                             local result = check_hovered_block(p, i, $ignoreIdx);
@@ -888,6 +918,9 @@ proc connect_stack_block connectID, childID, location {
         b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
         update_stack_parents $childID, b_parent(childIdx);
 
+        # update end style for cap blocks
+        update_c_end_styles b_idx(b_parent(childIdx));
+
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
@@ -919,6 +952,9 @@ proc connect_stack_block connectID, childID, location {
         b_slot_1_nested_block(parentIdx) = $childID;
         # b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
 
+        # update end style for cap blocks
+        b_prong_2_style(parentIdx) = b_end_style(b_idx(get_stack_bottom(b_slot_1_nested_block(parentIdx))));
+
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
@@ -949,6 +985,9 @@ proc connect_stack_block connectID, childID, location {
         update_stack_parents $childID, $connectID;
         b_slot_2_nested_block(parentIdx) = $childID;
         # b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
+
+        # update end style for cap blocks
+        b_prong_3_style(parentIdx) = b_end_style(b_idx(get_stack_bottom(b_slot_2_nested_block(parentIdx))));
 
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
@@ -1006,6 +1045,8 @@ proc disconnect_block blockID, shift=false {
         b_next(prevIdx) = "";
         b_previous(blockIdx) = "";
         b_parent(blockIdx) = "";
+        update_c_end_styles parentIdx;
+
         update_stack_parents b_next(blockIdx), b_parent(blockIdx);
         # b_next(blockIdx) = ""; # do this if you want to pick out this one stack block
         # b_previous(b_idx(b_next(blockIdx)));
