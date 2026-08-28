@@ -4,6 +4,10 @@ hide;
 %include code/helpful_utils.gs
 %include std/math
 
+costumes "assets/images/rotate-right.svg" as "@r",
+"assets/images/rotate-left.svg" as "@l",
+"assets/images/greenflag.svg" as "@g"; 
+
 list colors = [
     "#4c97ff", "#3373cc", "#4280d7",
     "#9966ff", "#774dcb", "#855cd6",
@@ -295,20 +299,33 @@ proc plain_text x, y, size, text, align {
     }
     switch_costume "large";
     local txt_i = 1;
+    point_in_direction 90;
     repeat length($text) {
+
         switch_costume $text[txt_i];
         local font_char_index = pte_font_1[costume_number() + 6];
         switch_costume "large";
-        local font_i = 3 + font_char_index;
-        repeat pte_font_1[5 + font_char_index] {
-            font_i += 4;
-            goto x_offset + $size * pte_font_1[font_i + 1], y_offset + $size * pte_font_1[font_i + 2];
-            pen_down;
-            repeat pte_font_1[font_i] {
-                font_i += 2;
+        if ($text[txt_i] == "@") {
+            switch_costume "@" & $text[txt_i + 1];
+            change_x 12;
+            change_y 3;
+            set_size 60;
+            stamp;
+            set_size 100;
+        } elif $text[txt_i - 1] == "@" {
+            x_offset += 3;
+        } else {
+            local font_i = 3 + font_char_index;
+            repeat pte_font_1[5 + font_char_index] {
+                font_i += 4;
                 goto x_offset + $size * pte_font_1[font_i + 1], y_offset + $size * pte_font_1[font_i + 2];
+                pen_down;
+                repeat pte_font_1[font_i] {
+                    font_i += 2;
+                    goto x_offset + $size * pte_font_1[font_i + 1], y_offset + $size * pte_font_1[font_i + 2];
+                }
+                pen_up;
             }
-            pen_up;
         }
         x_offset += $size * (2 + pte_font_1[2 + font_char_index]);
         txt_i += 1;

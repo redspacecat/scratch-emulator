@@ -6,9 +6,13 @@ func width_of_text(text, size) {
     local text_width = 0;
     local txt_i = 1;
     repeat length($text) {
-        switch_costume $text[txt_i];
-        font_char_index = pte_font_1[costume_number() + 6];
-        text_width += $size * (2 + pte_font_1[2 + font_char_index]);
+        if $text[txt_i] == "@" {
+            text_width += 15;
+        } elif $text[txt_i - 1] != "@" {
+            switch_costume $text[txt_i];
+            font_char_index = pte_font_1[costume_number() + 6];
+            text_width += $size * (2 + pte_font_1[2 + font_char_index]);
+        }
         txt_i += 1;
     }
     return text_width;

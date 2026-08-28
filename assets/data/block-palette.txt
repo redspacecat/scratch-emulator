@@ -3,9 +3,9 @@ text,Motion
 motion_movesteps,stack
 move,(10,steps
 motion_turnright,stack
-turn CW,(15,degrees
+turn @r,(15,degrees
 motion_turnleft,stack
-turn CCW,(15,degrees
+turn @l,(15,degrees
 
 
 motion_goto,stack
@@ -139,7 +139,7 @@ volume
 text,Events
 
 event_whenflagclicked,stack
-when green flag clicked
+when @g clicked
 event_whenkeypressed,stack
 when,[keys|space,key pressed
 event_whenthisspriteclicked,stack
