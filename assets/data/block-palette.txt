@@ -277,11 +277,11 @@ pick random,(1,to,(10
 
 
 operator_gt,boolean
-(,>,(50
+$,>,$50
 operator_lt,boolean
-(,\<,(50
+$,\<,$50
 operator_equals,boolean
-(,=,(50
+$,=,$50
 
 
 operator_and,boolean
