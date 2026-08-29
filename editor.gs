@@ -7,14 +7,18 @@
 
 hide;
 
-var base_boolean_width = 18; # width of a empty boolean input
-var padding = 5; # padding between elements
-var start_padding = 5; # padding at the start of a block
-var end_padding = 4; # padding at the end of a block
-var edge_padding_same = 3; # padding where the block shape and input shape are the same (e.g. (() - ()) block)
-var end_padding_other = 5; # end padding for ending on other inputs
-var text_padding = 4; # padding around text in inputs
-var boolean_edge_padding = 8; # padding around edges of boolean blocks
+%define base_boolean_width 18
+
+enum Padding {
+    base=5, # padding between elements
+    start=5, # padding at the start of a block
+    end=4, # padding at the end of a block
+    reporter_edge_same=2, # padding where the block shape and input shape are both reporters
+    boolean_edge_same=3, # padding where the block shape and input shape are both booleans
+    end_other=5, # end padding for ending on other inputs
+    text_padding=4, # padding around text in inputs
+    boolean_edge=8, # padding around edges of boolean blocks
+}
 
 struct Point {
     x,
@@ -1242,12 +1246,12 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
 
             if (current_x == start_x) {
                 if bshape == "boolean" {
-                    current_x += boolean_edge_padding;
+                    current_x += Padding.boolean_edge;
                 } else {
-                    current_x += start_padding;
+                    current_x += Padding.start;
                 }
             } else {
-                current_x += padding;
+                current_x += Padding.base;
             }
             set_block_label blockIdx, item.index, b_label_x, current_x;
             current_x += text_width;
@@ -1279,7 +1283,7 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
             } else {
                 if (shape == "reporter") {
                     local text = get_block_input(blockIdx, inputNum, b_input_text);
-                    local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
+                    local input_width = MAX(16, width_of_text(text, 1) + Padding.text_padding * 2); # minimum input width of 16
                     if get_block_input(blockIdx, inputNum, b_input_dropdown_shape) > "" { # if there's a dropdown, add extra padding for the arrow
                         input_width += 12;
                     }
@@ -1298,14 +1302,14 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
 
             if (current_x == start_x) {
                 if (bshape == shape) {
-                    current_x += edge_padding_same;
+                    current_x += if (bshape == "boolean") Padding.boolean_edge_same else Padding.reporter_edge_same;
                 } elif (bshape == "boolean") { # add more padding to boolean blocks
-                    current_x += boolean_edge_padding;
+                    current_x += Padding.boolean_edge;
                 } else {
-                    current_x += start_padding;
+                    current_x += Padding.start;
                 }
             } else {
-                current_x += padding;
+                current_x += Padding.base;
             }
             set_block_input blockIdx, inputNum, b_input_x, current_x;
             current_x += input_width;
@@ -1315,18 +1319,18 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
 
     if (item.index >= 4) {
         if (bshape == shape) {
-            current_x += edge_padding_same;
+            current_x += if (bshape == "boolean") Padding.boolean_edge_same else Padding.reporter_edge_same;
         } elif (bshape == "boolean") { # add more padding to the end of boolean blocks
             # have to add this or else the padding isn't the same as the start, and there isn't enough
-            current_x += boolean_edge_padding;
+            current_x += Padding.boolean_edge;
         } else {
-            current_x += end_padding_other;
+            current_x += Padding.end_other;
         }
     } else {
         if (bshape == "boolean") { # add more padding to boolean blocks
-            current_x += boolean_edge_padding;
+            current_x += Padding.boolean_edge;
         } else {
-            current_x += end_padding;
+            current_x += Padding.end;
         }
     }
     local total_width = current_x - start_x;

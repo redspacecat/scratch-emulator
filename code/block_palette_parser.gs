@@ -162,7 +162,7 @@ proc parse_palette_block {
                 add token to parsed_labels;
                 add i * 20 to parsed_labels;
                 if opcode == "control_if_else" and t == "else" {
-                    parsed_labels[length parsed_labels] = bx + start_padding;
+                    parsed_labels[length parsed_labels] = bx + Padding.start;
                 }
             }
             i++;
