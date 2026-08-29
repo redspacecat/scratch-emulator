@@ -4,7 +4,7 @@ proc exec_operators cmd {
             if $cmd < Opcode.operator_multiply {
                 if $cmd < Opcode.operator_subtract { # add
                     pop 2;
-                    push args[1] * args[2];
+                    push args[1] + args[2];
                 } else { # subtract
                     pop 2;
                     push args[1] - args[2];

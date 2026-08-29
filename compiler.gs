@@ -97,7 +97,7 @@ proc compile_block idx {
         } elif b_opcode($idx) == "control_repeat" {
             # reset loop iterator
             add_text "__REPEAT-LOOP-I-" & $idx;
-            add_text 0;
+            add_text 1;
             add_cmd "data_setvariableto";
             # store repeat count
             add_text "__REPEAT-LOOP-COUNT-" & $idx;
@@ -111,7 +111,7 @@ proc compile_block idx {
             add_cmd "data_variable";
             add_text "__REPEAT-LOOP-COUNT-" & $idx;
             add_cmd "data_variable";
-            add_cmd "operator_equals";
+            add_cmd "operator_gt";
             add_placeholder "LOOP-END", $idx;
             add_cmd "jump_if";
 
