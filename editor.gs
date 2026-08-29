@@ -1368,10 +1368,8 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     # c block handling
     if bshape == "c" {
         # we need to measure the slot heights and calculate the block's total height
-        if b_slot_1_nested_block(blockIdx) > "" {
-            b_slot_1_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_1_nested_block(blockIdx)));
-        }
-        if b_slot_count(blockIdx) > 1 and b_slot_2_nested_block(blockIdx) > "" {
+        b_slot_1_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_1_nested_block(blockIdx)));
+        if b_slot_count(blockIdx) > 1 {
             b_slot_2_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_2_nested_block(blockIdx)));
         }
 
