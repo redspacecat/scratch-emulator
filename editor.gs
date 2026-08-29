@@ -475,8 +475,6 @@ proc delete_block idx, remove_items=false, entire_stack=false { # doesn't delete
     local blockIdx = $idx;
     local parentIdx = b_parent(blockIdx);
     if b_nesting_level(blockIdx) == 0 {
-        update_c_end_styles parentIdx;
-
         if b_previous(blockIdx) > "" {
             b_next(b_previous(blockIdx)) = b_next(blockIdx);
         } else {
@@ -491,6 +489,8 @@ proc delete_block idx, remove_items=false, entire_stack=false { # doesn't delete
             b_previous(b_next(blockIdx)) = b_previous(blockIdx);
             move_block_position b_next(blockIdx), 0, b_height(blockIdx);
         }
+
+        update_c_end_styles parentIdx;
     }
     if $remove_items {
         repeat BLOCK_LENGTH {
@@ -1079,7 +1079,6 @@ proc disconnect_block blockIdx, shift=false {
         b_next(prevIdx) = "";
         b_previous(blockIdx) = "";
         b_parent(blockIdx) = "";
-        update_c_end_styles parentIdx;
 
         update_stack_parents b_next(blockIdx), b_parent(blockIdx);
         # b_next(blockIdx) = ""; # do this if you want to pick out this one stack block
@@ -1107,6 +1106,8 @@ proc disconnect_block blockIdx, shift=false {
         if b_input2_nested_block(parentIdx) == $blockIdx {set_block_input parentIdx, 2, b_input_nested_block, "";}
         if b_input3_nested_block(parentIdx) == $blockIdx {set_block_input parentIdx, 3, b_input_nested_block, "";}
     }
+
+    update_c_end_styles parentIdx;
 
     update_nesting_level blockIdx, useParent: false; # to make sure the nesting level is 0
     propagate_size_change parentIdx;
