@@ -38,9 +38,9 @@ struct Tri {
 }
 
 struct PreviewBlock {
-    id="",
+    block_idx="",
     input="",
-    previewID=""
+    preview_idx=""
 }
 
 onflag {
@@ -57,9 +57,8 @@ onflag {
 
     init_blocks;
     dragged_block = 0;
-    dragged_script_id = 0;
+    dragged_script_idx = 0;
     dragged_stack_end = 0;
-    dragged_stack_end_idx = 0;
     highest_nesting_level = 0;
     highlight_lightly = false;
     InputRank highlighted_input = InputRank {};
@@ -234,27 +233,24 @@ nowarp proc handle_input {
             }
         } else {
             # dragging block
-            if over_palette and hovered_block * BLOCK_LENGTH < PALETTE_END {
-                local new_block_idx = duplicate_block(hovered_block);
-                dragged_block = new_block_idx;
+            if over_palette and hovered_block < PALETTE_END {
+                dragged_block = duplicate_block(hovered_block);
                 scroll_x_offset = SCROLL_X;
                 scroll_y_offset = SCROLL_Y;
             } else {
                 dragged_block = hovered_block;
             }
-            dragged_block_idx = b_idx(dragged_block);
-            drag_offset_x = mx - (b_x(dragged_block_idx) + scroll_x_offset);
-            drag_offset_y = my - (b_y(dragged_block_idx) + scroll_y_offset);
+            drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
+            drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
             disconnect_block dragged_block;
-            dragged_script_id = get_script_root(dragged_block_idx); # stores the dragged blocks root script id
+            dragged_script_idx = get_script_root(dragged_block); # stores the dragged block's root script idx
             dragged_stack_end = get_stack_bottom(dragged_block);
-            dragged_stack_end_idx = b_idx(dragged_stack_end);
-            find_dragged_blocks dragged_block_idx;
+            find_dragged_blocks dragged_block;
             while(mouse_down()) {
                 handle_drag;
             }
             if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-                delete_block_stack dragged_block_idx;
+                delete_block_stack dragged_block;
             } else {
                 if highlighted_input.block > "" {
                     if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
@@ -262,30 +258,28 @@ nowarp proc handle_input {
                         # to get rid of its parent reference
                         disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
                     }
-                    put_block_in_block parentID: highlighted_input.block, childID: dragged_block, inputNumber: highlighted_input.input;
+                    put_block_in_block parentIdx: highlighted_input.block, childIdx: dragged_block, inputNumber: highlighted_input.input;
                     # when a block is put into an input, it brings that script to the front
-                    move_script_to_front b_idx(highlighted_input.block);
+                    move_script_to_front highlighted_input.block;
                     highlighted_input = InputRank {};
                     highlighted_input_nested_block = "";
                 }
                 if highlighted_conn.block > "" {
                     # if the preview placement block exists while we are
                     # trying to place the actual block, remove it
-                    if h_c_placement.previewID > "" {
-                        delete_block h_c_placement.previewID, true;
+                    if h_c_placement.preview_idx > "" {
+                        delete_block h_c_placement.preview_idx, true;
                     }
                     PreviewBlock h_c_placement = PreviewBlock {};
 
-                    connect_stack_block connectID: highlighted_conn.block, childID: dragged_block, location: highlighted_conn.input;
-                    move_script_to_front b_idx(highlighted_conn.block);
+                    connect_stack_block connectIdx: highlighted_conn.block, childIdx: dragged_block, location: highlighted_conn.input;
+                    move_script_to_front highlighted_conn.block;
                     InputRank highlighted_conn = InputRank {};
                 }
             }
             dragged_block = 0;
-            dragged_script_id = 0;
+            dragged_script_idx = 0;
             dragged_stack_end = 0;
-            dragged_stack_end_idx = 0;
-            dragged_block_idx = 0;
             delete dragged_blocks;
         }
     }
@@ -298,13 +292,13 @@ proc handle_drag no_recurse=false {
     my = mouse_y() + SCROLL_Y;
     target_x = mx - drag_offset_x - SCROLL_X;
     target_y = my - drag_offset_y - SCROLL_Y;
-    move_block_position dragged_block_idx, target_x - b_x(dragged_block_idx), target_y - b_y(dragged_block_idx);
+    move_block_position dragged_block, target_x - b_x(dragged_block), target_y - b_y(dragged_block);
 
-    t_shape = b_shape(dragged_block_idx);
-    t_x = b_x(dragged_block_idx);
-    t_y = b_y(dragged_block_idx);
+    t_shape = b_shape(dragged_block);
+    t_x = b_x(dragged_block);
+    t_y = b_y(dragged_block);
     if t_shape != "stack" and t_shape != "c" {
-        t_y -= b_height(dragged_block_idx) / 2;
+        t_y -= b_height(dragged_block) / 2;
     }
 
     delete tmp_input_ranking;
@@ -312,24 +306,24 @@ proc handle_drag no_recurse=false {
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
             if PALETTE_SHOWN == false or (PALETTE_SHOWN == true and mouse_x() >= PALETTE_MAX_X) {
-                if b_id(i) not in dragged_blocks and b_id(i) != h_c_placement.previewID { # avoid blocks we're currently holding and the preview placement block
+                if i not in dragged_blocks and i != h_c_placement.preview_idx { # avoid blocks we're currently holding and the preview placement block
                     if t_shape == "stack" or t_shape == "c" {
                         # stack block, try to find valid places to connect it
                         local target_height = b_height(i);
                         if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
                             local s = b_shape(i);
                             if s == "stack" or s == "c" {
-                                if b_start_style(dragged_block_idx) != "hat" {
+                                if b_start_style(dragged_block) != "hat" {
                                     # prevent cap blocks being put in the middle of a stack
                                     # allow if the next is the preview block, since it's the block
                                     # we're planning to place anyway. causes flickering between choices otherwise
-                                    if (b_end_style(dragged_stack_end_idx) == "cap" and (b_next(i) == "" or b_next(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
+                                    if (b_end_style(dragged_stack_end) == "cap" and (b_next(i) == "" or b_next(i) == h_c_placement.preview_idx)) or b_end_style(dragged_stack_end) != "cap" {
                                         # prevent attaching to the end of cap blocks
                                         if b_end_style(i) != "cap" {
                                             log "start style " & b_start_style(i);
                                             add InputRank {
                                                 dist: DIST(t_x, t_y, b_x(i), b_y(i) - target_height),
-                                                block: b_id(i), 
+                                                block: i,
                                                 input: 1 # bottom of block
                                             } to tmp_input_ranking;
                                         }
@@ -339,27 +333,27 @@ proc handle_drag no_recurse=false {
                                 # disabled top of block connections for now, finish full implementation later
                                 # if b_parent(i) == "" and b_previous(i) == "" {
                                 #     add InputRank {
-                                #         dist: DIST(t_x, t_y - b_height(dragged_block_idx), b_x(i), b_y(i)),
-                                #         block: b_id(i), 
+                                #         dist: DIST(t_x, t_y - b_height(dragged_block), b_x(i), b_y(i)),
+                                #         block: i,
                                 #         input: 0 # top of block
                                 #     } to tmp_input_ranking;
                                 # }
                             }
-                            if b_shape(i) == "c" and b_start_style(dragged_block_idx) != "hat" { # don't allow hat blocks where they shouldn't go
+                            if b_shape(i) == "c" and b_start_style(dragged_block) != "hat" { # don't allow hat blocks where they shouldn't go
                                 # prevent cap blocks being put in the middle of a stack
-                                if (b_end_style(dragged_stack_end_idx) == "cap" and (b_slot_1_nested_block(i) == "" or b_slot_1_nested_block(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
+                                if (b_end_style(dragged_stack_end) == "cap" and (b_slot_1_nested_block(i) == "" or b_slot_1_nested_block(i) == h_c_placement.preview_idx)) or b_end_style(dragged_stack_end) != "cap" {
                                     add InputRank {
                                         dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i)),
-                                        block: b_id(i), 
+                                        block: i,
                                         input: 2 # top slot of c block
                                     } to tmp_input_ranking;
                                 }
 
                                 if b_slot_count(i) > 1 {
-                                    if (b_end_style(dragged_stack_end_idx) == "cap" and (b_slot_2_nested_block(i) == "" or b_slot_2_nested_block(i) == h_c_placement.previewID)) or b_end_style(dragged_stack_end_idx) != "cap" {
+                                    if (b_end_style(dragged_stack_end) == "cap" and (b_slot_2_nested_block(i) == "" or b_slot_2_nested_block(i) == h_c_placement.preview_idx)) or b_end_style(dragged_stack_end) != "cap" {
                                         add InputRank {
                                             dist: DIST(t_x, t_y, b_x(i), b_y(i) - b_prong_1_height(i) - b_slot_1_height(i) - c_block_prong_height),
-                                            block: b_id(i), 
+                                            block: i,
                                             input: 3 # bottom slot of c block
                                         } to tmp_input_ranking;
                                     }
@@ -374,11 +368,11 @@ proc handle_drag no_recurse=false {
                         repeat 3 {
                             local offset = i + b_inputs + counter;
                             if blocks[offset + b_input_shape] > "" {
-                                if is_input_valid(b_shape(dragged_block_idx), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
+                                if is_input_valid(b_shape(dragged_block), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
                                     if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
                                         add InputRank {
                                             dist: DIST(t_x, t_y, blocks[offset + b_input_x], b_y(i) - target_height / 2),
-                                            block: b_id(i), 
+                                            block: i,
                                             input: inputNum
                                         } to tmp_input_ranking;
                                     }
@@ -401,39 +395,39 @@ proc handle_drag no_recurse=false {
             InputRank highlighted_conn = tmp_input_ranking[1];
             # if the placement preview is not yet created, or the possible location
             # has since changed, delete and recreate the block to update it
-            if h_c_placement.id == "" or h_c_placement.id != tmp_input_ranking[1].block or h_c_placement.input != tmp_input_ranking[1].input {
+            if h_c_placement.block_idx == "" or h_c_placement.block_idx != tmp_input_ranking[1].block or h_c_placement.input != tmp_input_ranking[1].input {
                 log "updating placement preview";
                 # delete old placement first
-                if h_c_placement.previewID > "" {
-                    delete_block h_c_placement.previewID, true;
+                if h_c_placement.preview_idx > "" {
+                    delete_block h_c_placement.preview_idx, true;
                 }
                 add_block
-                    shape: b_shape(dragged_block_idx),
+                    shape: b_shape(dragged_block),
                     category: Category.Preview,
                     x: 0,
                     y: 0,
-                    width: b_width(dragged_block_idx),
-                    height: b_height(dragged_block_idx),
-                    slot_count: b_slot_count(dragged_block_idx),
-                    prong_1_height: b_prong_1_height(dragged_block_idx),
-                    prong_2_style: b_prong_2_style(dragged_block_idx),
-                    prong_3_style: b_prong_3_style(dragged_block_idx),
-                    end_style: b_end_style(dragged_block_idx);
-                PreviewBlock h_c_placement = PreviewBlock {previewID: length blocks / BLOCK_LENGTH, id: highlighted_conn.block, input: highlighted_conn.input};
-                update_block_dimensions h_c_placement.previewID, update_preview: true;
-                # log b_width(dragged_block_idx);
-                b_width(b_idx(h_c_placement.previewID)) = b_width(dragged_block_idx);
-                # log highlighted_conn.block & " - " & h_c_placement.previewID;
-                connect_stack_block connectID: highlighted_conn.block, childID: h_c_placement.previewID, location: highlighted_conn.input;
-                propagate_size_change h_c_placement.previewID;
+                    width: b_width(dragged_block),
+                    height: b_height(dragged_block),
+                    slot_count: b_slot_count(dragged_block),
+                    prong_1_height: b_prong_1_height(dragged_block),
+                    prong_2_style: b_prong_2_style(dragged_block),
+                    prong_3_style: b_prong_3_style(dragged_block),
+                    end_style: b_end_style(dragged_block);
+                PreviewBlock h_c_placement = PreviewBlock {preview_idx: last_block_idx, block_idx: highlighted_conn.block, input: highlighted_conn.input};
+                update_block_dimensions h_c_placement.preview_idx, update_preview: true;
+                # log b_width(dragged_block);
+                b_width(h_c_placement.preview_idx) = b_width(dragged_block);
+                # log highlighted_conn.block & " - " & h_c_placement.preview_idx;
+                connect_stack_block connectIdx: highlighted_conn.block, childIdx: h_c_placement.preview_idx, location: highlighted_conn.input;
+                propagate_size_change h_c_placement.preview_idx;
             }
         } else {
             if $no_recurse {
                 stop_this_script;
             }
             InputRank highlighted_conn = InputRank {};
-            if h_c_placement.previewID > "" {
-                delete_block h_c_placement.previewID, true;
+            if h_c_placement.preview_idx > "" {
+                delete_block h_c_placement.preview_idx, true;
                 PreviewBlock h_c_placement = PreviewBlock {};
                 
                 # after the block gets out range, we call the function again to recreate
@@ -447,7 +441,7 @@ proc handle_drag no_recurse=false {
     } else {
         if tmp_input_ranking[1].dist <= 20 {
             InputRank highlighted_input = tmp_input_ranking[1];
-            highlighted_input_nested_block = get_block_idx_input(b_idx(highlighted_input.block), highlighted_input.input, b_input_nested_block); # if there's a block in the input we want it so we can render a custom border around it if highlighted
+            highlighted_input_nested_block = get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block); # if there's a block in the input we want it so we can render a custom border around it if highlighted
         } else {
             InputRank highlighted_input = InputRank {};
             highlighted_input_nested_block = "";
@@ -457,42 +451,45 @@ proc handle_drag no_recurse=false {
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
-func duplicate_block(id) {
-    local i = b_idx($id);
+func duplicate_block(idx) {
+    local i = $idx;
     repeat BLOCK_LENGTH {
         add blocks[i] to blocks;
         i++;
     }
-    return length blocks / BLOCK_LENGTH;
+    return last_block_idx;
 }
 
 # update c prong end style
 proc update_c_end_styles idx {
-    local slot_1_end_style = b_end_style(b_idx(get_stack_bottom(b_slot_1_nested_block($idx))));
-    local slot_2_end_style = b_end_style(b_idx(get_stack_bottom(b_slot_2_nested_block($idx))));
+    log "updating c end styles " & $idx;
+    local slot_1_end_style = b_end_style(get_stack_bottom(b_slot_1_nested_block($idx)));
+    local slot_2_end_style = b_end_style(get_stack_bottom(b_slot_2_nested_block($idx)));
+    log slot_1_end_style;
+    log slot_2_end_style;
     b_prong_2_style($idx) = if (slot_1_end_style > "") slot_1_end_style else "normal";
     b_prong_3_style($idx) = if (slot_2_end_style > "") slot_2_end_style else "normal";
 }
 
-proc delete_block id, remove_items=false, entire_stack=false { # doesn't delete nested blocks
-    local blockIdx = b_idx($id);
-    local parentIdx = b_idx(b_parent(blockIdx));
+proc delete_block idx, remove_items=false, entire_stack=false { # doesn't delete nested blocks
+    local blockIdx = $idx;
+    local parentIdx = b_parent(blockIdx);
     if b_nesting_level(blockIdx) == 0 {
         update_c_end_styles parentIdx;
 
         if b_previous(blockIdx) > "" {
-            b_next(b_idx(b_previous(blockIdx))) = b_next(blockIdx);
+            b_next(b_previous(blockIdx)) = b_next(blockIdx);
         } else {
-            if b_slot_1_nested_block(parentIdx) == $id {
+            if b_slot_1_nested_block(parentIdx) == $idx {
                 b_slot_1_nested_block(parentIdx) = b_next(blockIdx);
             }
-            if b_slot_2_nested_block(parentIdx) == $id {
+            if b_slot_2_nested_block(parentIdx) == $idx {
                 b_slot_2_nested_block(parentIdx) = b_next(blockIdx);
             }
         }
         if b_next(blockIdx) > "" {
-            b_previous(b_idx(b_next(blockIdx))) = b_previous(blockIdx);
-            move_block_position b_idx(b_next(blockIdx)), 0, b_height(blockIdx);
+            b_previous(b_next(blockIdx)) = b_previous(blockIdx);
+            move_block_position b_next(blockIdx), 0, b_height(blockIdx);
         }
     }
     if $remove_items {
@@ -507,26 +504,26 @@ proc delete_block id, remove_items=false, entire_stack=false { # doesn't delete 
         }
     }
     if parentIdx > "" {
-        propagate_size_change b_id(parentIdx);
+        propagate_size_change parentIdx;
     }
-    if $id in roots {
-        delete roots[$id in roots];
+    if $idx in roots {
+        delete roots[$idx in roots];
     }
 }
 
 proc delete_block_stack bIdx {
-    if (b_input1_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input1_nested_block($bIdx));}
-    if (b_input2_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input2_nested_block($bIdx));}
-    if (b_input3_nested_block($bIdx) > "") {delete_block_stack b_idx(b_input3_nested_block($bIdx));}
-    if (b_slot_1_nested_block($bIdx) > "") {delete_block_stack b_idx(b_slot_1_nested_block($bIdx));}
-    if (b_slot_2_nested_block($bIdx) > "") {delete_block_stack b_idx(b_slot_2_nested_block($bIdx));}
+    if (b_input1_nested_block($bIdx) > "") {delete_block_stack b_input1_nested_block($bIdx);}
+    if (b_input2_nested_block($bIdx) > "") {delete_block_stack b_input2_nested_block($bIdx);}
+    if (b_input3_nested_block($bIdx) > "") {delete_block_stack b_input3_nested_block($bIdx);}
+    if (b_slot_1_nested_block($bIdx) > "") {delete_block_stack b_slot_1_nested_block($bIdx);}
+    if (b_slot_2_nested_block($bIdx) > "") {delete_block_stack b_slot_2_nested_block($bIdx);}
 
     if b_nesting_level($bIdx) == 0 and b_next($bIdx) > "" {
-        delete_block_stack b_idx(b_next($bIdx));
+        delete_block_stack b_next($bIdx);
     }
 
-    if b_id($bIdx) in roots {
-        delete roots[b_id($bIdx) in roots];
+    if $bIdx in roots {
+        delete roots[$bIdx in roots];
     }
 
     local i = $bIdx;
@@ -554,16 +551,16 @@ proc find_dragged_blocks bIdx {
 }
 
 proc check_dragged_block bIdx {
-    add b_id($bIdx) to dragged_blocks;
+    add $bIdx to dragged_blocks;
 
-    if (b_input1_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input1_nested_block($bIdx));}
-    if (b_input2_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input2_nested_block($bIdx));}
-    if (b_input3_nested_block($bIdx) > "") {check_dragged_block b_idx(b_input3_nested_block($bIdx));}
-    if (b_slot_1_nested_block($bIdx) > "") {check_dragged_block b_idx(b_slot_1_nested_block($bIdx));}
-    if (b_slot_2_nested_block($bIdx) > "") {check_dragged_block b_idx(b_slot_2_nested_block($bIdx));}
+    if (b_input1_nested_block($bIdx) > "") {check_dragged_block b_input1_nested_block($bIdx);}
+    if (b_input2_nested_block($bIdx) > "") {check_dragged_block b_input2_nested_block($bIdx);}
+    if (b_input3_nested_block($bIdx) > "") {check_dragged_block b_input3_nested_block($bIdx);}
+    if (b_slot_1_nested_block($bIdx) > "") {check_dragged_block b_slot_1_nested_block($bIdx);}
+    if (b_slot_2_nested_block($bIdx) > "") {check_dragged_block b_slot_2_nested_block($bIdx);}
 
     if b_next($bIdx) > "" {
-        check_dragged_block b_idx(b_next($bIdx));
+        check_dragged_block b_next($bIdx);
     }
 }
 
@@ -588,7 +585,7 @@ proc init_blocks {
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
-            update_block_dimensions b_id(i), false; # we need to not move c block's inputs before the block is sized correctly
+            update_block_dimensions i, false; # we need to not move c block's inputs before the block is sized correctly
         }
         i += BLOCK_LENGTH;
     }
@@ -599,7 +596,7 @@ func find_hovered_block(x, y, ignoreIdx=0) {
 
     delete block_scripts;
     local i = 1;
-    repeat length blocks / BLOCK_LENGTH {
+    until i > length blocks {
         if blocks[i] > "" {
             add get_script_root(i) to block_scripts;
         } else {
@@ -627,7 +624,7 @@ func find_hovered_block(x, y, ignoreIdx=0) {
         local nesting_level = "renderer"."max_nesting_level";
         until nesting_level == -1 {
             local i = PALETTE_END;
-            until i > length blocks * BLOCK_LENGTH {
+            until i > length blocks {
                 if blocks[i] > "" {
                     # prevent picking up blocks behind the block palette while it's shown
                     if PALETTE_SHOWN and mouse_x() >= PALETTE_MAX_X or PALETTE_SHOWN == false {
@@ -665,14 +662,14 @@ func check_hovered_block(Point p, i, ignoreIdx) {
             if point_in_circle($p, Point {x: x + radius, y: y - radius}, radius) or 
             point_in_circle($p, Point {x: x + width - radius, y: y - radius}, radius) or
             point_in_rect($p, Rect {x1: x + radius, y1: y - height, x2: x + width - radius, y2: y}) {
-                return b_id($i);
+                return $i;
             }
         } elif shape == "boolean" {
             local seg_l = height / 2; # segment length
             if point_in_tri($p, Tri {x1: x, y1: y - seg_l, x2: x + seg_l, y2: y, x3: x + seg_l, y3: y - height}) or
             point_in_tri($p, Tri {x1: x + width, y1: y - seg_l, x2: x + width - seg_l, y2: y, x3: x + width - seg_l, y3: y - height}) or
             point_in_rect($p, Rect {x1: x + seg_l, y1: y - height, x2: x + width - seg_l, y2: y}) {
-                return b_id($i);
+                return $i;
             }
         } elif shape == "stack" {
             log b_start_style($i);
@@ -683,7 +680,7 @@ func check_hovered_block(Point p, i, ignoreIdx) {
             point_in_tri($p, Tri {x1: x, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3}) or 
             point_in_tri($p, Tri {x1: x + 60, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3})
             ) and b_start_style($i) == "hat") {
-                return b_id($i);
+                return $i;
             }
         } elif shape == "c" {
             local midy = y - b_prong_1_height($i) - b_slot_1_height($i) - c_block_prong_height;
@@ -691,21 +688,20 @@ func check_hovered_block(Point p, i, ignoreIdx) {
             point_in_rect($p, Rect {x1: x, x2: x + width, y1: y - b_prong_1_height($i), y2: y}) or 
             point_in_rect($p, Rect {x1: x, x2: x + width, y1: midy, y2: midy + c_block_prong_height}) or 
             point_in_rect($p, Rect {x1: x, x2: x + width, y1: midy - b_slot_2_height($i) - c_block_prong_height, y2: midy - b_slot_2_height($i)}) * (b_slot_count($i) > 1){
-                return b_id($i);
+                return $i;
             }
         }
     }
     return 0;
 }
 
-func find_hovered_input(x, y, id) {
+func find_hovered_input(x, y, idx) {
     local Point p = Point {x: $x, y: $y};
 
     local counter = 0;
     local inputNum = 1;
-    local idx = b_idx($id);
     repeat 3 {
-        local offset = idx + b_inputs + counter;
+        local offset = $idx + b_inputs + counter;
         # checks if inputs[shape] > "", if so valid input
         # also check that there's not a nested block inside
         # if so, it's no editable so we can ignore it
@@ -713,9 +709,9 @@ func find_hovered_input(x, y, id) {
         if (blocks[offset + b_input_shape] > "" and blocks[offset + b_input_nested_block] == "") {
             log "valid input " & inputNum;
             local shape = blocks[offset + b_input_shape];
-            local bheight = if (b_shape(idx) == "c") b_prong_1_height(idx) else b_height(idx);
+            local bheight = if (b_shape($idx) == "c") b_prong_1_height($idx) else b_height($idx);
             local x = blocks[offset + b_input_x];
-            local y = b_y(idx) - bheight / 2 + blocks[offset + b_input_height] / 2;
+            local y = b_y($idx) - bheight / 2 + blocks[offset + b_input_height] / 2;
             local width = blocks[offset + b_input_width];
             local height = blocks[offset + b_input_height];
             log shape & ", " & x & ", " & y & ", " & width & ", " & height;
@@ -840,46 +836,48 @@ proc add_block
     add $input3.text to blocks;
     add $input3.nested_block to blocks;
 
-    local blockID = length blocks / BLOCK_LENGTH;
+    local blockIdx = last_block_idx;
     # if a block is not being added as part of a script, add it to roots
     if $parent == "" and $previous == "" {
-        add blockID to roots;
+        add blockIdx to roots;
     }
 }
 
-proc put_block_in_block childID, parentID, inputNumber, update_sizes=true {
-    local parentIdx = b_idx($parentID);
-    local childIdx = b_idx($childID);
-    local x_change = get_block_idx_input(parentIdx, $inputNumber, b_input_x) - b_x(childIdx);
+proc put_block_in_block childIdx, parentIdx, inputNumber, update_sizes=true {
+    local parentIdx = $parentIdx;
+    local childIdx = $childIdx;
+    local x_change = get_block_input(parentIdx, $inputNumber, b_input_x) - b_x(childIdx);
     local height = if (b_shape(parentIdx) == "c") b_prong_1_height(parentIdx) else b_height(parentIdx);
     local y_change = ((b_y(parentIdx) - height / 2) + (b_height(childIdx) / 2)) - b_y(childIdx);
     if b_shape(parentIdx) == "stack" or b_shape(parentIdx) == "c" {
         y_change += 0.5;
     }
-    set_block_idx_input parentIdx, $inputNumber, b_input_nested_block, $childID;
-    b_parent(childIdx) = $parentID;
+    set_block_input parentIdx, $inputNumber, b_input_nested_block, $childIdx;
+    b_parent(childIdx) = $parentIdx;
     update_nesting_level childIdx;
     move_block_position childIdx, x_change, y_change;
 
     # when a block is put in another block, it is no longer a top level block, it is not a root
-    if $childID in roots {
-        delete roots[$childID in roots];
+    if $childIdx in roots {
+        delete roots[$childIdx in roots];
     }
 
     if ($update_sizes) {
-        log "starting size change propagation " & $parentID;
-        propagate_size_change $parentID;
+        log "starting size change propagation " & $parentIdx;
+        propagate_size_change $parentIdx;
     }
 }
 
-proc connect_stack_block connectID, childID, location {
-    local prevIdx = b_idx($connectID);
-    local parentIdx = b_idx($connectID);
-    local childIdx = b_idx($childID);
-    local stack_height = measure_stack_height($childID);
+proc connect_stack_block connectIdx, childIdx, location {
+    log "connecting " & $connectIdx & " " & $childIdx;
+    local connectIdx = $connectIdx;
+    local prevIdx = connectIdx;
+    local parentIdx = connectIdx;
+    local childIdx = $childIdx;
+    local stack_height = measure_stack_height($childIdx);
 
-    if $childID in roots {
-        delete roots[$childID in roots];
+    if $childIdx in roots {
+        delete roots[$childIdx in roots];
     }
 
     # location determines where the placement goes
@@ -891,141 +889,147 @@ proc connect_stack_block connectID, childID, location {
     if $location == 0 {
         # when connecting to the top of a block, swap childID and connectID
         # to effectively connect it the other way around
-        local prevIdx = b_idx($childID);
-        local childIdx = b_idx($connectID);
-        local stack_height = measure_stack_height($connectID);
+        local prevIdx = $childIdx;
+        local childIdx = $connectIdx;
+        local stack_height = measure_stack_height($connectIdx);
         local x_change = b_x(prevIdx) - b_x(childIdx);
         local y_change = b_y(prevIdx) - b_height(prevIdx) - b_y(childIdx);
         move_block_position childIdx, x_change, y_change;
         inserting_in_middle = false;
 
-        b_previous(childIdx) = $childID;
+        b_previous(childIdx) = $childIdx;
 
         # putting it in the middle of a stack
         # if the previous block start's out with a next,
         # we know there must be something after it
         if b_next(prevIdx) > "" {
-            local last = b_idx(get_stack_bottom($connectID));
-            local lastID = b_id(last);
+            local last = get_stack_bottom(prevIdx);
             # we need to set the next block in the place we're inserting
             # to have the bottom block in our dragged stack as a previous
-            log "last " & b_id(last);
+            log "last " & last;
             b_next(last) = b_next(prevIdx);
-            b_previous(b_idx(b_next(last))) = b_id(last);
+            b_previous(b_next(last)) = last;
             inserting_in_middle = true;
         }
-        b_next(prevIdx) = $connectID;
+        b_next(prevIdx) = connectIdx;
         b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
-        update_stack_parents $connectID, b_parent(childIdx);
+        update_stack_parents connectIdx, b_parent(childIdx);
 
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
-            move_block_position b_idx(b_next(last)), 0, -stack_height;
+            move_block_position b_next(last), 0, -stack_height;
         }
-        propagate_size_change b_parent(childIdx);
+        if b_parent(childIdx) > "" {
+            propagate_size_change b_parent(childIdx);
+        }
     } elif $location == 1 {
         local x_change = b_x(prevIdx) - b_x(childIdx);
         local y_change = b_y(prevIdx) - b_height(prevIdx) - b_y(childIdx);
         move_block_position childIdx, x_change, y_change;
         inserting_in_middle = false;
 
-        b_previous(childIdx) = $connectID;
+        b_previous(childIdx) = connectIdx;
 
         # putting it in the middle of a stack
         # if the previous block start's out with a next,
         # we know there must be something after it
         if b_next(prevIdx) > "" {
-            local last = b_idx(get_stack_bottom($childID));
-            local lastID = b_id(last);
+            local last = get_stack_bottom(childIdx);
             # we need to set the next block in the place we're inserting
             # to have the bottom block in our dragged stack as a previous
-            log "last " & b_id(last);
+            log "last " & last;
             b_next(last) = b_next(prevIdx);
-            b_previous(b_idx(b_next(last))) = b_id(last);
+            b_previous(b_next(last)) = last;
             inserting_in_middle = true;
         }
-        b_next(prevIdx) = $childID;
+        b_next(prevIdx) = childIdx;
         b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
-        update_stack_parents $childID, b_parent(childIdx);
+        update_stack_parents childIdx, b_parent(childIdx);
 
-        # update end style for cap blocks
-        update_c_end_styles b_idx(b_parent(childIdx));
+        if b_parent(childIdx) > "" {
+            # update end style for cap blocks
+            update_c_end_styles b_parent(childIdx);
+        }
 
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
-            move_block_position b_idx(b_next(last)), 0, -stack_height;
+            move_block_position b_next(last), 0, -stack_height;
         }
-        propagate_size_change b_parent(childIdx);
+        if b_parent(childIdx) > "" {
+            propagate_size_change b_parent(childIdx);
+        }
     } elif $location == 2 {
         local x_change = b_x(parentIdx) + c_x_offset - b_x(childIdx);
         local y_change = b_y(parentIdx) - b_prong_1_height(parentIdx) - b_y(childIdx);
         move_block_position childIdx, x_change, y_change;
         inserting_in_middle = false;
 
-        b_parent(childIdx) = $connectID;
+        b_parent(childIdx) = connectIdx;
 
         # putting it in the middle of a stack
         # if the previous block start's out with a next,
         # we know there must be something after it
         if b_slot_1_nested_block(parentIdx) > "" {
-            local last = b_idx(get_stack_bottom($childID));
-            local lastID = b_id(last);
+            local last = get_stack_bottom(childIdx);
             # we need to set the next block in the place we're inserting
             # to have the bottom block in our dragged stack as a previous
-            log "last " & b_id(last);
+            log "last " & last;
             b_next(last) = b_slot_1_nested_block(parentIdx);
-            b_previous(b_idx(b_next(last))) = b_id(last);
+            b_previous(b_next(last)) = last;
             inserting_in_middle = true;
         }
-        update_stack_parents $childID, $connectID;
-        b_slot_1_nested_block(parentIdx) = $childID;
+        update_stack_parents childIdx, connectIdx;
+        b_slot_1_nested_block(parentIdx) = childIdx;
         # b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
 
         # update end style for cap blocks
-        b_prong_2_style(parentIdx) = b_end_style(b_idx(get_stack_bottom(b_slot_1_nested_block(parentIdx))));
+        b_prong_2_style(parentIdx) = b_end_style(get_stack_bottom(b_slot_1_nested_block(parentIdx)));
 
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
-            move_block_position b_idx(b_next(last)), 0, -stack_height;
+            move_block_position b_next(last), 0, -stack_height;
         }
-        propagate_size_change b_parent(childIdx);
+        if b_parent(childIdx) > "" {
+            propagate_size_change b_parent(childIdx);
+        }
     } elif $location == 3 {
         local x_change = b_x(parentIdx) + c_x_offset - b_x(childIdx);
         local y_change = b_y(parentIdx) - b_prong_1_height(parentIdx) - b_slot_1_height(parentIdx) - c_block_prong_height - b_y(childIdx);
         move_block_position childIdx, x_change, y_change;
         inserting_in_middle = false;
 
-        b_parent(childIdx) = $connectID;
+        b_parent(childIdx) = connectIdx;
 
         # putting it in the middle of a stack
         # if the previous block start's out with a next,
         # we know there must be something after it
         if b_slot_2_nested_block(parentIdx) > "" {
-            local last = b_idx(get_stack_bottom($childID));
-            local lastID = b_id(last);
+            local last = get_stack_bottom(childIdx);
             # we need to set the next block in the place we're inserting
             # to have the bottom block in our dragged stack as a previous
-            log "last " & b_id(last);
+            log "last " & last;
             b_next(last) = b_slot_2_nested_block(parentIdx);
-            b_previous(b_idx(b_next(last))) = b_id(last);
+            b_previous(b_next(last)) = last;
             inserting_in_middle = true;
         }
-        update_stack_parents $childID, $connectID;
-        b_slot_2_nested_block(parentIdx) = $childID;
+        update_stack_parents childIdx, connectIdx;
+        b_slot_2_nested_block(parentIdx) = childIdx;
         # b_parent(childIdx) = b_parent(prevIdx); # keep parent the same
 
         # update end style for cap blocks
-        b_prong_3_style(parentIdx) = b_end_style(b_idx(get_stack_bottom(b_slot_2_nested_block(parentIdx))));
+        b_prong_3_style(parentIdx) = b_end_style(get_stack_bottom(b_slot_2_nested_block(parentIdx)));
 
         # if inserted in the middle of a stack, we need to move the blocks beneath us down
         if inserting_in_middle {
             log "moving lower stack down";
-            move_block_position b_idx(b_next(last)), 0, -stack_height;
+            move_block_position b_next(last), 0, -stack_height;
         }
-        propagate_size_change b_parent(childIdx);
+        if b_parent(childIdx) > "" {
+            propagate_size_change b_parent(childIdx);
+        }
     }
 }
 
@@ -1033,14 +1037,14 @@ proc update_stack_parents startID, parent {
     # when connecting or disconnecting a stack of blocks,
     # we need to update the block's parent
     # start on the block after the current one
-    local idx = b_idx($startID);
+    local idx = $startID;
     local stop = false;
     log "starting parent updates: idx " & idx;
     until stop {
         log "updating: idx " & idx;
         b_parent(idx) = $parent;
         stop = b_next(idx) == "";
-        idx = b_idx(b_next(idx));
+        idx = b_next(idx);
     }
 }
 
@@ -1059,19 +1063,18 @@ proc move_script_to_back blockIdx {
 func get_script_root(blockIdx) {
     local idx = $blockIdx;
     until b_parent(idx) == "" {
-        idx = b_idx(b_parent(idx));
+        idx = b_parent(idx);
     }
     until b_previous(idx) == "" {
-        idx = b_idx(b_previous(idx));
+        idx = b_previous(idx);
     }
-    return b_id(idx);
+    return idx;
 }
 
-proc disconnect_block blockID, shift=false {
-    local blockIdx = b_idx($blockID);
-    local parentID = b_parent(blockIdx);
-    local parentIdx = b_idx(parentID);
-    local prevIdx = b_idx(b_previous(blockIdx));
+proc disconnect_block blockIdx, shift=false {
+    local blockIdx = $blockIdx;
+    local parentIdx = b_parent(blockIdx);
+    local prevIdx = b_previous(blockIdx);
     if b_nesting_level(blockIdx) == 0 {
         b_next(prevIdx) = "";
         b_previous(blockIdx) = "";
@@ -1086,8 +1089,8 @@ proc disconnect_block blockID, shift=false {
         # b_next(parentIdx) = "";
     }
 
-    delete roots[$blockID in roots]; # when a block is disconnected it's moved to the front
-    add $blockID to roots;
+    delete roots[$blockIdx in roots]; # when a block is disconnected it's moved to the front
+    add $blockIdx to roots;
 
     if $shift {
         move_block_position blockIdx, 10, -10;
@@ -1096,39 +1099,41 @@ proc disconnect_block blockID, shift=false {
     if b_nesting_level(blockIdx) == 0 {
         # if it's top level, it could only be in a c block
         # if so mark it as disconnected from that
-        if b_slot_1_nested_block(parentIdx) == $blockID {b_slot_1_nested_block(parentIdx) = "";}
-        if b_slot_2_nested_block(parentIdx) == $blockID {b_slot_2_nested_block(parentIdx) = "";}
+        if b_slot_1_nested_block(parentIdx) == $blockIdx {b_slot_1_nested_block(parentIdx) = "";}
+        if b_slot_2_nested_block(parentIdx) == $blockIdx {b_slot_2_nested_block(parentIdx) = "";}
     } else {
         # go through parent's inputs and disconnect all places the block is referenced
-        if b_input1_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 1, b_input_nested_block, "";}
-        if b_input2_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 2, b_input_nested_block, "";}
-        if b_input3_nested_block(parentIdx) == $blockID {set_block_idx_input parentIdx, 3, b_input_nested_block, "";}
+        if b_input1_nested_block(parentIdx) == $blockIdx {set_block_input parentIdx, 1, b_input_nested_block, "";}
+        if b_input2_nested_block(parentIdx) == $blockIdx {set_block_input parentIdx, 2, b_input_nested_block, "";}
+        if b_input3_nested_block(parentIdx) == $blockIdx {set_block_input parentIdx, 3, b_input_nested_block, "";}
     }
 
     update_nesting_level blockIdx, useParent: false; # to make sure the nesting level is 0
-    propagate_size_change parentID;
+    propagate_size_change parentIdx;
 }
 
-proc propagate_size_change blockID {
-    local idx = b_idx($blockID);
+proc propagate_size_change blockIdx {
+    local idx = $blockIdx;
+    log "propagating size change for block idx " & idx;
+
     # if it's not a top-level block, update the block then propagate to the parent
     if b_nesting_level(idx) > 0 {
-        log "updating block dimensions " & $blockID;
-        update_block_dimensions $blockID;
+        log "updating block dimensions " & $blockIdx;
+        update_block_dimensions $blockIdx;
         if b_parent(idx) > "" {
             propagate_size_change b_parent(idx);
         } else {
-            # log "no parent, no propagating " & $blockID;
+            # log "no parent, no propagating " & idx;
         }
     } else {
-        log "updating stack block dimensions " & $blockID;
+        log "updating stack block dimensions " & idx;
         local height_before = b_height(idx);
-        update_block_dimensions $blockID;
+        update_block_dimensions idx;
         local height_change = b_height(idx) - height_before;
         log "height change " & height_change & " next " & b_next(idx);
         if b_next(idx) > "" {
-            move_block_position b_idx(b_next(idx)), 0, -height_change;
-            # shift_next_block_down b_idx(b_next(idx)), height_change;
+            move_block_position b_next(idx), 0, -height_change;
+            # shift_next_block_down b_next(idx), height_change;
         }
 
         # once we finish updating the size on the current block, go on to update any parents, like c blocks
@@ -1144,23 +1149,23 @@ proc shift_next_block_down blockIdx, amount {
     move_block_position $blockIdx, 0, -$amount;
     # log "next block " & b_next($blockIdx);
     # if b_next($blockIdx) > "" {
-    #     shift_next_block_down b_idx(b_next($blockIdx)), $amount;
+    #     shift_next_block_down b_next($blockIdx), $amount;
     # }
 }
 
 proc update_nesting_level bIdx, useParent=true {
     if $useParent {
         # get nesting level from parent and increment
-        b_nesting_level($bIdx) = b_nesting_level(b_idx(b_parent($bIdx))) + 1;
+        b_nesting_level($bIdx) = b_nesting_level(b_parent($bIdx)) + 1;
     } else {
         # we want to allow setting the nesting level to 0 initally,
         # if updating a top level reporter/boolean block instead of a nested block
         b_nesting_level($bIdx) = 0;
     }
     # check inputs recursively for nesting level updates
-    if (b_input1_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input1_nested_block($bIdx));}
-    if (b_input2_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input2_nested_block($bIdx));}
-    if (b_input3_nested_block($bIdx) > "") {update_nesting_level b_idx(b_input3_nested_block($bIdx));}
+    if (b_input1_nested_block($bIdx) > "") {update_nesting_level b_input1_nested_block($bIdx);}
+    if (b_input2_nested_block($bIdx) > "") {update_nesting_level b_input2_nested_block($bIdx);}
+    if (b_input3_nested_block($bIdx) > "") {update_nesting_level b_input3_nested_block($bIdx);}
 
 
 }
@@ -1171,7 +1176,7 @@ struct TMPInput {
 }
 
 list TMPInput tmp_item_order;
-proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=false {
+proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview=false {
     # order text + inputs by x, left -> right
     # get width of each item, keeping track of a cumulative x position and adding padding
     # if input is a block, include that width
@@ -1179,12 +1184,12 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
     # update positions of items as needed
     # update total block dimensions when done
 
-    if $blockID == h_c_placement.previewID and $update_preview == false {
+    if $blockIdx == h_c_placement.preview_idx and $update_preview == false {
         stop_this_script;
     }
 
     delete tmp_item_order;
-    local blockIdx = b_idx($blockID);
+    local blockIdx = $blockIdx;
     local bshape = b_shape(blockIdx);
 
     local counter = 0;
@@ -1228,7 +1233,7 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
     repeat length tmp_item_order {
         local TMPInput item = tmp_item_order[i];
         if (item.index <= 3) {
-            local text = get_block_idx_label(blockIdx, item.index, b_label_text);
+            local text = get_block_label(blockIdx, item.index, b_label_text);
             local text_width = width_of_text(text, 1) - 1;
             if text == "if" and bshape == "c" {
                 text_width += 7;
@@ -1243,19 +1248,19 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
             } else {
                 current_x += padding;
             }
-            set_block_idx_label blockIdx, item.index, b_label_x, current_x;
+            set_block_label blockIdx, item.index, b_label_x, current_x;
             current_x += text_width;
         } elif (item.index >= 4) {
             local inputNum = item.index - 3;
             # log "handling input: " & inputNum;
-            local nested_block = get_block_idx_input(blockIdx, inputNum, b_input_nested_block);
-            local shape = get_block_idx_input(blockIdx, inputNum, b_input_shape);
+            local nested_block = get_block_input(blockIdx, inputNum, b_input_nested_block);
+            local shape = get_block_input(blockIdx, inputNum, b_input_shape);
             if (nested_block > "") {
                 # we override shape, to allow for the nested block shape not being
                 # the same as the input's block shape
-                shape = b_shape(b_idx(nested_block));
-                local input_width = b_width(b_idx(nested_block));
-                local input_height = b_height(b_idx(nested_block)) + 4; # = top and bottom padding
+                shape = b_shape(nested_block);
+                local input_width = b_width(nested_block);
+                local input_height = b_height(nested_block) + 4; # = top and bottom padding
                 if bshape == "stack" or bshape == "c" {
                     input_height += 2;
                 }
@@ -1272,21 +1277,21 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
                 # log "nested input width: " & input_width;
             } else {
                 if (shape == "reporter") {
-                    local text = get_block_idx_input(blockIdx, inputNum, b_input_text);
+                    local text = get_block_input(blockIdx, inputNum, b_input_text);
                     local input_width = MAX(16, width_of_text(text, 1) + text_padding * 2); # minimum input width of 16
-                    if get_block_idx_input(blockIdx, inputNum, b_input_dropdown_shape) > "" { # if there's a dropdown, add extra padding for the arrow
+                    if get_block_input(blockIdx, inputNum, b_input_dropdown_shape) > "" { # if there's a dropdown, add extra padding for the arrow
                         input_width += 12;
                     }
-                    if get_block_idx_input(blockIdx, inputNum, b_input_type) == b_input_type_color { # if there's a color input, make it regular sized
+                    if get_block_input(blockIdx, inputNum, b_input_type) == b_input_type_color { # if there's a color input, make it regular sized
                         input_width = 16;
                     }
 
-                    set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
+                    set_block_input blockIdx, inputNum, b_input_width, input_width;
                 } elif (shape == "boolean") { # boolean inputs don't have text, so use just set width
                     local input_width = base_boolean_width;
                     # boolean inputs are always a fixed width, as
                     # there's nothing changeable about them
-                    set_block_idx_input blockIdx, inputNum, b_input_width, input_width;
+                    set_block_input blockIdx, inputNum, b_input_width, input_width;
                 }
             }
 
@@ -1301,7 +1306,7 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
             } else {
                 current_x += padding;
             }
-            set_block_idx_input blockIdx, inputNum, b_input_x, current_x;
+            set_block_input blockIdx, inputNum, b_input_x, current_x;
             current_x += input_width;
         }
         i++;
@@ -1345,11 +1350,11 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
         local TMPInput item = tmp_item_order[i];
         if (item.index >= 4) {
             local inputNum = item.index - 3;
-            local nested_block = get_block_idx_input(blockIdx, inputNum, b_input_nested_block);
-            local shape = get_block_idx_input(blockIdx, inputNum, b_input_shape);
+            local nested_block = get_block_input(blockIdx, inputNum, b_input_nested_block);
+            local shape = get_block_input(blockIdx, inputNum, b_input_shape);
             if (nested_block > "") {
                 # log "updating block pos " & nested_block & " in input " & inputNum;
-                put_block_in_block nested_block, $blockID, inputNum, update_sizes: false;
+                put_block_in_block nested_block, $blockIdx, inputNum, update_sizes: false;
             }
         }
         i++;
@@ -1358,8 +1363,10 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
     # c block handling
     if bshape == "c" {
         # we need to measure the slot heights and calculate the block's total height
-        b_slot_1_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_1_nested_block(blockIdx)));
-        if b_slot_count(blockIdx) > 1 {
+        if b_slot_1_nested_block(blockIdx) > "" {
+            b_slot_1_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_1_nested_block(blockIdx)));
+        }
+        if b_slot_count(blockIdx) > 1 and b_slot_2_nested_block(blockIdx) > "" {
             b_slot_2_height(blockIdx) = MAX(c_block_min_slot_height, measure_stack_height(b_slot_2_nested_block(blockIdx)));
         }
 
@@ -1379,48 +1386,44 @@ proc update_block_dimensions blockID, should_move_c_inputs=true, update_preview=
         # log block_starting_height;
         # log block_total_height;
         if $should_move_c_inputs {
-            if (b_slot_1_nested_block(blockIdx) > "") {move_block_position b_idx(b_slot_1_nested_block(blockIdx)), 0, slot_1_y_change;}
-            if (b_slot_2_nested_block(blockIdx) > "") {move_block_position b_idx(b_slot_2_nested_block(blockIdx)), 0, slot_2_y_change;}
+            if (b_slot_1_nested_block(blockIdx) > "") {move_block_position b_slot_1_nested_block(blockIdx), 0, slot_1_y_change;}
+            if (b_slot_2_nested_block(blockIdx) > "") {move_block_position b_slot_2_nested_block(blockIdx), 0, slot_2_y_change;}
         }
     }
 }
 
-func measure_stack_height(startID) {
+func measure_stack_height(startIdx) {
+    if $startIdx == "" {
+        return c_block_min_slot_height;
+    }
+
     local total_height = 0;
-    local idx = b_idx($startID);
+    local idx = $startIdx;
     local end_reached = false;
     until end_reached {
         total_height += b_height(idx);
         end_reached = b_next(idx) == "";
-        idx = b_idx(b_next(idx));
+        idx = b_next(idx);
     }
     return total_height;
 }
 
-func get_stack_bottom(startID) {
-    local idx = b_idx($startID);
+func get_stack_bottom(startIdx) {
+    local idx = $startIdx;
     # if there's only one block, we might want to stop immediately
     local end_reached = b_next(idx) == "";
     until end_reached {
-        idx = b_idx(b_next(idx));
+        idx = b_next(idx);
         end_reached = b_next(idx) == "";
     }
-    return b_id(idx);
+    return idx;
 }
 
-proc set_block_input blockID, inputNum, key, val {
-    blocks[b_idx($blockID) + b_inputs + (($inputNum - 1) * INPUT_LENGTH) + $key] = $val;
-}
-
-proc set_block_idx_input blockIdx, inputNum, key, val {
+proc set_block_input blockIdx, inputNum, key, val {
     blocks[$blockIdx + b_inputs + (($inputNum - 1) * INPUT_LENGTH) + $key] = $val;
 }
 
-proc set_block_label blockID, labelNum, key, val {
-    blocks[b_idx($blockID) + b_labels + (($labelNum - 1) * TEXT_LABEL_LENGTH) + $key] = $val;
-}
-
-proc set_block_idx_label blockIdx, labelNum, key, val {
+proc set_block_label blockIdx, labelNum, key, val {
     blocks[$blockIdx + b_labels + (($labelNum - 1) * TEXT_LABEL_LENGTH) + $key] = $val;
 }
 
@@ -1434,14 +1437,14 @@ proc move_block_position bIdx, x_change, y_change, moveStack=true {
     if (b_input1_shape($bIdx) > "") {b_input1_x($bIdx) += $x_change;}
     if (b_input2_shape($bIdx) > "") {b_input2_x($bIdx) += $x_change;}
     if (b_input3_shape($bIdx) > "") {b_input3_x($bIdx) += $x_change;}
-    if (b_input1_nested_block($bIdx) > "") {move_block_position b_idx(b_input1_nested_block($bIdx)), $x_change, $y_change;}
-    if (b_input2_nested_block($bIdx) > "") {move_block_position b_idx(b_input2_nested_block($bIdx)), $x_change, $y_change;}
-    if (b_input3_nested_block($bIdx) > "") {move_block_position b_idx(b_input3_nested_block($bIdx)), $x_change, $y_change;}
-    if (b_slot_1_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_1_nested_block($bIdx)), $x_change, $y_change;}
-    if (b_slot_2_nested_block($bIdx) > "") {move_block_position b_idx(b_slot_2_nested_block($bIdx)), $x_change, $y_change;}
+    if (b_input1_nested_block($bIdx) > "") {move_block_position b_input1_nested_block($bIdx), $x_change, $y_change;}
+    if (b_input2_nested_block($bIdx) > "") {move_block_position b_input2_nested_block($bIdx), $x_change, $y_change;}
+    if (b_input3_nested_block($bIdx) > "") {move_block_position b_input3_nested_block($bIdx), $x_change, $y_change;}
+    if (b_slot_1_nested_block($bIdx) > "") {move_block_position b_slot_1_nested_block($bIdx), $x_change, $y_change;}
+    if (b_slot_2_nested_block($bIdx) > "") {move_block_position b_slot_2_nested_block($bIdx), $x_change, $y_change;}
 
     if b_nesting_level($bIdx) == 0 and b_next($bIdx) > "" and $moveStack {
-        move_block_position b_idx(b_next($bIdx)), $x_change, $y_change, $moveStack;
+        move_block_position b_next($bIdx), $x_change, $y_change, $moveStack;
     }
 }
 

@@ -123,10 +123,9 @@ enum Category {
 %define b_idx(blockID) ((blockID - 1) * BLOCK_LENGTH + 1)
 %define b_id(blockIdx) ((blockIdx - 1) / BLOCK_LENGTH + 1)
 
-%define get_block_input(blockID, inputNum, key) blocks[b_idx(blockID) + b_inputs + (inputNum - 1) * INPUT_LENGTH + key]
-%define get_block_idx_input(blockID, inputNum, key) blocks[blockID + b_inputs + (inputNum - 1) * INPUT_LENGTH + key]
-
-%define get_block_label(blockID, labelNum, key) blocks[b_idx(blockID) + b_labels + (labelNum - 1) * TEXT_LABEL_LENGTH + key]
-%define get_block_idx_label(blockID, labelNum, key) blocks[blockID + b_labels + (labelNum - 1) * TEXT_LABEL_LENGTH + key]
+%define get_block_input(blockIdx, inputNum, key) blocks[blockIdx + b_inputs + (inputNum - 1) * INPUT_LENGTH + key]
+%define get_block_label(blockIdx, labelNum, key) blocks[blockIdx + b_labels + (labelNum - 1) * TEXT_LABEL_LENGTH + key]
 
 %define block_in_palette(i) i < PALETTE_END
+
+%define last_block_idx length blocks - BLOCK_LENGTH + 1
