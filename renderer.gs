@@ -24,10 +24,12 @@ list colors = [
 ];
 
 on "render_blocks" {
+    switch_costume "large";
+
     start_time = days_since_2000();
     render_blocks;
     render_palette_sidebar;
-    # log "rendering took " & (days_since_2000() - start_time) * 86400000 & " ms";
+    # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
 }
 
 list queue;
@@ -177,7 +179,7 @@ proc render_one_block blockID, blockIdx {
     if not ( b_x(i) - scroll_x_offset + b_width(i) > -240 and
     b_x(i) - scroll_x_offset < 240 and
     b_y(i) - scroll_y_offset > -180 and
-    b_y(i) - scroll_y_offset - b_height(i) < 180) {
+    b_y(i) - scroll_y_offset - b_height(i) < 180 + 3) { # keep block connectors visible
         stop_this_script;
     }
 
@@ -330,6 +332,8 @@ proc plain_text x, y, size, text, align {
         x_offset += $size * (2 + pte_font_1[2 + font_char_index]);
         txt_i += 1;
     }
+
+    switch_costume "large";
 }
 
 proc draw_block color, width, height, x, y, shape, end_style, start_style, border_color, is_highlighted {

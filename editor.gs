@@ -75,33 +75,29 @@ onkey "v" {
 }
 
 onkey "up arrow" {
-    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-        PALETTE_SCROLL_Y += 20;
-        if PALETTE_SCROLL_Y > 0 {
-            PALETTE_SCROLL_Y = 0;
+    if not key_pressed("up arrow") {
+        if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+            PALETTE_SCROLL_Y += 20;
+            if PALETTE_SCROLL_Y > 0 {
+                PALETTE_SCROLL_Y = 0;
+            }
+        } else {
+            SCROLL_Y += 20;
         }
-    } else {
-        SCROLL_Y += 20;
     }
 }
 
 onkey "down arrow" {
-    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-        PALETTE_SCROLL_Y -= 20;
-        if PALETTE_SCROLL_Y < palette_y_max {
-            PALETTE_SCROLL_Y = palette_y_max;
+    if not key_pressed("down arrow") {
+        if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+            PALETTE_SCROLL_Y -= 20;
+            if PALETTE_SCROLL_Y < palette_y_max {
+                PALETTE_SCROLL_Y = palette_y_max;
+            }
+        } else {
+            SCROLL_Y -= 20;
         }
-    } else {
-        SCROLL_Y -= 20;
     }
-}
-
-onkey "left arrow" {
-    SCROLL_X -= 20;
-}
-
-onkey "right arrow" {
-    SCROLL_X += 20;
 }
 
 on "render_loop" {
@@ -122,6 +118,35 @@ on "input_loop" {
 
 on "palette_display_loop" {
     forever {
+        # input
+        if key_pressed("left arrow") {
+            SCROLL_X -= 15;
+        }
+        if key_pressed("right arrow") {
+            SCROLL_X += 15;
+        }
+        if key_pressed("up arrow") {
+            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+                PALETTE_SCROLL_Y += 15;
+                if PALETTE_SCROLL_Y > 0 {
+                    PALETTE_SCROLL_Y = 0;
+                }
+            } else {
+                SCROLL_Y += 15;
+            }
+        }
+        if key_pressed("down arrow") {
+            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+                PALETTE_SCROLL_Y -= 15;
+                if PALETTE_SCROLL_Y < palette_y_max {
+                    PALETTE_SCROLL_Y = palette_y_max;
+                }
+            } else {
+                SCROLL_Y -= 15;
+            }
+        }
+
+        # palette handling
         if mouse_x() < PALETTE_MIN_X and PALETTE_SHOWN == false and target_palette_x_time == 0 {
             PALETTE_SHOWN = true;
             PALETTE_SCROLL_X = 150;
