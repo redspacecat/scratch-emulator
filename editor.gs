@@ -9,6 +9,11 @@ hide;
 
 %define base_boolean_width 18
 
+list local_vars;
+list global_vars;
+list local_lists;
+list global_lists;
+
 enum Padding {
     base=5, # padding between elements
     start=5, # padding at the start of a block
@@ -46,6 +51,8 @@ onflag {
     delete blocks;
     delete roots;
     delete dragged_blocks;
+    delete local_vars;
+    delete global_vars;
 
     parse_block_palette;
     target_palette_x = 0;
@@ -68,8 +75,32 @@ onflag {
     broadcast "palette_display_loop";
 }
 
-onkey "v" {
-    PALETTE_SHOWN = 1 - PALETTE_SHOWN;
+onkey "l" {
+    ask "New local variable name?";
+    if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
+        new_variable "local", answer();
+    }
+}
+
+onkey "g" {
+    ask "New global variable name?";
+    if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
+        new_variable "global", answer();
+    }
+}
+
+onkey "n" {
+    ask "New local list name?";
+    if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
+        new_list "local", answer();
+    }
+}
+
+onkey "m" {
+    ask "New global list name?";
+    if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
+        new_list "global", answer();
+    }
 }
 
 onkey "up arrow" {
@@ -454,6 +485,203 @@ proc handle_drag no_recurse=false {
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
+proc new_variable scope, name {
+    # insert a new variable at the correct position
+    if $scope == "local" {
+        add $name to local_vars;
+    } else {
+        add $name to global_vars;
+    }
+
+    handle_palette_vars;
+}
+
+proc new_list scope, name {
+    # insert a new list at the correct position
+    if $scope == "local" {
+        add $name to local_lists;
+    } else {
+        add $name to global_lists;
+    }
+
+    handle_palette_lists;
+}
+
+proc handle_palette_vars {
+    # shift all items in palette
+    # shift all next indexes
+
+    INSERTION_SORT(local_vars);
+    INSERTION_SORT(global_vars);
+
+    local start_idx = ("operator_mathop" in blocks) + BLOCK_LENGTH;
+    local end_idx = "data_setvariableto" in blocks;
+
+    # remove all variables
+    until blocks[start_idx] == "data_setvariableto" {
+        delete blocks[start_idx];
+    }
+
+    local y = b_y(("operator_mathop" in blocks)) - 71;
+    local start_y = y;
+    local i = 1;
+    local pos = start_idx;
+    repeat length global_vars {
+        add_block
+            opcode: "data_variable",
+            shape: "reporter",
+            category: Category.Variables,
+            x: -205,
+            y: y,
+            width: 100,
+            height: 16,
+            insert_positition: pos,
+            label1: TextLabel {x: -100, text: global_vars[i]};
+        update_block_dimensions pos;
+        i++;
+        pos += BLOCK_LENGTH;
+        y -= 21;
+    }
+
+    y -= 10;
+    block_palette_text[29] = y; # variables for this sprite only text y pos
+    y -= 10;
+    local i = 1;
+    repeat length local_vars {
+        add_block
+            opcode: "data_variable",
+            shape: "reporter",
+            category: Category.Variables,
+            x: -205,
+            y: y,
+            width: 100,
+            height: 16,
+            insert_positition: pos,
+            label1: TextLabel {x: -100, text: local_vars[i]};
+        update_block_dimensions pos;
+        i++;
+        pos += BLOCK_LENGTH;
+        y -= 21;
+    }
+
+    local idx_change = ("data_setvariableto" in blocks) - end_idx;
+    PALETTE_END += idx_change;
+    local y_change = y - (b_y(("data_setvariableto" in blocks)) + 5);
+
+    palette_y_max += y_change;
+    category_y[9] += y_change;
+    # shift palette text labels down
+    local i = 32; # start at the y position of the next text label
+    until i > length block_palette_text {
+        block_palette_text[i] += y_change;
+        i += 3;
+    }
+    # shift palette blocks down
+    move_blocks_in_palette_down ("data_setvariableto" in blocks), y_change;
+    # shift block indexes down
+    shift_block_indexes_down PALETTE_END, PALETTE_END - idx_change - 1, idx_change;
+}
+
+proc handle_palette_lists {
+    # shift all items in palette
+    # shift all next indexes
+
+    INSERTION_SORT(local_lists);
+    INSERTION_SORT(global_lists);
+
+    local start_idx = ("data_hidevariable" in blocks) + BLOCK_LENGTH;
+    local end_idx = "datalist_addtolist" in blocks;
+
+    # remove all lists
+    until blocks[start_idx] == "datalist_addtolist" {
+        delete blocks[start_idx];
+    }
+
+    local y = b_y(("data_hidevariable" in blocks)) - 78;
+    local start_y = y;
+    local i = 1;
+    local pos = start_idx;
+    repeat length global_lists {
+        add_block
+            opcode: "datalist_listcontents",
+            shape: "reporter",
+            category: Category.Lists,
+            x: -205,
+            y: y,
+            width: 100,
+            height: 16,
+            insert_positition: pos,
+            label1: TextLabel {x: -100, text: global_lists[i]};
+        update_block_dimensions pos;
+        i++;
+        pos += BLOCK_LENGTH;
+        y -= 21;
+    }
+
+    y -= 10;
+    block_palette_text[38] = y; # lists for this sprite only text y pos
+    y -= 10;
+    local i = 1;
+    repeat length local_lists {
+        add_block
+            opcode: "datalist_listcontents",
+            shape: "reporter",
+            category: Category.Lists,
+            x: -205,
+            y: y,
+            width: 100,
+            height: 16,
+            insert_positition: pos,
+            label1: TextLabel {x: -100, text: local_lists[i]};
+        update_block_dimensions pos;
+        i++;
+        pos += BLOCK_LENGTH;
+        y -= 21;
+    }
+
+    local idx_change = ("datalist_addtolist" in blocks) - end_idx;
+    PALETTE_END += idx_change;
+    local y_change = y - (b_y(("datalist_addtolist" in blocks)) + 5);
+
+    palette_y_max += y_change;
+    # shift palette blocks down
+    move_blocks_in_palette_down ("datalist_addtolist" in blocks), y_change;
+    # shift block indexes down
+    shift_block_indexes_down PALETTE_END, PALETTE_END - idx_change - 1, idx_change;
+}
+
+proc move_blocks_in_palette_down idx, change {
+    local idx = $idx;
+    until idx == PALETTE_END {
+        b_y(idx) += $change;
+        idx += BLOCK_LENGTH;
+    }
+}
+
+proc shift_block_indexes_down start, idx, change {
+    local idx = $start;
+    log $idx;
+    until idx > length blocks {
+        if b_parent(idx) > $idx {b_parent(idx) += $change;}
+        if b_previous(idx) > $idx {b_previous(idx) += $change;}
+        if b_next(idx) > $idx {b_next(idx) += $change;}
+        if b_input1_nested_block(idx) > $idx {b_input1_nested_block(idx) += $change;}
+        if b_input2_nested_block(idx) > $idx {b_input2_nested_block(idx) += $change;}
+        if b_input3_nested_block(idx) > $idx {b_input3_nested_block(idx) += $change;}
+        if b_slot_1_nested_block(idx) > $idx {b_slot_1_nested_block(idx) += $change;}
+        if b_slot_2_nested_block(idx) > $idx {b_slot_2_nested_block(idx) += $change;}
+        idx += BLOCK_LENGTH;
+    }
+
+    local i = 1;
+    repeat length roots {
+        if roots[i] > $idx {
+            roots[i] += $change;
+        }
+        i++;
+    }
+}
+
 func duplicate_block(idx) {
     local i = $idx;
     repeat BLOCK_LENGTH {
@@ -781,7 +1009,8 @@ proc add_block
         Input input1=Input {},
         Input input2=Input {},
         Input input3=Input {},
-        nesting_level=0 {
+        nesting_level=0,
+        insert_positition="" {
         
     add $opcode to blocks;
     add $shape to blocks;
@@ -840,9 +1069,19 @@ proc add_block
     add $input3.nested_block to blocks;
 
     local blockIdx = last_block_idx;
-    # if a block is not being added as part of a script, add it to roots
-    if $parent == "" and $previous == "" {
-        add blockIdx to roots;
+    if $insert_positition > "" {
+        # move blocks to insert position
+        blockIdx = length blocks;
+        repeat BLOCK_LENGTH {
+            insert blocks[blockIdx] at blocks[$insert_positition];
+            # blockIdx++;
+            delete blocks[blockIdx + 1];
+        }
+    } else {
+        # if a block is not being added as part of a script, add it to roots
+        if $parent == "" and $previous == "" {
+            add blockIdx to roots;
+        }
     }
 }
 

@@ -17,6 +17,7 @@ list category_map = [
 
 proc parse_block_palette {
     delete category_y;
+    delete block_palette_text;
 
     local i = 1; # skip the first informational line of the list
     by = 165;
@@ -72,7 +73,11 @@ proc parse_palette_block {
         add by to block_palette_text;
         add toks_1[2] to block_palette_text;
 
-        add by - 165 to category_y;
+        j = 1;
+        parse_token " ", toks_1[2];
+        if token != "For" { # don't include "for this sprite only/for all sprites" text
+            add by - 165 to category_y;
+        }
         by -= 10;
         stop_this_script;
     } else {

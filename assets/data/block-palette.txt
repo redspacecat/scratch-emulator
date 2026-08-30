@@ -316,8 +316,14 @@ operator_mathop,reporter
 
 text,Variables
 
-data_variable,reporter
-my variable
+
+
+text,For all sprites:
+
+
+
+text,For this sprite only:
+
 
 
 data_setvariableto,stack
@@ -334,8 +340,14 @@ hide variable,[variables|my variable
 
 text,Lists
 
-datalist_listcontents,reporter
-my list
+
+
+text,For all sprites:
+
+
+
+text,For this sprite only:
+
 
 
 datalist_addtolist,stack
