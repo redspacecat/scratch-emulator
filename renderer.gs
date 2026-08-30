@@ -46,6 +46,10 @@ proc render_blocks {
     pen_down;
     change_y -360;
     pen_up;
+
+    if h_c_placement.preview_idx > "" {
+        render_one_block h_c_placement.preview_idx;
+    }
     
     local i = 1;
     repeat length roots {
@@ -134,7 +138,9 @@ proc render_one_root rootIdx {
     until length queue == 0 {
         local currentIdx = queue[1];
         delete queue[1];
-        render_one_block currentIdx;
+        if currentIdx != h_c_placement.preview_idx {
+            render_one_block currentIdx;
+        }
 
         if b_nesting_level(currentIdx) > max_nesting_level {
             max_nesting_level = b_nesting_level(currentIdx);

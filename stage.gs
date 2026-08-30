@@ -11,7 +11,14 @@ struct InputRank {
     input="" # input id in block
 }
 
+struct PreviewBlock {
+    block_idx="",
+    input="",
+    preview_idx=""
+}
+
 var InputRank highlighted_input;
+var PreviewBlock h_c_placement;
 
 onclick {
     wait_until(not mouse_down());

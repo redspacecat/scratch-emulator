@@ -41,12 +41,6 @@ struct Tri {
     y3
 }
 
-struct PreviewBlock {
-    block_idx="",
-    input="",
-    preview_idx=""
-}
-
 onflag {
     erase_all;
     delete blocks;
