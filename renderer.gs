@@ -4,6 +4,9 @@ hide;
 %include code/helpful_utils.gs
 %include std/math
 
+costumes "assets/images/costumes/main/*";
+costumes "assets/images/costumes/other/*";
+
 costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
 "assets/images/greenflag.svg" as "@g"; 
@@ -23,12 +26,20 @@ list colors = [
     "#d6d6d6", "#d6d6d6", "#d6d6d6",
 ];
 
-on "render_blocks" {
+list costume_widths;
+list costume_heights;
+
+onflag {
+    measure_costumes;
+}
+
+on "render_editor" {
     switch_costume "large";
 
     start_time = days_since_2000();
     render_blocks;
     render_palette_sidebar;
+    render_sprite_sidebar;
     # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
 }
 
@@ -127,6 +138,121 @@ proc render_palette_sidebar {
         i += 3;
         change_y -30;
     }
+}
+
+proc measure_costumes {
+    delete costume_widths;
+    delete costume_heights;
+    switch_costume "Cat-a";
+    base_costume = costume_number() - 1;
+    until costume_name() == "@r" {
+        goto -240, 0;
+        until not touching_edge() {
+            change_x 1;
+        }
+        add (x_position() + 240) * 2 to costume_widths;
+        # log costume_name() & " - " & costume_widths["last"];
+        goto 0, -180;
+        until not touching_edge() {
+            change_y 1;
+        }
+        add (y_position() + 180) * 2 to costume_heights;
+        next_costume;
+    }
+}
+
+proc render_sprite_sidebar {
+    if SPRITES_SHOWN {
+        # background
+        set_pen_size 0;
+        goto 203 + SPRITES_SCROLL_X, 180;
+        set_pen_color "#e5f4f8";
+        set_pen_transparency 30;
+        pen_down;
+        set_pen_size 75;
+        change_y -360;
+        pen_up;
+
+        # text
+        set_pen_color "#000000";
+        plain_text 203 + SPRITES_SCROLL_X, 165, 1, "Sprites", "c";
+
+        # sprites
+        local x = 170 + SPRITES_SCROLL_X;
+        local i = 1;
+        local y = 155 - SPRITES_SCROLL_Y;
+        local width = 65;
+        repeat length sprites {
+            if "editor"."selected_sprite" == i {
+                set_pen_color "#c6bdef";
+                draw_square x, y, 65, 65, 20;
+                set_pen_color "#855cd6";
+                draw_square x + 3, y - 3, 59, 59, 14;
+                set_pen_color "#ffffff";
+                draw_square x + 4, y - 4, 57, 57, 13;
+
+                set_pen_size 45;
+                goto x + width / 2, y - width / 2;
+                pen_down;
+                pen_up;
+
+                set_pen_color "#855cd6";
+                set_pen_size 14;
+                goto x + 4 + 13 / 2, y - 4 - 57 + 13 / 2;
+                pen_down;
+                change_x 57 - 13;
+                pen_up;
+
+                set_pen_color "#855cd6";
+                set_pen_size 4;
+                goto x + 5, y - 4 - 57 + 12;
+                pen_down;
+                change_x 55;
+                change_y -3;
+                change_x -55;
+                pen_up;
+
+                set_pen_color "#ffffff";
+                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c";
+            } else {
+                set_pen_color if ("editor"."highlighted_sprite" == i) "#855cd6" else "#c6cdd6";
+                draw_square x + 3, y - 3, 59, 59, 14;
+                set_pen_color if ("editor"."highlighted_sprite" == i) "#ffffff" else "#edf8fb";
+                draw_square x + 4, y - 4, 57, 57, 13;
+
+                set_pen_size 45;
+                goto x + width / 2, y - width / 2;
+                pen_down;
+                pen_up;
+
+                set_pen_color "#000000";
+                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c";
+            }
+
+            # render preview of sprite
+            goto x + width / 2, y - 25;
+            switch_costume base_costume + sprites[i].costume;
+            set_size 35 / MAX(costume_widths[sprites[i].costume], costume_heights[sprites[i].costume]) * 100;
+            stamp;
+            switch_costume "large";
+
+            y -= 67;
+            i++;
+        }
+    }
+    set_size 100;
+}
+
+proc draw_square x, y, width, height, size {
+    set_pen_size 0;
+    goto $x + $size / 2, $y - $size / 2;
+    pen_down;
+    set_pen_size $size;
+    change_x $width - $size;
+    change_y -$height + $size;
+    change_x -$width + $size;
+    change_y $height - $size;
+    pen_up;
 }
 
 proc render_one_root rootIdx {

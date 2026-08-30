@@ -53,13 +53,24 @@ onflag {
     delete dragged_blocks;
     delete local_vars;
     delete global_vars;
+    delete local_lists;
+    delete global_lists;
+
+    delete sprites;
+    add Sprite {name: "Cat", costume: 1, blocks: "", vars: "", lists: ""} to sprites;
+    add Sprite {name: "Dango Cat", costume: 10, blocks: "", vars: "", lists: ""} to sprites;
+    add Sprite {name: "Gobo", costume: 4, blocks: "", vars: "", lists: ""} to sprites;
 
     parse_block_palette;
     target_palette_x = 0;
     target_palette_y = 0;
     target_palette_x_time = 0;
     target_palette_y_time = 0;
+    target_sprites_x = 0;
+    target_sprites_x_time = 0;
     no_category_switch = 0;
+    selected_sprite = 1;
+    highlighted_sprite = 2;
 
     init_blocks;
     dragged_block = 0;
@@ -72,7 +83,7 @@ onflag {
     PreviewBlock h_c_placement = PreviewBlock {};
     broadcast "render_loop";
     broadcast "input_loop";
-    broadcast "palette_display_loop";
+    broadcast "sidebar_display_loop";
 }
 
 onkey "l" {
@@ -132,7 +143,7 @@ onkey "down arrow" {
 on "render_loop" {
     forever {
         erase_all;
-        broadcast "render_blocks";
+        broadcast "render_editor";
     }
 }
 
@@ -145,7 +156,7 @@ on "input_loop" {
     }
 }
 
-on "palette_display_loop" {
+on "sidebar_display_loop" {
     forever {
         # input
         if key_pressed("left arrow") {
@@ -205,6 +216,37 @@ on "palette_display_loop" {
         if no_category_switch > 0 {
             no_category_switch--;
         }
+
+        # sprite list
+        if mouse_x() > 235 and SPRITES_SHOWN == false and target_sprites_x_time == 0 {
+            SPRITES_SHOWN = true;
+            SPRITES_SCROLL_X = 100;
+            target_sprites_x = 0;
+            target_sprites_x_time = 8;
+        }
+        if mouse_x() < SPRITES_MIN_X and SPRITES_SHOWN == true and target_sprites_x_time == 0 {
+            target_sprites_x = 80;
+            target_sprites_x_time = 8;
+        }
+
+        if target_sprites_x_time > 0 {
+            SPRITES_SCROLL_X += round((target_sprites_x - SPRITES_SCROLL_X) / 2.5);
+            target_sprites_x_time--;
+            if target_sprites_x_time == 0 and target_sprites_x > 0 {
+                SPRITES_SHOWN = false;
+            }
+            if target_sprites_x_time == 0 and target_sprites_x == 0 {
+                SPRITES_SCROLL_X = 0;
+            }
+        }
+
+        if SPRITES_SHOWN {
+            if dragged_block > 0 {
+                highlighted_sprite = "";
+            } else {
+                highlighted_sprite = find_hovered_sprite(mouse_x(), mouse_y());
+            }
+        }
     }
 }
 
@@ -218,103 +260,126 @@ on "stage_click" {
     }
 }
 
+func find_hovered_sprite(x, y) {
+    local i = 1;
+    local x = 170 + 3 + SPRITES_SCROLL_X;
+    local y = 155 + 3 - SPRITES_SCROLL_Y;
+    repeat length sprites {
+        if point_in_rect(Point {x: $x, y: $y}, Rect {x1: x, x2: x + 65 - 6, y1: y - 65, y2: y - 6}) {
+            return i;
+        }
+        i++;
+        y -= 67;
+    }
+    return "";
+}
+
 nowarp proc handle_input {
     wait_until(mouse_down());
-    if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-        log "palette coords";
-        local scroll_x_offset = 0;
-        local scroll_y_offset = PALETTE_SCROLL_Y;
-        local over_palette = true;
+    if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
+        wait_until(not mouse_down());
+        local clicked_sprite = find_hovered_sprite(mouse_x(), mouse_y());
+        log "clicked on sprite " & clicked_sprite;
+        if clicked_sprite > "" {
+            selected_sprite = clicked_sprite;
+        }
     } else {
-        log "regular coords";
-        local scroll_x_offset = SCROLL_X;
-        local scroll_y_offset = SCROLL_Y;
-        local over_palette = false;
-    }
-    mx = mouse_x() + scroll_x_offset;
-    my = mouse_y() + scroll_y_offset;
-    hovered_block = if (mouse_x() > PALETTE_MIN_X) find_hovered_block(mx, my) else 0;
-    if hovered_block > 0 {
-        wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
-        if not mouse_down() {
-            hovered_input = find_hovered_input(mx, my, hovered_block);
-            if hovered_input > "" {
-                # hovered input, prompt to replace text
-                highlight_lightly = true;
-                InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
-                ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
-                local something_inputted = false;
-                if answer() == "" {
-                    ask "Do you want to set this input to an empty string? (y)";
-                    if "y" in answer() {
-                        inputted_text = "";
+        if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+            log "palette coords";
+            local scroll_x_offset = 0;
+            local scroll_y_offset = PALETTE_SCROLL_Y;
+            local over_palette = true;
+        } else {
+            log "regular coords";
+            local scroll_x_offset = SCROLL_X;
+            local scroll_y_offset = SCROLL_Y;
+            local over_palette = false;
+        }
+        mx = mouse_x() + scroll_x_offset;
+        my = mouse_y() + scroll_y_offset;
+        hovered_block = if (mouse_x() > PALETTE_MIN_X) find_hovered_block(mx, my) else 0;
+        if hovered_block > 0 {
+            wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
+            if not mouse_down() {
+                hovered_input = find_hovered_input(mx, my, hovered_block);
+                if hovered_input > "" {
+                    # hovered input, prompt to replace text
+                    highlight_lightly = true;
+                    InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
+                    ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
+                    local something_inputted = false;
+                    if answer() == "" {
+                        ask "Do you want to set this input to an empty string? (y)";
+                        if "y" in answer() {
+                            inputted_text = "";
+                            something_inputted = true;
+                        }
+                    } else {
+                        inputted_text = answer();
                         something_inputted = true;
                     }
+                    if something_inputted {
+                        if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
+                            inputted_text = filter_only_numbers(inputted_text);
+                        }
+                        set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
+                        propagate_size_change hovered_block;
+                    }
+                    InputRank highlighted_input = InputRank {};
+                    highlight_lightly = false;
+                }
+            } else {
+                # dragging block
+                if over_palette and hovered_block < PALETTE_END {
+                    dragged_block = duplicate_block(hovered_block);
+                    scroll_x_offset = SCROLL_X;
+                    scroll_y_offset = SCROLL_Y;
                 } else {
-                    inputted_text = answer();
-                    something_inputted = true;
+                    dragged_block = hovered_block;
                 }
-                if something_inputted {
-                    if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
-                        inputted_text = filter_only_numbers(inputted_text);
-                    }
-                    set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
-                    propagate_size_change hovered_block;
+                drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
+                drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
+                disconnect_block dragged_block;
+                dragged_script_idx = get_script_root(dragged_block); # stores the dragged block's root script idx
+                dragged_stack_end = get_stack_bottom(dragged_block);
+                find_dragged_blocks dragged_block;
+                while(mouse_down()) {
+                    handle_drag;
                 }
-                InputRank highlighted_input = InputRank {};
-                highlight_lightly = false;
-            }
-        } else {
-            # dragging block
-            if over_palette and hovered_block < PALETTE_END {
-                dragged_block = duplicate_block(hovered_block);
-                scroll_x_offset = SCROLL_X;
-                scroll_y_offset = SCROLL_Y;
-            } else {
-                dragged_block = hovered_block;
-            }
-            drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
-            drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
-            disconnect_block dragged_block;
-            dragged_script_idx = get_script_root(dragged_block); # stores the dragged block's root script idx
-            dragged_stack_end = get_stack_bottom(dragged_block);
-            find_dragged_blocks dragged_block;
-            while(mouse_down()) {
-                handle_drag;
-            }
-            if mouse_x() < PALETTE_MAX_X and ((target_palette_x == 0 and PALETTE_SHOWN) or (target_palette_x_time > 5)) {
-                delete_block_stack dragged_block;
-                no_category_switch = 2;
-            } else {
-                if highlighted_input.block > "" {
-                    if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
-                        # if there's a currently embedded block, we need to disconnect it
-                        # to get rid of its parent reference
-                        disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+                if mouse_x() < PALETTE_MAX_X and ((target_palette_x == 0 and PALETTE_SHOWN) or (target_palette_x_time > 5)) {
+                    delete_block_stack dragged_block;
+                    no_category_switch = 2;
+                } else {
+                    if highlighted_input.block > "" {
+                        if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
+                            # if there's a currently embedded block, we need to disconnect it
+                            # to get rid of its parent reference
+                            disconnect_block get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block), shift: true;
+                        }
+                        put_block_in_block parentIdx: highlighted_input.block, childIdx: dragged_block, inputNumber: highlighted_input.input;
+                        # when a block is put into an input, it brings that script to the front
+                        move_script_to_front highlighted_input.block;
+                        highlighted_input = InputRank {};
+                        highlighted_input_nested_block = "";
                     }
-                    put_block_in_block parentIdx: highlighted_input.block, childIdx: dragged_block, inputNumber: highlighted_input.input;
-                    # when a block is put into an input, it brings that script to the front
-                    move_script_to_front highlighted_input.block;
-                    highlighted_input = InputRank {};
-                    highlighted_input_nested_block = "";
-                }
-                if highlighted_conn.block > "" {
-                    # if the preview placement block exists while we are
-                    # trying to place the actual block, remove it
-                    if h_c_placement.preview_idx > "" {
-                        delete_block h_c_placement.preview_idx, true;
-                    }
-                    PreviewBlock h_c_placement = PreviewBlock {};
+                    if highlighted_conn.block > "" {
+                        # if the preview placement block exists while we are
+                        # trying to place the actual block, remove it
+                        if h_c_placement.preview_idx > "" {
+                            delete_block h_c_placement.preview_idx, true;
+                        }
+                        PreviewBlock h_c_placement = PreviewBlock {};
 
-                    connect_stack_block connectIdx: highlighted_conn.block, childIdx: dragged_block, location: highlighted_conn.input;
-                    move_script_to_front highlighted_conn.block;
-                    InputRank highlighted_conn = InputRank {};
+                        connect_stack_block connectIdx: highlighted_conn.block, childIdx: dragged_block, location: highlighted_conn.input;
+                        move_script_to_front highlighted_conn.block;
+                        InputRank highlighted_conn = InputRank {};
+                    }
                 }
+                dragged_block = 0;
+                dragged_script_idx = 0;
+                dragged_stack_end = 0;
+                delete dragged_blocks;
             }
-            dragged_block = 0;
-            dragged_script_idx = 0;
-            dragged_stack_end = 0;
-            delete dragged_blocks;
         }
     }
 }
@@ -796,23 +861,6 @@ proc check_dragged_block bIdx {
 }
 
 proc init_blocks {
-    # add_block "control_waituntil", "stack", Category.Control, -42, 22, 93, 21, parent: 9, previous: 3, label1: TextLabel {x: -51, text: "wait"}, label2: TextLabel {x: -8, text: "seconds"}, input1: Input {shape: "reporter", x: -28, width: 16, height: 12, text: "1"};
-    # add_block "control_waitsecs", "stack", Category.Control, -50, -63, 93, 21, label1: TextLabel {x: -51, text: "wait until"}, input1: Input {shape: "boolean", x: -4, width: 21, height: 12};
-    # add_block "placeholder", "stack", Category.Motion, -42, 43, 189, 21, parent: 9, previous: "", next: 1, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
-    # add_block "placeholder", "reporter", Category.Operators, -23, -142, 119, 16, label1: TextLabel {x: -17, text: "pick random"}, label2: TextLabel {x: 64, text: "to"}, input1: Input {shape: "reporter", x: 44, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: 77, width: 16, height: 12, text: "10"};
-    # add_block "placeholder", "reporter", Category.Motion, 95, -57, 59, 16, label1: TextLabel {x: 100, text: "x position"};
-    # add_block "placeholder", "boolean", Category.Operators, -100, -120, 60, 16, label1: TextLabel {x: -72, text: "or"}, input1: Input {shape: "boolean", x: -97, width: 21, height: 12}, input2: Input {shape: "boolean", x: -57, width: 21, height: 12};
-    # add_block "placeholder", "boolean", Category.Operators, -100, -100, 125, 16, label1: TextLabel {x: -54, text: "contains"}, label2: TextLabel {x: 13, text: "?"}, input1: Input {shape: "reporter", x: -93, width: 34, height: 12, text: "apple"}, input2: Input {shape: "reporter", x: -8, width: 16, height: 12, text: "a"};
-    # add_block "placeholder", "reporter", Category.Operators, -100, -140, 60, 16, label1: TextLabel {x: -72, text: "+"}, input1: Input {shape: "reporter", x: -97, width: 16, height: 12, text: "1"}, input2: Input {shape: "reporter", x: -57, width: 16, height: 12, text: "127"};
-    # add_block "placeholder", "c", Category.Control, -50, 100, 85, 105, parent: 12, next: 11, slot_count: 2, prong_1_height: 21, prong_2_style: "normal", prong_3_style: "normal", end_style: "normal", slot_1_height: 42, slot_2_height: 12, slot_1_nested_block: 10, slot_2_nested_block: 3, label1: TextLabel {x: -86, text: "if"}, label2: TextLabel {x: -44, text: "then"}, label3: TextLabel {x: -45, text: "else"}, input1: Input {shape: "boolean", x: -69, width: 18, height: 12}; 
-    # add_block "placeholder", "stack", Category.Looks, -42, 79, 189, 21, parent: 9, next: "", label1: TextLabel {x: -51, text: "say"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "Hello!"};
-    # add_block "placeholder", "stack", Category.Sensing, -50, -14, 189, 21, parent: 12, previous: 9, next: "", label1: TextLabel {x: -51, text: "ask"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: "What's your name?"}, label2: TextLabel {x: 13, text: "and wait"};
-    # add_block "placeholder", "c", Category.Control, -58, 121, 85, 105, parent: "", slot_count: 1, prong_1_height: 21, prong_2_style: "normal", end_style: "normal", slot_1_height: 12, slot_2_height: 12, slot_1_nested_block: 9, label1: TextLabel {x: -86, text: "repeat"}, input1: Input {shape: "reporter", x: -69, width: 18, height: 12, text: "100"}; 
-    # add_block "placeholder", "stack", Category.Motion, 54, -82, 200, 21, next: 14, label1: TextLabel {x: -51, text: "go to"}, input1: Input {shape: "reporter", dropdown_shape: "round", dropdown_list: "sprites", x: -23, width: 16, height: 12, text: "random position"};
-    # add_block "placeholder", "stack", Category.Looks, 54, -103, 200, 21, previous: 13, label1: TextLabel {x: -51, text: "change"}, label2: TextLabel {x: -10, text: "effect by"}, input1: Input {shape: "reporter", dropdown_shape: "square", dropdown_list: "graphicEffects", x: -23, width: 16, height: 12, text: "color"}, input2: Input {shape: "reporter", x: 20, width: 16, height: 12, text: "25"};
-
-    add_block "motion_movesteps", "stack", Category.Motion, 100, 43, 189, 21, label1: TextLabel {x: -51, text: "move"}, label2: TextLabel {x: 102, text: "steps"}, input1: Input {shape: "reporter", x: -23, width: 16, height: 12, text: 10};
-
     i = 1;
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {

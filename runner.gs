@@ -1,4 +1,7 @@
-costumes "assets/images/dango-cat.svg";
+# %include code/PTE_font
+# costumes "assets/images/costumes/main/*";
+# costumes "assets/images/costumes/other/*";
+costumes "assets/images/costumes/main/dango-cat.svg";
 
 %define special_targets(num) if (args[num] in target_arg_lookup) target_arg_lookup[(args[num] in target_arg_lookup) + 1] else args[num]
 %define special_targets_tmp(num) if (tmp_args[num] in target_arg_lookup) target_arg_lookup[(tmp_args[num] in target_arg_lookup) + 1] else tmp_args[num]
@@ -79,10 +82,18 @@ proc init_sprite {
 }
 
 nowarp proc run {
+    init_runtime;
+
+    until length threads == 0 {
+        exec_threads;
+    }
+}
+
+proc init_runtime {
     delete vars;
     delete threads; # thread has: pos, status, start time
 
-    base_costume = 1;
+    base_costume = "dango-cat";
     init_sprite;
 
     soundI = 0;
@@ -99,10 +110,6 @@ nowarp proc run {
             start_thread events[threadI + 2];
         }
         threadI++;
-    }
-
-    until length threads == 0 {
-        exec_threads;
     }
 }
 
