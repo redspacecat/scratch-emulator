@@ -245,6 +245,7 @@ on "sidebar_display_loop" {
                 highlighted_sprite = "";
             } else {
                 highlighted_sprite = find_hovered_sprite(mouse_x(), mouse_y());
+                get_sprite_hovered_text mouse_x(), mouse_y();
             }
         }
     }
@@ -274,6 +275,20 @@ func find_hovered_sprite(x, y) {
     return "";
 }
 
+proc get_sprite_hovered_text x, y { # checks if the sprite's name in the sprite menu is hovered over
+    sprite_name_underline = "";
+    local i = 1;
+    local x = 170 + 3 + SPRITES_SCROLL_X;
+    local y = 155 + 3 - SPRITES_SCROLL_Y;
+    repeat length sprites {
+        if point_in_rect(Point {x: $x, y: $y}, Rect {x1: x, x2: x + 65 - 6, y1: y - 65, y2: y - 50}) {
+            sprite_name_underline = i;
+        }
+        i++;
+        y -= 67;
+    }
+}
+
 nowarp proc handle_input {
     wait_until(mouse_down());
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
@@ -281,7 +296,25 @@ nowarp proc handle_input {
         local clicked_sprite = find_hovered_sprite(mouse_x(), mouse_y());
         log "clicked on sprite " & clicked_sprite;
         if clicked_sprite > "" {
-            selected_sprite = clicked_sprite;
+            if clicked_sprite == selected_sprite {
+                if sprite_name_underline > "" {
+                    ask "Enter new name for sprite \"" & sprites[selected_sprite].name & "\" (enter nothing to cancel)";
+                    if answer() > "" {
+                        sprites[selected_sprite].name = answer();
+                    }
+                } elif point_in_circle(
+                    Point {x: mouse_x() + SPRITES_SCROLL_X, y: mouse_y() - SPRITES_SCROLL_Y},
+                    Point {x: 170 + 57 + SPRITES_SCROLL_X, y: (155 - (67 * (selected_sprite - 1))) - 6 - SPRITES_SCROLL_Y},
+                    11) and length sprites > 1 {
+                    ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
+                    if "y" in answer() {
+                        delete sprites[selected_sprite];
+                        switch_selected_sprite 1;
+                    }
+                }
+            } else {
+                switch_selected_sprite clicked_sprite;
+            }
         }
     } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
@@ -548,6 +581,10 @@ proc handle_drag no_recurse=false {
     }
 
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
+}
+
+proc switch_selected_sprite sprite {
+    selected_sprite = $sprite;
 }
 
 proc new_variable scope, name {

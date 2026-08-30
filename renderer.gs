@@ -9,7 +9,8 @@ costumes "assets/images/costumes/other/*";
 
 costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
-"assets/images/greenflag.svg" as "@g"; 
+"assets/images/greenflag.svg" as "@g",
+"assets/images/delete-icon.svg";
 
 list colors = [
     "#4c97ff", "#3373cc", "#4280d7",
@@ -212,8 +213,34 @@ proc render_sprite_sidebar {
                 change_x -55;
                 pen_up;
 
+                if length sprites > 1 {
+                    goto x + 57, y - 6;
+                    set_pen_color "#c6bdef";
+                    set_pen_size 23;
+                    pen_down;
+                    pen_up;
+                    set_pen_color "#855cd6";
+                    set_pen_size 20;
+                    pen_down;
+                    pen_up;
+                    switch_costume "delete-icon";
+                    set_size 80;
+                    stamp;
+                    set_size 100;
+                    switch_costume "large";
+                }
+
                 set_pen_color "#ffffff";
                 plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c";
+                if "editor"."sprite_name_underline" == i {
+                    local text_width = width_of_text(sprites[i].name, 1);
+                    goto 202 + SPRITES_SCROLL_X - text_width / 2, y - 60;
+                    set_pen_size 0;
+                    pen_down;
+                    set_pen_size 1;
+                    change_x text_width;
+                    pen_up;
+                }
             } else {
                 set_pen_color if ("editor"."highlighted_sprite" == i) "#855cd6" else "#c6cdd6";
                 draw_square x + 3, y - 3, 59, 59, 14;
