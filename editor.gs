@@ -52,6 +52,7 @@ onflag {
     target_palette_y = 0;
     target_palette_x_time = 0;
     target_palette_y_time = 0;
+    no_category_switch = 0;
 
     init_blocks;
     dragged_block = 0;
@@ -170,11 +171,14 @@ on "palette_display_loop" {
                 PALETTE_SCROLL_X = 0;
             }
         }
+        if no_category_switch > 0 {
+            no_category_switch--;
+        }
     }
 }
 
 on "stage_click" {
-    if mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+    if mouse_x() < PALETTE_MIN_X and dragged_block == 0 and no_category_switch == 0 {
         clicked_category = floor((177 - mouse_y()) / 30) + 1;
         if clicked_category <= length category_y {
             target_palette_y = category_y[clicked_category];
@@ -247,8 +251,9 @@ nowarp proc handle_input {
             while(mouse_down()) {
                 handle_drag;
             }
-            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
+            if mouse_x() < PALETTE_MAX_X and ((target_palette_x == 0 and PALETTE_SHOWN) or (target_palette_x_time > 5)) {
                 delete_block_stack dragged_block;
+                no_category_switch = 2;
             } else {
                 if highlighted_input.block > "" {
                     if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
