@@ -2,6 +2,7 @@ list block_palette "assets/data/block-palette.txt";
 list toks_1;
 list toks_2;
 list category_y;
+list palette_lookup;
 
 list category_map = [
     "motion", Category.Motion,
@@ -59,7 +60,7 @@ proc parse_block_palette {
 list parsed_inputs;
 list parsed_labels;
 
-proc parse_palette_block {
+proc parse_palette_block x_offset=0 {
     delete parsed_inputs;
     delete parsed_labels;
 
@@ -113,7 +114,7 @@ proc parse_palette_block {
                 add type to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
-                add i * 20 to parsed_inputs;
+                add $x_offset + i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add token to parsed_inputs;
@@ -126,7 +127,7 @@ proc parse_palette_block {
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
-                add i * 20 to parsed_inputs;
+                add $x_offset + i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add token to parsed_inputs;
@@ -141,7 +142,7 @@ proc parse_palette_block {
                 add b_input_type_text to parsed_inputs;
                 add "round" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
-                add i * 20 to parsed_inputs;
+                add $x_offset + i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add token to parsed_inputs;
@@ -156,7 +157,7 @@ proc parse_palette_block {
                 add b_input_type_text to parsed_inputs;
                 add "square" to parsed_inputs;
                 add dropdown_list to parsed_inputs;
-                add i * 20 to parsed_inputs;
+                add $x_offset + i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add token to parsed_inputs;
@@ -165,7 +166,7 @@ proc parse_palette_block {
                 # text label
                 clean t;
                 add token to parsed_labels;
-                add i * 20 to parsed_labels;
+                add $x_offset + i * 20 to parsed_labels;
                 if opcode == "control_if_else" and t == "else" {
                     parsed_labels[length parsed_labels] = bx + Padding.start;
                 }
@@ -247,5 +248,27 @@ proc clean string {
             token &= $string[j];
         }
         j++;
+    }
+}
+
+# creating a block palette lookup for the purpose of deserializing blocks faster
+proc create_palette_lookup {
+    delete palette_lookup;
+    local i = "motion_movesteps" in opcode_lookup; # skip jump and non-existent blocks
+    repeat length opcode_lookup {
+        local line_n = 1;
+        local found = false;
+        until found or line_n > length block_palette {
+            if opcode_lookup[i] in block_palette[line_n] {
+                found = true;
+            } else {
+                line_n++;
+            }
+        }
+        if found {
+            add opcode_lookup[i] to palette_lookup;
+            add line_n to palette_lookup;
+        }
+        i++;
     }
 }

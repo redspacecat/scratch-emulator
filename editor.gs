@@ -1,9 +1,11 @@
 %include code/PTE_font
 
-%include code/helpful_utils
-%include code/block_palette_parser
 %include std/list
 %include std/math
+
+%include code/helpful_utils
+%include code/block_palette_parser
+%include code/save_and_load_sprites
 
 hide;
 
@@ -62,6 +64,7 @@ onflag {
     add Sprite {name: "Gobo", costume: 4, blocks: "", vars: "", lists: ""} to sprites;
 
     parse_block_palette;
+    create_palette_lookup;
     target_palette_x = 0;
     target_palette_y = 0;
     target_palette_x_time = 0;
@@ -73,6 +76,9 @@ onflag {
     highlighted_sprite = 2;
 
     init_blocks;
+    handle_palette_vars;
+    handle_palette_lists;
+
     dragged_block = 0;
     dragged_script_idx = 0;
     dragged_stack_end = 0;
@@ -583,10 +589,6 @@ proc handle_drag no_recurse=false {
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
 }
 
-proc switch_selected_sprite sprite {
-    selected_sprite = $sprite;
-}
-
 proc new_variable scope, name {
     # insert a new variable at the correct position
     if $scope == "local" {
@@ -897,13 +899,44 @@ proc check_dragged_block bIdx {
     }
 }
 
-proc init_blocks {
-    i = 1;
-    repeat length blocks / BLOCK_LENGTH {
+proc init_blocks start=1 {
+    i = $start;
+    until i > length blocks {
         if blocks[i] > "" {
             update_block_dimensions i, false; # we need to not move c block's inputs before the block is sized correctly
         }
         i += BLOCK_LENGTH;
+    }
+}
+
+proc update_all_blocks_sizes {
+    delete sort_order;
+    local i = PALETTE_END;
+    until i > length blocks {
+        add SortOrder {level: b_nesting_level(i), idx: i} to sort_order;
+        i += BLOCK_LENGTH;
+    }
+
+    show sort_order;
+
+    INSERTION_SORT_BY_FIELD(SortOrder, sort_order, .level);
+    # reverse list
+    local i = 1;
+    local j = length(sort_order);
+    repeat length(sort_order) / 2 {
+        local SortOrder x = sort_order[i];
+        sort_order[i] = sort_order[j];
+        sort_order[j] = x;
+        i++;
+        j--;
+    }
+
+    # update block dimensions
+    local i = 1;
+    repeat length sort_order {
+        log "updating " & sort_order[i].idx;
+        update_block_dimensions sort_order[i].idx, false;
+        i++;
     }
 }
 
