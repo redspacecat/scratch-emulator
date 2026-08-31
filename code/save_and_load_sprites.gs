@@ -114,11 +114,7 @@ func escape(text, char) {
 }
 
 list tokens;
-struct SortOrder {
-    level,
-    idx
-}
-list SortOrder sort_order;
+list sort_order;
 
 proc load_sprite sprite {
     start = days_since_2000();
@@ -224,4 +220,8 @@ proc load_sprite sprite {
     start = days_since_2000();
     update_all_blocks_sizes;
     log "resizing took " & (days_since_2000() - start) * 86400000 & " ms";
+
+    start = days_since_2000();
+    update_all_blocks_c_styles;
+    log "updating c end styles took " & (days_since_2000() - start) * 86400000 & " ms";
 }

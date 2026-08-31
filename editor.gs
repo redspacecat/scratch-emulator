@@ -909,34 +909,62 @@ proc init_blocks start=1 {
     }
 }
 
+list queue;
+list visited;
+
 proc update_all_blocks_sizes {
     delete sort_order;
+
+    # do a breadth first search and then apply updates in reverse order
+    # this ensures inner blocks are calculated first, even when
+    # nesting levels are the same
+    local i = 1;
+    repeat length roots {
+        delete queue;
+        delete visited;
+
+        add roots[i] to queue;
+        add roots[i] to visited;
+        until length queue == 0 {
+            local currentIdx = queue[1];
+            delete queue[1];
+            add currentIdx to sort_order;
+
+            local nextIdx = b_next(currentIdx);
+            if nextIdx > "" and nextIdx not in visited {
+                add nextIdx to visited;
+                add nextIdx to queue;
+            }
+            local input1 = b_input1_nested_block(currentIdx);
+            local input2 = b_input2_nested_block(currentIdx);
+            local input3 = b_input3_nested_block(currentIdx);
+            local c_nested1 = b_slot_1_nested_block(currentIdx); # blocks nested in c blocks
+            local c_nested2 = b_slot_2_nested_block(currentIdx);
+            if input1 > "" and input1 not in visited { add input1 to visited; add input1 to queue; }
+            if input2 > "" and input2 not in visited { add input2 to visited; add input2 to queue; }
+            if input3 > "" and input3 not in visited { add input3 to visited; add input3 to queue; }
+            if c_nested1 > "" and c_nested1 not in visited { add c_nested1 to visited; add c_nested1 to queue; }
+            if c_nested2 > "" and c_nested2 not in visited { add c_nested2 to visited; add c_nested2 to queue; }
+        }
+        i++;
+    }
+
+    # update block dimensions, iterating in reverse bfs order to start with the most nested blocks
+    local i = length sort_order;
+    repeat length sort_order {
+        log "updating " & sort_order[i];
+        update_block_dimensions sort_order[i], false;
+        i--;
+    }
+}
+
+proc update_all_blocks_c_styles {
     local i = PALETTE_END;
     until i > length blocks {
-        add SortOrder {level: b_nesting_level(i), idx: i} to sort_order;
+        if b_shape(i) == "c" {
+            update_c_end_styles(i);
+        }
         i += BLOCK_LENGTH;
-    }
-
-    show sort_order;
-
-    INSERTION_SORT_BY_FIELD(SortOrder, sort_order, .level);
-    # reverse list
-    local i = 1;
-    local j = length(sort_order);
-    repeat length(sort_order) / 2 {
-        local SortOrder x = sort_order[i];
-        sort_order[i] = sort_order[j];
-        sort_order[j] = x;
-        i++;
-        j--;
-    }
-
-    # update block dimensions
-    local i = 1;
-    repeat length sort_order {
-        log "updating " & sort_order[i].idx;
-        update_block_dimensions sort_order[i].idx, false;
-        i++;
     }
 }
 
