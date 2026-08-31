@@ -6,6 +6,7 @@
 %include code/helpful_utils
 %include code/block_palette_parser
 %include code/save_and_load_sprites
+%include code/compiler
 
 hide;
 
@@ -15,6 +16,8 @@ list local_vars;
 list global_vars;
 list local_lists;
 list global_lists;
+
+var first_time = true; # for storing whether it's the first time initializing since the project was loaded
 
 enum Padding {
     base=5, # padding between elements
@@ -48,23 +51,37 @@ struct Tri {
     y3
 }
 
-onflag {
-    erase_all;
-    delete blocks;
+proc init_editor all { # all param is for initializing the editor for the first time, when project is first loaded
     delete roots;
     delete dragged_blocks;
     delete local_vars;
-    delete global_vars;
     delete local_lists;
-    delete global_lists;
 
-    delete sprites;
-    add Sprite {name: "Cat", costume: 1, blocks: "", vars: "", lists: ""} to sprites;
-    add Sprite {name: "Dango Cat", costume: 10, blocks: "", vars: "", lists: ""} to sprites;
-    add Sprite {name: "Gobo", costume: 4, blocks: "", vars: "", lists: ""} to sprites;
+    if $all {
+        first_time = false;
 
-    parse_block_palette;
-    create_palette_lookup;
+        delete blocks;
+        delete global_vars;
+        delete global_lists;
+
+        delete sprites;
+        add Sprite {name: "Cat", costume: 1, blocks: "", vars: "", lists: ""} to sprites;
+        add Sprite {name: "Dango Cat", costume: 10, blocks: "", vars: "", lists: ""} to sprites;
+        add Sprite {name: "Gobo", costume: 4, blocks: "", vars: "", lists: ""} to sprites;
+
+        parse_block_palette;
+        create_palette_lookup;
+
+        selected_sprite = 1;
+        highlighted_sprite = "";
+
+        init_blocks;
+        handle_palette_vars;
+        handle_palette_lists;
+
+        switch_selected_sprite 1;
+    }
+
     target_palette_x = 0;
     target_palette_y = 0;
     target_palette_x_time = 0;
@@ -72,12 +89,6 @@ onflag {
     target_sprites_x = 0;
     target_sprites_x_time = 0;
     no_category_switch = 0;
-    selected_sprite = 1;
-    highlighted_sprite = 2;
-
-    init_blocks;
-    handle_palette_vars;
-    handle_palette_lists;
 
     dragged_block = 0;
     dragged_script_idx = 0;
@@ -87,6 +98,35 @@ onflag {
     InputRank highlighted_input = InputRank {};
     InputRank highlighted_conn = InputRank {};
     PreviewBlock h_c_placement = PreviewBlock {};
+
+    load_sprite selected_sprite;
+}
+
+onflag {
+    erase_all;
+    if RUNNING {
+        RUNNING = false;
+
+        broadcast "start_editor";
+    } else {
+        RUNNING = true;
+
+        compile;
+        broadcast_and_wait "create_sprites";
+        broadcast_and_wait "init_runtime";
+        broadcast_and_wait "run";
+
+        wait 0.5;
+
+        broadcast_and_wait "stop_program";
+        RUNNING = false;
+
+        broadcast "start_editor";
+    }
+}
+
+on "start_editor" {
+    init_editor first_time;
     broadcast "render_loop";
     broadcast "input_loop";
     broadcast "sidebar_display_loop";

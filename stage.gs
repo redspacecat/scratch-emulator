@@ -45,6 +45,8 @@ var SPRITES_MAX_X = 240;
 var SPRITES_MIN_X = 165;
 var SPRITES_SHOWN = false;
 
+var RUNNING = true;
+
 list block_palette_text;
 
 struct Token {

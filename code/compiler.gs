@@ -1,30 +1,36 @@
-costumes "assets/images/blank.svg";
-
-%include code/helpful_utils
 %include code/opcodes
-
-onkey "c" {
-    compile;
-}
 
 proc compile {
     delete code;
     delete tmp_vars;
     delete events;
 
-    local i = 1;
-    repeat length roots {
-        local root_idx = roots[i];
-        # only compile roots that can start code and have something attached
-        if b_start_style(root_idx) == "hat" and b_next(root_idx) > "" {
-            add b_opcode(root_idx) to events;
-            add b_input1_text(root_idx) to events;
-            add length code + 1 to events;
-            compile_root b_next(root_idx);
+    save_current_sprite;
+
+    local spriteNum = 1;
+    repeat length sprites {
+        # load code into editor
+        load_sprite spriteNum, false;
+
+        # compile code
+        local i = 1;
+        repeat length roots {
+            local root_idx = roots[i];
+            # only compile roots that can start code and have something attached
+            if b_start_style(root_idx) == "hat" and b_next(root_idx) > "" {
+                add spriteNum to events;
+                add b_opcode(root_idx) to events;
+                add b_input1_text(root_idx) to events;
+                add length code + 1 to events;
+                compile_root b_next(root_idx);
+            }
+            i++;
         }
-        i++;
+
+        spriteNum++;
     }
 
+    # optimize opcodes
     local i = 1;
     repeat length code {
         if code[i].type == "command" {

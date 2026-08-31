@@ -116,7 +116,7 @@ func escape(text, char) {
 list tokens;
 list sort_order;
 
-proc load_sprite sprite {
+proc load_sprite sprite, do_size_updates=true {
     start = days_since_2000();
 
     # delete blocks;
@@ -217,11 +217,13 @@ proc load_sprite sprite {
 
     log "loading took " & (days_since_2000() - start) * 86400000 & " ms";
 
-    start = days_since_2000();
-    update_all_blocks_sizes;
-    log "resizing took " & (days_since_2000() - start) * 86400000 & " ms";
+    if $do_size_updates {
+        start = days_since_2000();
+        update_all_blocks_sizes;
+        log "resizing took " & (days_since_2000() - start) * 86400000 & " ms";
 
-    start = days_since_2000();
-    update_all_blocks_c_styles;
-    log "updating c end styles took " & (days_since_2000() - start) * 86400000 & " ms";
+        start = days_since_2000();
+        update_all_blocks_c_styles;
+        log "updating c end styles took " & (days_since_2000() - start) * 86400000 & " ms";
+    }
 }
