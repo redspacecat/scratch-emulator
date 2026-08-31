@@ -1879,7 +1879,7 @@ func filter_only_numbers(input) {
     local i = 1;
     local output = "";
     repeat length $input {
-        if ($input[i] >= 0 and $input[i] <= 9) or $input[i] == "e" {
+        if ($input[i] >= 0 and $input[i] <= 9) or $input[i] == "e" or $input[i] == "." or $input[i] == "-" {
             output &= $input[i];
         }
         i++;
