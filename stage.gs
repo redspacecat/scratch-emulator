@@ -44,6 +44,8 @@ var SPRITES_SCROLL_Y = 0;
 var SPRITES_MAX_X = 240;
 var SPRITES_MIN_X = 165;
 var SPRITES_SHOWN = false;
+var LAG_MODE;
+var REDRAW = true;
 
 var RUNNING = true;
 

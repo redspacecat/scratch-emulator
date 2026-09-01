@@ -80,6 +80,7 @@ proc init_editor all { # all param is for initializing the editor for the first 
         handle_palette_lists;
 
         switch_selected_sprite 1;
+        auto_lag_mode_change = true;
     }
 
     target_palette_x = 0;
@@ -100,6 +101,8 @@ proc init_editor all { # all param is for initializing the editor for the first 
     PreviewBlock h_c_placement = PreviewBlock {};
 
     load_sprite selected_sprite;
+
+    redraw;
 }
 
 onflag {
@@ -130,9 +133,65 @@ on "start_editor" {
     broadcast "render_loop";
     broadcast "input_loop";
     broadcast "sidebar_display_loop";
+    broadcast "lag_mode_checker";
+}
+
+list past_fps;
+on "lag_mode_checker" {
+    show past_fps;
+    delete past_fps;
+    repeat 5 {
+        fps_count = 0;
+        start_timer = timer();
+        until timer() > start_timer + 1 {
+            fps_count++;
+        }
+        insert fps_count at past_fps[1];
+    }
+
+    check_past_fps;
+
+    wait 30;
+    broadcast "lag_mode_checker";
+}
+
+proc check_past_fps {
+    local i = 1;
+    local avg_fps = 0;
+    repeat length past_fps {
+        if past_fps[i] > "" {
+            avg_fps += past_fps[i];
+            i++;
+        }
+    }
+    avg_fps = avg_fps / length past_fps;
+    if avg_fps < 28 and auto_lag_mode_change {
+        set_lag_mode true;
+    }
+}
+
+proc set_lag_mode state {
+    LAG_MODE = $state;
+    PALETTE_MAX_X = if ($state) 16 else 0;
+}
+
+onkey "s" {
+    if RUNNING {
+        stop_this_script;
+    }
+    LAG_MODE = 1 - LAG_MODE;
+    auto_lag_mode_change = false;
+    if LAG_MODE {
+        PALETTE_MAX_X = 16;
+    } else {
+        PALETTE_MAX_X = 0;
+    }
 }
 
 onkey "l" {
+    if RUNNING {
+        stop_this_script;
+    }
     ask "New local variable name?";
     if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
         new_variable "local", answer();
@@ -140,6 +199,9 @@ onkey "l" {
 }
 
 onkey "g" {
+    if RUNNING {
+        stop_this_script;
+    }
     ask "New global variable name?";
     if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
         new_variable "global", answer();
@@ -147,6 +209,9 @@ onkey "g" {
 }
 
 onkey "n" {
+    if RUNNING {
+        stop_this_script;
+    }
     ask "New local list name?";
     if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
         new_list "local", answer();
@@ -154,6 +219,9 @@ onkey "n" {
 }
 
 onkey "m" {
+    if RUNNING {
+        stop_this_script;
+    }
     ask "New global list name?";
     if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
         new_list "global", answer();
@@ -161,6 +229,9 @@ onkey "m" {
 }
 
 onkey "up arrow" {
+    if RUNNING {
+        stop_this_script;
+    }
     if not key_pressed("up arrow") {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
             PALETTE_SCROLL_Y += 20;
@@ -170,10 +241,14 @@ onkey "up arrow" {
         } else {
             SCROLL_Y += 20;
         }
+        redraw;
     }
 }
 
 onkey "down arrow" {
+    if RUNNING {
+        stop_this_script;
+    }
     if not key_pressed("down arrow") {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
             PALETTE_SCROLL_Y -= 20;
@@ -183,12 +258,12 @@ onkey "down arrow" {
         } else {
             SCROLL_Y -= 20;
         }
+        redraw;
     }
 }
 
 on "render_loop" {
     forever {
-        erase_all;
         broadcast "render_editor";
     }
 }
@@ -207,9 +282,11 @@ on "sidebar_display_loop" {
         # input
         if key_pressed("left arrow") {
             SCROLL_X -= 15;
+            redraw;
         }
         if key_pressed("right arrow") {
             SCROLL_X += 15;
+            redraw;
         }
         if key_pressed("up arrow") {
             if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
@@ -220,6 +297,7 @@ on "sidebar_display_loop" {
             } else {
                 SCROLL_Y += 15;
             }
+            redraw;
         }
         if key_pressed("down arrow") {
             if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
@@ -230,19 +308,29 @@ on "sidebar_display_loop" {
             } else {
                 SCROLL_Y -= 15;
             }
+            redraw;
         }
 
         # palette handling
-        if mouse_x() < PALETTE_MIN_X and PALETTE_SHOWN == false and target_palette_x_time == 0 {
+        if mouse_x() < PALETTE_MIN_X and mouse_y() < 180 and PALETTE_SHOWN == false and target_palette_x_time == 0 {
             PALETTE_SHOWN = true;
             PALETTE_SCROLL_X = 150;
             target_palette_x = 0;
-            target_palette_x_time = 10;
+            
+            if LAG_MODE {
+                target_palette_x_time = 1;
+            } else {
+                target_palette_x_time = 10;
+            }
         }
-        if mouse_x() > PALETTE_HIDE_X and PALETTE_SHOWN == true and target_palette_x_time == 0 {
-            # PALETTE_SHOWN = false;
+        if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 179) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
             target_palette_x = 220;
-            target_palette_x_time = 6;
+
+            if LAG_MODE {
+                target_palette_x_time = 1;
+            } else {
+                target_palette_x_time = 6;
+            }
         }
 
         if target_palette_y_time > 0 {
@@ -252,6 +340,7 @@ on "sidebar_display_loop" {
         if target_palette_x_time > 0 {
             PALETTE_SCROLL_X += round((target_palette_x - PALETTE_SCROLL_X) / 2.5);
             target_palette_x_time--;
+            redraw;
             if target_palette_x_time == 0 and target_palette_x > 0 {
                 PALETTE_SHOWN = false;
             }
@@ -268,16 +357,25 @@ on "sidebar_display_loop" {
             SPRITES_SHOWN = true;
             SPRITES_SCROLL_X = 100;
             target_sprites_x = 0;
-            target_sprites_x_time = 8;
+            if LAG_MODE {
+                target_sprites_x_time = 1;
+            } else {
+                target_sprites_x_time = 8;
+            }
         }
         if mouse_x() < SPRITES_MIN_X and SPRITES_SHOWN == true and target_sprites_x_time == 0 {
             target_sprites_x = 80;
-            target_sprites_x_time = 8;
+            if LAG_MODE {
+                target_sprites_x_time = 1;
+            } else {
+                target_sprites_x_time = 8;
+            }
         }
 
         if target_sprites_x_time > 0 {
             SPRITES_SCROLL_X += round((target_sprites_x - SPRITES_SCROLL_X) / 2.5);
             target_sprites_x_time--;
+            redraw;
             if target_sprites_x_time == 0 and target_sprites_x > 0 {
                 SPRITES_SHOWN = false;
             }
@@ -294,15 +392,9 @@ on "sidebar_display_loop" {
                 get_sprite_hovered_text mouse_x(), mouse_y();
             }
         }
-    }
-}
 
-on "stage_click" {
-    if mouse_x() < PALETTE_MIN_X and dragged_block == 0 and no_category_switch == 0 {
-        clicked_category = floor((177 - mouse_y()) / 30) + 1;
-        if clicked_category <= length category_y {
-            target_palette_y = category_y[clicked_category];
-            target_palette_y_time = 20;
+        if not LAG_MODE {
+            redraw;
         }
     }
 }
@@ -362,6 +454,12 @@ nowarp proc handle_input {
                 switch_selected_sprite clicked_sprite;
             }
         }
+    } elif mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+        clicked_category = floor((177 - mouse_y()) / 30) + 1;
+        if clicked_category <= length category_y {
+            target_palette_y = category_y[clicked_category];
+            target_palette_y_time = 20;
+        }
     } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
             log "palette coords";
@@ -385,6 +483,7 @@ nowarp proc handle_input {
                     # hovered input, prompt to replace text
                     highlight_lightly = true;
                     InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
+                    redraw;
                     ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
                     local something_inputted = false;
                     if answer() == "" {
@@ -406,6 +505,7 @@ nowarp proc handle_input {
                     }
                     InputRank highlighted_input = InputRank {};
                     highlight_lightly = false;
+                    redraw;
                 }
             } else {
                 # dragging block
@@ -424,6 +524,7 @@ nowarp proc handle_input {
                 find_dragged_blocks dragged_block;
                 while(mouse_down()) {
                     handle_drag;
+                    redraw;
                 }
                 if mouse_x() < PALETTE_MAX_X and ((target_palette_x == 0 and PALETTE_SHOWN) or (target_palette_x_time > 5)) {
                     delete_block_stack dragged_block;
@@ -458,6 +559,8 @@ nowarp proc handle_input {
                 dragged_script_idx = 0;
                 dragged_stack_end = 0;
                 delete dragged_blocks;
+
+                redraw;
             }
         }
     }

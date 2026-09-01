@@ -4,6 +4,7 @@ proc switch_selected_sprite sprite {
     save_current_sprite;
     load_sprite $sprite;
     selected_sprite = $sprite;
+    redraw;
 }
 
 proc save_current_sprite {

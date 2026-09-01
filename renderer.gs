@@ -35,6 +35,10 @@ onflag {
 }
 
 on "render_editor" {
+    if REDRAW {
+        erase_all;
+    }
+
     switch_costume "large";
 
     start_time = days_since_2000();
@@ -42,44 +46,54 @@ on "render_editor" {
     render_palette_sidebar;
     render_sprite_sidebar;
     # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
+
+    REDRAW = false;
 }
 
 list queue;
 list visited;
 
 proc render_blocks {
-    # # render regular blocks
-    max_nesting_level = 0;
-    InputRank h_i = highlighted_input;
+    if REDRAW {
+        # render regular blocks
+        max_nesting_level = 0;
+        InputRank h_i = highlighted_input;
 
-    set_pen_size 240;
-    goto 120, 180;
-    set_pen_color "#ffffff";
-    pen_down;
-    change_y -360;
-    pen_up;
+        set_pen_size 240;
+        goto 120, 180;
+        set_pen_color "#ffffff";
+        pen_down;
+        change_y -360;
+        pen_up;
 
-    if h_c_placement.preview_idx > "" {
-        render_one_block h_c_placement.preview_idx;
-    }
-    
-    local i = 1;
-    repeat length roots {
-        local rootIdx = roots[i];
-        if rootIdx != "editor"."dragged_script_idx" { # don't draw dragged blocks so they can be drawn on top
-            render_one_root rootIdx;
+        if h_c_placement.preview_idx > "" {
+            render_one_block h_c_placement.preview_idx;
         }
+        
+        local i = 1;
+        repeat length roots {
+            local rootIdx = roots[i];
+            if rootIdx != "editor"."dragged_script_idx" { # don't draw dragged blocks so they can be drawn on top
+                render_one_root rootIdx;
+            }
 
-        i++;
+            i++;
+        }
     }
 
     if PALETTE_SHOWN {
         set_pen_size 0;
         goto -102 - PALETTE_SCROLL_X, 180;
-        set_pen_color "#e5f4f8";
-        set_pen_transparency 30;
         pen_down;
-        set_pen_size 208;
+        if LAG_MODE {
+            set_pen_color "#edf8fb";
+            set_pen_size 224;
+            change_x 8;
+        } else {
+            set_pen_color "#e5f4f8";
+            set_pen_transparency 30;
+            set_pen_size 208;
+        }
         change_y -360;
         pen_up;
 
@@ -91,7 +105,7 @@ proc render_blocks {
 
         set_pen_size 4;
         set_pen_color "#bebebe";
-        goto -2 - PALETTE_SCROLL_X, 177 - (360 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
+        goto PALETTE_MAX_X - 2 - PALETTE_SCROLL_X, 177 - (360 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
         pen_down;
         change_y -30;
         pen_up;
@@ -122,8 +136,12 @@ proc render_palette_text {
 proc render_palette_sidebar {
     set_pen_size 0;
     goto -223, 180;
-    set_pen_color "#e5f4f8";
-    set_pen_transparency 30;
+    if LAG_MODE {
+        set_pen_color "#edf8fb";
+    } else {
+        set_pen_color "#e5f4f8";
+        set_pen_transparency 30;
+    }
     pen_down;
     set_pen_size 35;
     change_y -360;
@@ -174,8 +192,12 @@ proc render_sprite_sidebar {
         # background
         set_pen_size 0;
         goto 203 + SPRITES_SCROLL_X, 180;
-        set_pen_color "#e5f4f8";
-        set_pen_transparency 30;
+        if LAG_MODE {
+            set_pen_color "#edf8fb";
+        } else {
+            set_pen_color "#e5f4f8";
+            set_pen_transparency 30;
+        }
         pen_down;
         set_pen_size 75;
         change_y -360;

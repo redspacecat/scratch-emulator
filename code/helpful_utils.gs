@@ -129,3 +129,5 @@ enum Category {
 %define block_in_palette(i) i < PALETTE_END
 
 %define last_block_idx length blocks - BLOCK_LENGTH + 1
+
+%define redraw REDRAW = true
