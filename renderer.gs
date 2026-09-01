@@ -99,6 +99,12 @@ proc render_blocks {
         render_palette_text;
     }
 
+    # local i = PALETTE_END;
+    # until i > length blocks {
+    #     render_one_block i;
+    #     i += BLOCK_LENGTH;
+    # }
+
     if "editor"."dragged_script_idx" > 0 {
         render_one_root "editor"."dragged_script_idx";
     }
@@ -108,7 +114,7 @@ proc render_palette_text {
     set_pen_color "#000000";
     local i  = 1;
     repeat length block_palette_text / 3 {
-        plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l";
+        plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l", true;
         i += 3;
     }
 }
@@ -164,6 +170,7 @@ proc measure_costumes {
 
 proc render_sprite_sidebar {
     if SPRITES_SHOWN {
+        point_in_direction 90;
         # background
         set_pen_size 0;
         goto 203 + SPRITES_SCROLL_X, 180;
@@ -176,7 +183,7 @@ proc render_sprite_sidebar {
 
         # text
         set_pen_color "#000000";
-        plain_text 203 + SPRITES_SCROLL_X, 165, 1, "Sprites", "c";
+        plain_text 203 + SPRITES_SCROLL_X, 165, 1, "Sprites", "c", true;
 
         # sprites
         local x = 170 + SPRITES_SCROLL_X;
@@ -231,7 +238,7 @@ proc render_sprite_sidebar {
                 }
 
                 set_pen_color "#ffffff";
-                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c";
+                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c", true;
                 if "editor"."sprite_name_underline" == i {
                     local text_width = width_of_text(sprites[i].name, 1);
                     goto 202 + SPRITES_SCROLL_X - text_width / 2, y - 60;
@@ -253,7 +260,7 @@ proc render_sprite_sidebar {
                 pen_up;
 
                 set_pen_color "#000000";
-                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c";
+                plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c", true;
             }
 
             # render preview of sprite
@@ -268,6 +275,7 @@ proc render_sprite_sidebar {
         }
     }
     set_size 100;
+    switch_costume "large";
 }
 
 proc draw_square x, y, width, height, size {
@@ -446,7 +454,7 @@ proc render_one_block blockIdx {
     }
 }
 
-proc plain_text x, y, size, text, align {
+proc plain_text x, y, size, text, align, case_sensitive {
     set_pen_size $size;
     local x_offset = $x;
     local y_offset = $y;
@@ -454,14 +462,17 @@ proc plain_text x, y, size, text, align {
         local text_width = width_of_text($text, $size);
         x_offset += round(text_width / -2);
     }
-    switch_costume "large";
-    local txt_i = 1;
     point_in_direction 90;
+    local txt_i = 1;
     repeat length($text) {
+        if $case_sensitive {
+            switch_costume $text[txt_i];
+            local font_char_index = pte_font_1[costume_number() + 6];
+            switch_costume "large";
+        } else {
+            local font_char_index = pte_font_1[($text[txt_i] in char_lookup) + 7]; # use cached lookup, faster
+        }
 
-        switch_costume $text[txt_i];
-        local font_char_index = pte_font_1[costume_number() + 6];
-        switch_costume "large";
         if ($text[txt_i] == "@") {
             switch_costume "@" & $text[txt_i + 1];
             change_x 12;
@@ -487,11 +498,17 @@ proc plain_text x, y, size, text, align {
         x_offset += $size * (2 + pte_font_1[2 + font_char_index]);
         txt_i += 1;
     }
-
     switch_costume "large";
 }
 
 proc draw_block color, width, height, x, y, shape, end_style, start_style, border_color, is_highlighted {
+    # set_pen_color $color;
+    # set_pen_size $height;
+    # goto $x + $height / 2, $y - $height / 2;
+    # pen_down;
+    # goto $x + $width - $height / 2, $y - $height / 2;
+    # pen_up;
+    # stop_this_script;
     if $shape == "stack" {
         set_pen_color $color;
         set_pen_size 4;
@@ -1006,7 +1023,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
                 text_x -= 4;
             }
             local text_y = ($y + ($y - $height)) / 2 - 4 + 1 * ($dropdown_shape == "square");
-            print text_x, text_y, 1, $text, align: "c";
+            print text_x, text_y, 1, $text, "c", true;
         }
     }
     elif $shape == "boolean" {
@@ -1033,6 +1050,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
 }
 
 proc tri_fill ax, ay, bx, by, cx, cy, resolution {
+    # stop_this_script;
     pen_up;
     set_pen_size $resolution;
     goto $ax, $ay;
@@ -1080,6 +1098,7 @@ proc tri_fill ax, ay, bx, by, cx, cy, resolution {
 }
 
 proc fill_rect_hq fromx, tox, fromy, toy, iter {
+    # stop_this_script;
     local filler_width = $tox - $fromx;
     local filler_height = $toy - $fromy;
     if filler_width > filler_height {
@@ -1111,6 +1130,7 @@ proc fill_rect_hq fromx, tox, fromy, toy, iter {
 }
 
 proc fill_rect x1, x2, y1, y2, blah {
+    # stop_this_script;
     set_pen_size 1;
     goto $x1, $y1;
     pen_down;
@@ -1157,6 +1177,6 @@ proc fill_rect x1, x2, y1, y2, blah {
 }
 
 
-proc print x, y, size, text, align="" {
-    plain_text round($x), round($y), $size, $text, $align;
+proc print x, y, size, text, align="", case_sensitive=false {
+    plain_text round($x), round($y), $size, $text, $align, $case_sensitive;
 }
