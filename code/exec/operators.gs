@@ -38,7 +38,7 @@ proc exec_operators cmd {
             }
         }
     } else {
-        if $cmd < Opcode.operator_length {
+        if $cmd < Opcode.operator_contains {
             if $cmd < Opcode.operator_join {
                 if $cmd < Opcode.operator_or { # and
                     pop 2;
@@ -54,9 +54,12 @@ proc exec_operators cmd {
                 if $cmd < Opcode.operator_letter_of { # join
                     pop 2;
                     push args[1] & args[2];
-                } else { # letter of
+                } elif $cmd < Opcode.operator_length { # letter of
                     pop 2;
                     push args[2][args[1]];
+                } else { # length
+                    pop 1;
+                    push length args[1];
                 }
             }
         } else {
