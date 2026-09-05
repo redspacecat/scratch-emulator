@@ -49,6 +49,8 @@ var REDRAW = true;
 
 var RUNNING = true;
 
+var CURRENT_CLONE_ID;
+
 list block_palette_text;
 
 struct Token {
@@ -69,3 +71,15 @@ struct Sprite {
 }
 
 list Sprite sprites;
+
+
+struct AsyncAction {
+    sprite_id,
+    clone_id,
+    action
+}
+
+# stores actions like `say for secs` or `ask` that cause delays
+# when calling `say for secs` params are added to the list
+# when receiving it, all instances of that action by that sprite are removed
+list AsyncAction async_actions;

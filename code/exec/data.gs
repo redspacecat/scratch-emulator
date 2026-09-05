@@ -1,6 +1,5 @@
 proc exec_variables cmd {
     if $cmd < Opcode.data_setvariableto {
-        log "getting variable";
         # get variable
         pop 1;
         if args[1] not in vars.name {

@@ -7,6 +7,7 @@ proc exec_sound cmd {
                     if soundI == 0 { # avoid calling if a sound is already active to prevent overwriting soundI
                         soundI = current_thread;
                         tmp_args[10] = args[1];
+                        add_async_action "play_sound";
                         broadcast "exec_play_sound";
                         pause_current_thread;
                     }
@@ -54,7 +55,10 @@ proc exec_sound cmd {
 }
 
 on "exec_play_sound" {
-    play_sound_until_done tmp_args[10];
-    unpause_thread soundI;
-    soundI = 0;
+    check_async_action "play_sound";
+    if action_status {
+        play_sound_until_done tmp_args[10];
+        unpause_thread soundI;
+        soundI = 0;
+    }
 }

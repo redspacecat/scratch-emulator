@@ -15,8 +15,17 @@ proc exec_control cmd {
             stop_level = "global";
         }
     } elif $cmd == Opcode.control_create_clone_of { # create clone
-
+        set_clone_id;
+        clone;
+        clone_id = "";
     } elif $cmd == Opcode.control_delete_this_clone { # delete this clone
-
+        if clone_id > "" {
+            delete_this_clone;
+        }
     }
+}
+
+proc set_clone_id {
+    clone_id = CURRENT_CLONE_ID;
+    CURRENT_CLONE_ID++;
 }

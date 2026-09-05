@@ -25,6 +25,7 @@ proc exec_sensing cmd {
                     if askI == 0 {
                         askI = current_thread;
                         tmp_args[11] = args[1];
+                        add_async_action "ask";
                         broadcast "exec_ask";
                         pause_current_thread;
                     }
@@ -100,7 +101,10 @@ proc exec_sensing cmd {
 }
 
 on "exec_ask" {
-    ask tmp_args[11];
-    unpause_thread askI;
-    askI = 0;
+    check_async_action "ask";
+    if action_status {
+        ask tmp_args[11];
+        unpause_thread askI;
+        askI = 0;
+    }
 }

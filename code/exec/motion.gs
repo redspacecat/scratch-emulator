@@ -28,6 +28,7 @@ proc exec_motion cmd {
                     pop 2;
                     tmp_args[1] = args[1];
                     tmp_args[2] = args[2];
+                    add_async_action "glide_to";
                     broadcast "exec_glide_to";
                     pause_current_thread args[1];
                 } else {
@@ -36,6 +37,7 @@ proc exec_motion cmd {
                     tmp_args[3] = args[1];
                     tmp_args[4] = args[2];
                     tmp_args[5] = args[2];
+                    add_async_action "glide_to_xy";
                     broadcast "exec_glide_to_xy";
                     pause_current_thread args[1];
                 }
@@ -96,11 +98,17 @@ proc exec_motion cmd {
 }
 
 on "exec_glide_to" {
-    glide special_targets_tmp(2), tmp_args[1];
-    log "finished glide";
+    check_async_action "glide_to";
+    if action_status {
+        glide special_targets_tmp(2), tmp_args[1];
+        log "finished glide";
+    }
 }
 
 on "exec_glide_to_xy" {
-    glide tmp_args[4], tmp_args[5], tmp_args[3];
-    log "finished glide to xy";
+    check_async_action "glide_to_xy";
+    if action_status {
+        glide tmp_args[4], tmp_args[5], tmp_args[3];
+        log "finished glide to xy";
+    }
 }

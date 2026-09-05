@@ -42,6 +42,7 @@ list target_arg_lookup = [
 proc init {
     switch_costume "Cat-a";
     base_costume = costume_number() - 1;
+    CURRENT_CLONE_ID = 0;
 }
 
 on "create_sprites" {
@@ -52,6 +53,7 @@ on "create_sprites" {
 
 proc create_sprites {
     sprite_id = 1;
+    clone_id = "";
     repeat length sprites {
         clone;
         sprite_id++;
@@ -79,6 +81,23 @@ proc push item {
 proc pop_tmp_args arg_count {
     repeat $arg_count {
         delete tmp_args[1];
+    }
+}
+
+proc add_async_action action {
+    add AsyncAction {sprite_id: sprite_id, clone_id: clone_id, action: $action} to async_actions;
+}
+
+proc check_async_action action {
+    action_status = false;
+    local i = 1;
+    repeat length async_actions {
+        if async_actions[i].sprite_id == sprite_id and async_actions[i].clone_id == clone_id and async_actions[i].action == $action {
+            action_status = true;
+            delete async_actions[i]; # remove actions from list to prevent old data in list
+        } else {
+            i++;
+        }
     }
 }
 
@@ -111,9 +130,21 @@ on "stop_program" {
     delete_this_clone;
 }
 
+onclone {
+    run;
+}
+
 nowarp proc run {
+    delete threads;
+    action_sprite_id = sprite_id; # for use in async blocks to make sure only the right sprite runs it
+    action_clone_id = clone_id;
+
     show;
-    start_hats "event_whenflagclicked";
+    if clone_id > "" {
+        start_hats "control_start_as_clone";
+    } else {
+        start_hats "event_whenflagclicked";
+    }
 
     until length threads == 0 {
         exec_threads;
@@ -170,7 +201,7 @@ proc pause_current_thread secs="" {
     threads[current_thread + 1] = "wait";
     if $secs > "" {
         threads[current_thread + 2] = timer() + $secs;
-        log "delayed thread " & current_thread & " for " & $secs;
+        # log "delayed thread " & current_thread & " for " & $secs;
     }
     yield = p + 1;
 }
@@ -193,7 +224,7 @@ proc exec_one_thread threadPos {
 
     if threads[current_thread + 1] == "wait" { # yield if waiting on a command to complete
         if threads[current_thread + 2] > "" and timer() > threads[current_thread + 2] { # handle threads delayed for a time
-            log "ending thread wait " & current_thread & " " & threads[current_thread + 2];
+            # log "ending thread wait " & current_thread & " " & threads[current_thread + 2];
             threads[current_thread + 1] = "";
             threads[current_thread + 2] = "";
         } else {
@@ -214,7 +245,7 @@ proc exec_one_thread threadPos {
         p++;
     }
     if yield > "" {
-        log "storing yield position " & yield;
+        # log "storing yield position " & yield;
         threads[current_thread] = yield; # update the stored position of the thread to come back to next frame
     }
     if stop {
@@ -239,7 +270,7 @@ proc stop_all_execution {
 }
 
 proc exec_cmd cmd {
-    log "running cmd: " & opcode_lookup[$cmd];
+    # log "running cmd: " & opcode_lookup[$cmd];
 
     if $cmd < Opcode.operator_add { # motion - sensing
         if $cmd < Opcode.event_whenflagclicked { # motion - sound

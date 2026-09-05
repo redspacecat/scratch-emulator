@@ -6,6 +6,7 @@ proc exec_looks cmd {
                     pop 2;
                     tmp_args[6] = args[1];
                     tmp_args[7] = args[2];
+                    add_async_action "say";
                     broadcast "exec_say";
                     pause_current_thread args[2]; # pause for length of block execution
                 } else { # say
@@ -17,6 +18,7 @@ proc exec_looks cmd {
                     pop 2;
                     tmp_args[8] = args[1];
                     tmp_args[9] = args[2];
+                    add_async_action "think";
                     broadcast "exec_think";
                     pause_current_thread args[2];
                 } else { # think
@@ -135,11 +137,17 @@ proc exec_looks cmd {
 }
 
 on "exec_say" {
-    say tmp_args[6], tmp_args[7];
-    log "finished say";
+    check_async_action "say";
+    if action_status {
+        say tmp_args[6], tmp_args[7];
+        log "finished say";
+    }
 }
 
 on "exec_think" {
-    think tmp_args[8], tmp_args[9];
-    log "finished think";
+    check_async_action "think";
+    if action_status {
+        think tmp_args[8], tmp_args[9];
+        log "finished think";
+    }
 }
