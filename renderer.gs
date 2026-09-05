@@ -894,7 +894,7 @@ proc render_c_block x, y, width, height, slot_count, prong_1_height, prong_2_hei
 
 proc render_text_label x, y, text {
     set_pen_color "#ffffff";
-    print $x, ($y) - 7, 1, $text;
+    print $x, ($y) - 7, 1, $text, case_sensitive: if ($text == "when I start as a clone") true else false;
 }
 
 proc render_input block_shape, type, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
