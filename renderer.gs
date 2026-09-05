@@ -10,7 +10,7 @@ costumes "assets/images/costumes/other/*";
 costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
 "assets/images/greenflag.svg" as "@g",
-"assets/images/delete-icon.svg";
+"assets/images/delete-icon.png";
 
 list colors = [
     "#4c97ff", "#3373cc", "#4280d7",
@@ -253,7 +253,7 @@ proc render_sprite_sidebar {
                     pen_down;
                     pen_up;
                     switch_costume "delete-icon";
-                    set_size 80;
+                    set_size 75;
                     stamp;
                     set_size 100;
                     switch_costume "large";
