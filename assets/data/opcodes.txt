@@ -65,6 +65,7 @@ control_if_else
 control_wait_until
 control_repeat_until
 control_while
+control_warp
 control_stop
 control_start_as_clone
 control_create_clone_of

@@ -45,21 +45,21 @@ proc compile_root root {
     add_cmd "end"; # stop the current thread so it doesn't go on and execute other scripts
 }
 
-proc compile_script idx {
-    compile_block $idx;
+proc compile_script idx, warp=false {
+    compile_block $idx, $warp;
     if b_next($idx) > "" {
-        compile_script b_next($idx);
+        compile_script b_next($idx), $warp;
     }
 }
 
-proc compile_inner_script idx {
+proc compile_inner_script idx, warp=false {
     if $idx > "" {
-        compile_script $idx;
+        compile_script $idx, $warp;
     }
 }
 
-proc compile_block idx {
-    log "compiling block: " & b_opcode($idx) & " with idx: " & $idx;
+proc compile_block idx, warp=false {
+    log "compiling block: " & b_opcode($idx) & " with idx: " & $idx & " and warp: " & $warp;
     if b_shape($idx) == "c" or b_opcode($idx) == "control_wait_until" {   
         if b_opcode($idx) == "control_if" or b_opcode($idx) == "control_if_else" {
             # compile block condition
@@ -69,7 +69,7 @@ proc compile_block idx {
             add_placeholder "IF-ELSE", $idx;
             add_cmd "jump_if";
             # compile if true statement
-            compile_inner_script b_slot_1_nested_block($idx);
+            compile_inner_script b_slot_1_nested_block($idx), $warp;
             if b_slot_2_nested_block($idx) > "" {
                 # compile if false statement
                 add_placeholder "IF-END", $idx;
@@ -77,7 +77,7 @@ proc compile_block idx {
 
                 replace_placeholder "IF-ELSE", $idx;
 
-                compile_inner_script b_slot_2_nested_block($idx);
+                compile_inner_script b_slot_2_nested_block($idx), $warp;
                 replace_placeholder "IF-END", $idx;
             } else {
                 replace_placeholder "IF-ELSE", $idx;
@@ -94,11 +94,11 @@ proc compile_block idx {
                 add_cmd "jump_if";
             }
             # compile the loop inner stack of blocks
-            compile_inner_script b_slot_1_nested_block($idx);
+            compile_inner_script b_slot_1_nested_block($idx), $warp;
             # go back to top of loop
             get_tmp "LOOP-START-" & $idx;
             add_text tmp_val;
-            add_cmd "jump_yield";
+            add_cmd if ($warp) "jump" else "jump_yield";
             replace_placeholder "LOOP-END", $idx;
         } elif b_opcode($idx) == "control_repeat" {
             # reset loop iterator
@@ -122,7 +122,7 @@ proc compile_block idx {
             add_cmd "jump_if";
 
             # compile inner stack of blocks
-            compile_script b_slot_1_nested_block($idx);
+            compile_inner_script b_slot_1_nested_block($idx), $warp;
 
             # increment iterator
             add_text "__REPEAT-LOOP-I-" & $idx;
@@ -132,9 +132,11 @@ proc compile_block idx {
             # jump back to top
             get_tmp "LOOP-START-" & $idx;
             add_text tmp_val;
-            add_cmd "jump_yield";
+            add_cmd if ($warp) "jump" else "jump_yield";
 
             replace_placeholder "LOOP-END", $idx;
+        } elif b_opcode($idx) == "control_warp" {
+            compile_inner_script b_slot_1_nested_block($idx), true; # make the code inside run without screen refresh
         }
     } else {
         compile_input 1, $idx;
@@ -150,26 +152,12 @@ proc compile_block idx {
 }
 
 proc compile_input inputNum, idx {
-    if $inputNum == 1 and b_input1_shape($idx) > "" {
-        if b_input1_nested_block($idx) > "" {
-            log "compiling input 1";
-            compile_block b_input1_nested_block($idx);
+    local idx = $idx + b_inputs + ($inputNum - 1) * INPUT_LENGTH;
+    if blocks[idx + b_input_shape] > "" {
+        if blocks[idx + b_input_nested_block] > "" {
+            compile_block blocks[idx + b_input_nested_block];
         } else {
-            add_text b_input1_text($idx);
-        }
-    } elif $inputNum == 2 and b_input2_shape($idx) > "" {
-        if b_input2_nested_block($idx) > "" {
-            log "compiling input 2";
-            compile_block b_input2_nested_block($idx);
-        } else {
-            add_text b_input2_text($idx);
-        }
-    } elif $inputNum == 3 and b_input3_shape($idx) > "" {
-        if b_input3_nested_block($idx) > "" {
-            log "compiling input 3";
-            compile_block b_input3_nested_block($idx);
-        } else {
-            add_text b_input3_text($idx);
+            add_text blocks[idx + b_input_text];
         }
     }
 }

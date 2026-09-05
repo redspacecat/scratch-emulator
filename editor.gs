@@ -138,7 +138,6 @@ on "start_editor" {
 
 list past_fps;
 on "lag_mode_checker" {
-    show past_fps;
     delete past_fps;
     repeat 5 {
         fps_count = 0;
@@ -151,7 +150,7 @@ on "lag_mode_checker" {
 
     check_past_fps;
 
-    wait 30;
+    wait 15;
     broadcast "lag_mode_checker";
 }
 
@@ -165,7 +164,7 @@ proc check_past_fps {
         }
     }
     avg_fps = avg_fps / length past_fps;
-    if avg_fps < 28 and auto_lag_mode_change {
+    if avg_fps < 27 and auto_lag_mode_change {
         set_lag_mode true;
     }
 }

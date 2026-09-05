@@ -184,6 +184,8 @@ control_repeat_until,c,1
 repeat until,<
 control_while,c,1
 while,<
+control_warp,c,1
+run without screen refresh
 
 
 control_stop,stack
