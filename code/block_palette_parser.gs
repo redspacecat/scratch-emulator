@@ -13,7 +13,8 @@ list category_map = [
     "sensing", Category.Sensing,
     "operator", Category.Operators,
     "data", Category.Variables,
-    "datalist", Category.Lists
+    "datalist", Category.Lists,
+    "pen", Category.Extensions
 ];
 
 proc parse_block_palette {
@@ -24,6 +25,7 @@ proc parse_block_palette {
     by = 165;
     bx = -205;
     block_stack_height = 21;
+    block_stack_extension_height = 25;
     block_hat_height = 12;
     block_c_1_height = 48;
     block_c_2_height = 75;
@@ -216,7 +218,11 @@ proc parse_palette_block x_offset=0 {
         # add length blocks / BLOCK_LENGTH to roots;
 
         if shape == "stack" {
-            by -= block_stack_height + 7;
+            if category == Category.Extensions {
+                by -= block_stack_extension_height + 7;
+            } else {
+                by -= block_stack_height + 7;
+            }
         } elif shape == "reporter" or shape == "boolean" {
             by -= block_reporter_height + 5;
         } elif shape == "c" {

@@ -1,0 +1,54 @@
+proc exec_pen cmd {
+    if $cmd < Opcode.pen_changePenColorParamBy {
+        if $cmd < Opcode.pen_penDown {
+            if $cmd < Opcode.pen_stamp {
+                erase_all;
+            } else {
+                stamp;
+            }
+        } else {
+            if $cmd < Opcode.pen_penUp {
+                pen_down;
+            } elif $cmd < Opcode.pen_setPenColorToColor {
+                pen_up;
+            } else {
+                pop 1;
+                set_pen_color args[1];
+            }
+        }
+    } else {
+        if $cmd < Opcode.pen_changePenSizeBy {
+            if $cmd < Opcode.pen_setPenColorParamTo {
+                pop 2;
+                if args[1] == "color" {
+                    change_pen_hue args[2];
+                } elif args[1] == "saturation" {
+                    change_pen_saturation args[2];
+                } elif args[1] == "brightness" {
+                    change_pen_brightness args[2];
+                } elif args[1] == "transparency" {
+                    change_pen_transparency args[2];
+                }
+            } else {
+                pop 2;
+                if args[1] == "color" {
+                    set_pen_hue args[2];
+                } elif args[1] == "saturation" {
+                    set_pen_saturation args[2];
+                } elif args[1] == "brightness" {
+                    set_pen_brightness args[2];
+                } elif args[1] == "transparency" {
+                    set_pen_transparency args[2];
+                }
+            }
+        } else {
+            if $cmd < Opcode.pen_setPenSizeTo {
+                pop 1;
+                change_pen_size args[1];
+            } else {
+                pop 1;
+                set_pen_size args[1];
+            }
+        }
+    }
+}

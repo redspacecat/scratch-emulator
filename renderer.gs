@@ -10,6 +10,7 @@ costumes "assets/images/costumes/other/*";
 costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
 "assets/images/greenflag.svg" as "@g",
+"assets/images/pen-icon.svg" as "@p",
 "assets/images/delete-icon.png";
 
 list colors = [
@@ -150,19 +151,24 @@ proc render_palette_sidebar {
     goto -223, 162;
     i = 1;
     repeat 9 {
-        set_pen_size 22;
-        set_pen_color colors[i+1];
-        pen_down;
-        pen_up;
-        
-        set_pen_size 20;
-        set_pen_color colors[i];
-        pen_down;
-        pen_up;
-
+        draw_category i;
         i += 3;
         change_y -30;
     }
+
+    draw_category i + 3;
+}
+
+proc draw_category i {
+    set_pen_size 22;
+    set_pen_color colors[$i+1];
+    pen_down;
+    pen_up;
+    
+    set_pen_size 20;
+    set_pen_color colors[$i];
+    pen_down;
+    pen_up;
 }
 
 proc measure_costumes {
@@ -486,6 +492,7 @@ proc plain_text x, y, size, text, align, case_sensitive {
     }
     point_in_direction 90;
     local txt_i = 1;
+    goto $x - 2, $y - 2;
     repeat length($text) {
         if $case_sensitive {
             switch_costume $text[txt_i];

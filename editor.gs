@@ -694,7 +694,7 @@ proc handle_drag no_recurse=false {
                     prong_3_style: b_prong_3_style(dragged_block),
                     end_style: b_end_style(dragged_block);
                 PreviewBlock h_c_placement = PreviewBlock {preview_idx: last_block_idx, block_idx: highlighted_conn.block, input: highlighted_conn.input};
-                update_block_dimensions h_c_placement.preview_idx, update_preview: true;
+                update_block_dimensions h_c_placement.preview_idx, update_preview: true, extension: b_category(dragged_block) == Category.Extensions;
                 # log b_width(dragged_block);
                 b_width(h_c_placement.preview_idx) = b_width(dragged_block);
                 # log highlighted_conn.block & " - " & h_c_placement.preview_idx;
@@ -816,6 +816,7 @@ proc handle_palette_vars {
 
     palette_y_max += y_change;
     category_y[9] += y_change;
+    category_y[10] += y_change;
     # shift palette text labels down
     local i = 32; # start at the y position of the next text label
     until i > length block_palette_text {
@@ -890,6 +891,13 @@ proc handle_palette_lists {
     local y_change = y - (b_y(("datalist_addtolist" in blocks)) + 5);
 
     palette_y_max += y_change;
+    category_y[10] += y_change;
+    # shift palette text labels down
+    local i = 38; # start at the y position of the next text label
+    until i > length block_palette_text {
+        block_palette_text[i] += y_change;
+        i += 3;
+    }
     # shift palette blocks down
     move_blocks_in_palette_down ("datalist_addtolist" in blocks), y_change;
     # shift block indexes down
@@ -1707,7 +1715,7 @@ struct TMPInput {
 }
 
 list TMPInput tmp_item_order;
-proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview=false {
+proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview=false, extension=false {
     # order text + inputs by x, left -> right
     # get width of each item, keeping track of a cumulative x position and adding padding
     # if input is a block, include that width
@@ -1749,7 +1757,7 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     local start_x = b_x(blockIdx);
     local current_x = start_x;
     local block_starting_height = b_height(blockIdx);
-    local block_total_height = if (bshape == "stack" or bshape == "c") 21 else 16;
+    local block_total_height = if (bshape == "stack" or bshape == "c") if (b_category(blockIdx) == Category.Extensions or $extension) 25 else 21 else 16;
 
     if bshape == "c" {
         # we want to measure the current position of the two block stacks,

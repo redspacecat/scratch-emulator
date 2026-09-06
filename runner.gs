@@ -16,6 +16,7 @@ costumes "assets/images/costumes/other/*";
 %include code/exec/sensing
 %include code/exec/operators
 %include code/exec/data
+%include code/exec/pen
 
 set_x 0;
 set_y 0;
@@ -177,6 +178,7 @@ proc init_runtime {
         add "" to tmp_args;
     }
     timer_base = timer();
+    time_since_last_jump_yield = days_since_2000();
 }
 
 proc start_thread pos {
@@ -270,7 +272,7 @@ proc stop_all_execution {
 }
 
 proc exec_cmd cmd {
-    # log "running cmd: " & opcode_lookup[$cmd];
+    log "running cmd: " & opcode_lookup[$cmd];
 
     if $cmd < Opcode.operator_add { # motion - sensing
         if $cmd < Opcode.event_whenflagclicked { # motion - sound
@@ -304,10 +306,13 @@ proc exec_cmd cmd {
                 exec_variables $cmd;
             }
         } else { # lists - end
-            if $cmd <= Opcode.datalist_hidelist {
+            if $cmd < Opcode.pen_clear {
                 exec_lists $cmd;
             } else {
-                # extensions and custom blcoks
+                # extensions and custom blocks
+                if $cmd <= Opcode.pen_setPenSizeTo {
+                    exec_pen $cmd;
+                }
             }
         }
     }

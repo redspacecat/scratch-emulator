@@ -384,3 +384,27 @@ datalist_showlist,stack
 show list,[lists|my list
 datalist_hidelist,stack
 hide list,[lists|my list
+
+
+
+
+text,Pen
+
+pen_clear,stack
+@p     erase all
+pen_stamp,stack
+@p     stamp
+pen_penDown,stack
+@p     pen down
+pen_penUp,stack
+@p     pen up
+pen_setPenColorToColor,stack
+@p     set pen color to,##4943de
+pen_changePenColorParamBy,stack
+@p     change pen,{penParams|color,by,(10
+pen_setPenColorParamTo,stack
+@p     set pen,{penParams|color,to,(10
+pen_changePenSizeBy,stack
+@p     change pen size by,(1
+pen_setPenSizeTo,stack
+@p     set pen size to,(1
