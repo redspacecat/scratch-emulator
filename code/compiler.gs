@@ -3,7 +3,7 @@
 proc compile {
     delete code;
     delete tmp_vars;
-    delete events;
+    delete hats;
 
     save_current_sprite;
 
@@ -18,10 +18,10 @@ proc compile {
             local root_idx = roots[i];
             # only compile roots that can start code and have something attached
             if b_start_style(root_idx) == "hat" and b_next(root_idx) > "" {
-                add spriteNum to events;
-                add b_opcode(root_idx) to events;
-                add b_input1_text(root_idx) to events;
-                add length code + 1 to events;
+                add spriteNum to hats;
+                add b_opcode(root_idx) to hats;
+                add b_input1_text(root_idx) to hats;
+                add length code + 1 to hats;
                 compile_root b_next(root_idx);
             }
             i++;

@@ -32,6 +32,7 @@ list args;
 list tmp_args; # for storing args for longer running blocks
 list Var vars;
 list threads;
+list received_messages;
 
 list target_arg_lookup = [
     "random position", "_random_",
@@ -44,6 +45,7 @@ proc init {
     switch_costume "Cat-a";
     base_costume = costume_number() - 1;
     CURRENT_CLONE_ID = 0;
+    CURRENT_BROADCAST_ID = 0;
 }
 
 on "create_sprites" {
@@ -137,6 +139,7 @@ onclone {
 
 nowarp proc run {
     delete threads;
+    delete received_messages;
     action_sprite_id = sprite_id; # for use in async blocks to make sure only the right sprite runs it
     action_clone_id = clone_id;
 
@@ -147,16 +150,47 @@ nowarp proc run {
         start_hats "event_whenflagclicked";
     }
 
-    until length threads == 0 {
+    forever {
+        check_messages;
         exec_threads;
     }
 }
 
-proc start_hats hat {
+proc check_messages { # check for received broadcasts
+    if sprite_id == 1 and clone_id == "" { # only one sprite needs to handle cleanup of used broadcasts
+        local i = 1;
+        until i > length messages {
+            if timer() - 0.5 > messages[i + 1] {
+                # delete old, received messages
+                repeat 3 {
+                    delete messages[i];
+                }
+            } else {
+                i += 3;
+            }
+        }
+    }
+
+    local i = 1;
+    repeat length messages / 3 {
+        if messages[i] not in received_messages {
+            if messages[i + 1] != timer() {
+                start_hats "event_whenbroadcastreceived", messages[i + 2];
+                log "starting broadcast receiver... " & messages[i + 2];
+                add messages[i] to received_messages;
+            }
+        }
+        i += 3;
+    }
+}
+
+proc start_hats hat, arg="" {
     local threadI = 1;
-    repeat length events {
-        if events[threadI] == sprite_id and events[threadI + 1] == $hat {
-            start_thread events[threadI + 3];
+    repeat length hats {
+        if hats[threadI] == sprite_id and hats[threadI + 1] == $hat {
+            if hats[threadI + 2] == $arg or $arg == "" {
+                start_thread hats[threadI + 3];
+            }
         }
         threadI += 4;
     }
@@ -167,8 +201,8 @@ proc init_runtime {
     # if it's global, it uses that, otherwise a local var/list is created
     delete vars;
     delete threads; # thread has: pos, status, start time
+    delete messages;
 
-    base_costume = "dango-cat";
     init_sprite;
 
     soundI = 0;
@@ -179,6 +213,8 @@ proc init_runtime {
     }
     timer_base = timer();
     time_since_last_jump_yield = days_since_2000();
+
+    delete received_messages;
 }
 
 proc start_thread pos {

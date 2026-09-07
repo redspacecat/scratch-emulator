@@ -50,6 +50,7 @@ var REDRAW = true;
 var RUNNING = true;
 
 var CURRENT_CLONE_ID;
+var CURRENT_BROADCAST_ID;
 
 list block_palette_text;
 
@@ -59,7 +60,9 @@ struct Token {
 }
 
 list Token code;
-list events;
+list hats;
+list messages; # for storing messages to be handled - events have: id, current time, name
+
 list opcode_lookup "assets/data/opcodes.txt";
 
 struct Sprite {
