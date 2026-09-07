@@ -133,7 +133,10 @@ on "start_editor" {
     broadcast "render_loop";
     broadcast "input_loop";
     broadcast "sidebar_display_loop";
-    broadcast "lag_mode_checker";
+
+    if not $tw_is_turbowarp {
+        broadcast "lag_mode_checker";
+    }
 }
 
 list past_fps;

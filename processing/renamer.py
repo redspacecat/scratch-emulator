@@ -19,7 +19,7 @@ class ScratchProjectEditor:
         return self
 
     def _format_identifier(self, name: str, is_var_or_list: bool = False, preserve_colon: bool = False) -> str:
-        if not isinstance(name, str):
+        if (not isinstance(name, str)) or (name == "is TurboWarp?"):
             return name
         
         def _decamelize(match):
