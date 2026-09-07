@@ -265,7 +265,7 @@ proc create_palette_lookup {
         local line_n = 1;
         local found = false;
         until found or line_n > length block_palette {
-            if opcode_lookup[i] in block_palette[line_n] {
+            if opcode_lookup[i] & "," in block_palette[line_n] { # add "," to check to make sure it's not an opcode that's contained within another one (e.g. looks_say)
                 found = true;
             } else {
                 line_n++;
