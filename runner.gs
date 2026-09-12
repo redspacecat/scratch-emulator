@@ -125,7 +125,10 @@ on "init_runtime" {
 }
 
 on "run" {
-    run;
+    if sprite_id > "" {
+        log "calling run " & sprite_id;
+        run;
+    }
 }
 
 on "stop_program" {
@@ -134,7 +137,9 @@ on "stop_program" {
 }
 
 onclone {
-    run;
+    if clone_id > "" {
+        run;
+    }
 }
 
 nowarp proc run {
@@ -160,7 +165,7 @@ proc check_messages { # check for received broadcasts
     if sprite_id == 1 and clone_id == "" { # only one sprite needs to handle cleanup of used broadcasts
         local i = 1;
         until i > length messages {
-            if timer() - 0.5 > messages[i + 1] {
+            if timer() - 0.04 > messages[i + 1] {
                 # delete old, received messages
                 repeat 3 {
                     delete messages[i];
@@ -249,10 +254,10 @@ proc unpause_thread idx {
 }
 
 proc exec_threads {
-    local threadI = 1;
+    log "executing all threads... sprite id: " & sprite_id;
+    threadI = 1;
     repeat length threads / 3 {
         exec_one_thread threadI;
-        threadI += 3;
     }
 }
 
@@ -294,6 +299,8 @@ proc exec_one_thread threadPos {
         } else {
             stop_all_execution;
         }
+    } else {
+        threadI += 3;
     }
 }
 
@@ -308,7 +315,7 @@ proc stop_all_execution {
 }
 
 proc exec_cmd cmd {
-    log "running cmd: " & opcode_lookup[$cmd];
+    log "running cmd: " & opcode_lookup[$cmd] & "," & sprite_id & "," & current_thread;
 
     if $cmd < Opcode.operator_add { # motion - sensing
         if $cmd < Opcode.event_whenflagclicked { # motion - sound
