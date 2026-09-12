@@ -144,7 +144,6 @@ onclone {
 
 nowarp proc run {
     delete threads;
-    delete received_messages;
     action_sprite_id = sprite_id; # for use in async blocks to make sure only the right sprite runs it
     action_clone_id = clone_id;
 
@@ -165,7 +164,7 @@ proc check_messages { # check for received broadcasts
     if sprite_id == 1 and clone_id == "" { # only one sprite needs to handle cleanup of used broadcasts
         local i = 1;
         until i > length messages {
-            if timer() - 0.04 > messages[i + 1] {
+            if timer() - 0.5 > messages[i + 1] {
                 # delete old, received messages
                 repeat 3 {
                     delete messages[i];
@@ -216,6 +215,7 @@ proc init_runtime {
     repeat 11 { # fill up with blank space so it can be replaced by arguments when needed
         add "" to tmp_args;
     }
+    reset_timer;
     timer_base = timer();
     time_since_last_jump_yield = days_since_2000();
 
@@ -271,6 +271,7 @@ proc exec_one_thread threadPos {
             threads[current_thread + 1] = "";
             threads[current_thread + 2] = "";
         } else {
+            threadI += 3; # make sure to run other threads too
             stop_this_script;
         }
     }
