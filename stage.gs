@@ -51,6 +51,8 @@ var RUNNING = true;
 
 var CURRENT_CLONE_ID;
 var CURRENT_BROADCAST_ID;
+var LAST_SCREEN_REFRESH;
+var TIMER_BASE;
 
 list block_palette_text;
 

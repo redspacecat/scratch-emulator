@@ -98,7 +98,7 @@ proc compile_block idx, warp=false {
             # go back to top of loop
             get_tmp "LOOP-START-" & $idx;
             add_text tmp_val;
-            add_cmd if ($warp) "jump" else "jump_yield";
+            add_cmd if ($warp) "jump_allow_yield" else "jump_yield";
             replace_placeholder "LOOP-END", $idx;
         } elif b_opcode($idx) == "control_repeat" {
             # reset loop iterator
@@ -132,7 +132,7 @@ proc compile_block idx, warp=false {
             # jump back to top
             get_tmp "LOOP-START-" & $idx;
             add_text tmp_val;
-            add_cmd if ($warp) "jump" else "jump_yield";
+            add_cmd if ($warp) "jump_allow_yield" else "jump_yield";
 
             replace_placeholder "LOOP-END", $idx;
         } elif b_opcode($idx) == "control_warp" {

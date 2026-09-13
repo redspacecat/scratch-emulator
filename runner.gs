@@ -126,8 +126,11 @@ on "init_runtime" {
 
 on "run" {
     if sprite_id > "" {
-        log "calling run " & sprite_id;
         run;
+    } else {
+        forever {
+            LAST_SCREEN_REFRESH = days_since_2000();
+        }
     }
 }
 
@@ -216,8 +219,8 @@ proc init_runtime {
         add "" to tmp_args;
     }
     reset_timer;
-    timer_base = timer();
-    time_since_last_jump_yield = days_since_2000();
+    TIMER_BASE = timer();
+    LAST_SCREEN_REFRESH = days_since_2000();
 
     delete received_messages;
 }

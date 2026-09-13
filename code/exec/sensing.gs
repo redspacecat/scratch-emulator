@@ -60,9 +60,9 @@ proc exec_sensing cmd {
                 }
             } else {
                 if $cmd < Opcode.sensing_resettimer { # timer
-                    push timer() - timer_base;
+                    push timer() - TIMER_BASE;
                 } else { # reset timer
-                    timer_base = timer();
+                    TIMER_BASE = timer();
                 }
             }
         } else {
