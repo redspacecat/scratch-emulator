@@ -66,39 +66,50 @@ proc save_current_sprite {
 }
 
 proc save_block idx {
-    save_code &= b_opcode($idx) & ",";
-    save_code &= b_x($idx) & ",";
-    save_code &= b_y($idx) & ",";
+    save_bval $idx, b_idx_opcode;
+    save_bval $idx, b_idx_x;
+    save_bval $idx, b_idx_y;
+
     # arguments
     if b_opcode($idx) == "data_variable" or b_opcode($idx) == "datalist_listcontents" {
         # for a variable or list, we put in the text label as input text to store it,
         # since the block doesn't have inputs
-        save_code &= escape(b_label1_text($idx), ",") & ",";
+        save_bval_esc $idx, b_idx_label1_text;
+        save_code &= ","; # no nested block
     } else {
-        save_code &= escape(b_input1_text($idx), ",") & ",";
-        if b_input1_nested_block($idx) > "" {save_code &= b_input1_nested_block($idx) - PALETTE_END;}
+        save_bval_esc $idx, b_idx_input1_text;
+        save_bval_if $idx, b_idx_input1_nested_block;
     }
-    save_code &= ",";
 
-    save_code &= escape(b_input2_text($idx), ",") & ",";
-    if b_input2_nested_block($idx) > "" {save_code &= b_input2_nested_block($idx) - PALETTE_END;}
-    save_code &= ",";
-
-    save_code &= escape(b_input3_text($idx), ",") & ",";
-    if b_input3_nested_block($idx) > "" {save_code &= b_input3_nested_block($idx) - PALETTE_END;}
-    save_code &= ",";
+    save_bval_esc $idx, b_idx_input2_text;
+    save_bval_if $idx, b_idx_input2_nested_block;
+    save_bval_esc $idx, b_idx_input3_text;
+    save_bval_if $idx, b_idx_input3_nested_block;
 
     # c block inputs
-    if b_slot_1_nested_block($idx) > "" {save_code &= b_slot_1_nested_block($idx) - PALETTE_END;}
-    save_code &= ",";
+    save_bval_if $idx, b_idx_slot_1_nested_block;
+    save_bval_if $idx, b_idx_slot_2_nested_block;
 
-    if b_slot_2_nested_block($idx) > "" {save_code &= b_slot_2_nested_block($idx) - PALETTE_END;}
-    save_code &= ",";
 
-    if b_previous($idx) > "" {save_code &= b_previous($idx) - PALETTE_END;} save_code &= ",";
-    if b_parent($idx) > "" {save_code &= b_parent($idx) - PALETTE_END;} save_code &= ",";
-    if b_next($idx) > "" {save_code &= b_next($idx) - PALETTE_END;} save_code &= ",";
-    save_code &= b_nesting_level($idx) & ",";
+    save_bval_if $idx, b_idx_previous;
+    save_bval_if $idx, b_idx_parent;
+    save_bval_if $idx, b_idx_next;
+    save_bval $idx, b_idx_nesting_level;
+}
+
+proc save_bval_if bIdx, key {
+    if blocks[$bIdx + $key] > "" {
+        save_code &= blocks[$bIdx + $key] - PALETTE_END;
+    }
+    save_code &= ",";
+}
+
+proc save_bval_esc bIdx, key {
+    save_code &= escape(blocks[$bIdx + $key], ",") & ",";
+}
+
+proc save_bval bIdx, key {
+    save_code &= blocks[$bIdx + $key] & ",";
 }
 
 func escape(text, char) {
@@ -191,8 +202,8 @@ proc load_sprite sprite, do_size_updates=true {
         # this allows the block dimensions update to work properly
         parse_palette_block tokens[i + 1] + 10;
         local idx = last_block_idx;
-        b_x(idx) = tokens[i + 1];
-        b_y(idx) = tokens[i + 2];
+        load_bval idx, b_idx_x, i, 1, false;
+        load_bval idx, b_idx_y, i, 2, false;
 
         if tokens[i] == "data_variable" or tokens[i] == "datalist_listcontents" {
             b_label1_text(idx) = tokens[i + 3];
@@ -200,18 +211,23 @@ proc load_sprite sprite, do_size_updates=true {
             b_input1_text(idx) = tokens[i + 3];
             b_input1_nested_block(idx) = if_tok(i + 4);
         }
-        b_input2_text(idx) = tokens[i + 5];
-        b_input2_nested_block(idx) = if_tok(i + 6);
-        b_input3_text(idx) = tokens[i + 7];
-        b_input3_nested_block(idx) = if_tok(i + 8);
 
-        b_slot_1_nested_block(idx) = if_tok(i + 9);
-        b_slot_2_nested_block(idx) = if_tok(i + 10);
+        if b_opcode(idx) == "control_if_else" {
+            b_label3_x(idx) = b_x(idx) + Padding.start; # move "else" text to correct x position
+        }
 
-        b_previous(idx) = if_tok(i + 11);
-        b_parent(idx) = if_tok(i + 12);
-        b_next(idx) = if_tok(i + 13);
-        b_nesting_level(idx) = tokens[i + 14];
+        load_bval idx, b_idx_input2_text, i, 5, false;
+        load_bval idx, b_idx_input2_nested_block, i, 6;
+        load_bval idx, b_idx_input3_text, i, 7, false;
+        load_bval idx, b_idx_input3_nested_block, i, 8;
+
+        load_bval idx, b_idx_slot_1_nested_block, i, 9;
+        load_bval idx, b_idx_slot_2_nested_block, i, 10;
+
+        load_bval idx, b_idx_previous, i, 11;
+        load_bval idx, b_idx_parent, i, 12;
+        load_bval idx, b_idx_next, i, 13;
+        load_bval idx, b_idx_nesting_level, i, 14, false;
 
         i += 15;
     }
@@ -227,4 +243,8 @@ proc load_sprite sprite, do_size_updates=true {
         update_all_blocks_c_styles;
         log "updating c end styles took " & (days_since_2000() - start) * 86400000 & " ms";
     }
+}
+
+proc load_bval bIdx, key, tok_i, offset, use_if=true {
+    blocks[$bIdx + $key] = if ($use_if) if_tok($tok_i + $offset) else tokens[$tok_i + $offset];
 }
