@@ -192,6 +192,9 @@ proc check_messages { # check for received broadcasts
 }
 
 proc start_hats hat, arg="" {
+    if not RUNNING or sprite_id == "" {
+        stop_this_script;
+    }
     local threadI = 1;
     repeat length hats {
         if hats[threadI] == sprite_id and hats[threadI + 1] == $hat {
