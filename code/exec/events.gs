@@ -6,6 +6,8 @@ proc exec_events cmd {
         add CURRENT_BROADCAST_ID to messages; # id
         add timer() to messages; # current time
         add args[1] to messages; # message name
+
+        add 0 to received_messages_exec_count;
     } elif $cmd == Opcode.event_broadcastandwait { # broadcast and wait
 
     }

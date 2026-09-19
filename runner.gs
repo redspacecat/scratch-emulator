@@ -141,6 +141,7 @@ on "stop_program" {
 
 onclone {
     if clone_id > "" {
+        update_message_counts 1;
         run;
     }
 }
@@ -163,6 +164,17 @@ nowarp proc run {
     }
 }
 
+proc update_message_counts change {
+    # update receiver counts for messages to keep broadcast and wait working
+    local i = 1;
+    repeat length hats {
+        if hats[i] == sprite_id and hats[i + 1] == "event_whenbroadcastreceived" {
+            message_receiver_count[hats[i + 2] in message_names] += $change;
+        }
+        i += 4;
+    }
+}
+
 proc check_messages { # check for received broadcasts
     if sprite_id == 1 and clone_id == "" { # only one sprite needs to handle cleanup of used broadcasts
         local i = 1;
@@ -182,7 +194,18 @@ proc check_messages { # check for received broadcasts
     repeat length messages / 3 {
         if messages[i] not in received_messages {
             if messages[i + 1] != timer() {
-                start_hats "event_whenbroadcastreceived", messages[i + 2];
+                # stop old messages
+                local j = 1;
+                until j > length threads {
+                    if threads[j + 3] == messages[i + 2] { # if thread started from that message name
+                        log "stopping existing thread... " + messages[i + 2];
+                        stop_thread j;
+                    } else {
+                        j += 5;
+                    }
+                }
+                # start new messages
+                start_hats "event_whenbroadcastreceived", messages[i + 2], messages[i];
                 log "starting broadcast receiver... " & messages[i + 2];
                 add messages[i] to received_messages;
             }
@@ -191,7 +214,7 @@ proc check_messages { # check for received broadcasts
     }
 }
 
-proc start_hats hat, arg="" {
+proc start_hats hat, arg="", msg_id="" {
     if not RUNNING or sprite_id == "" {
         stop_this_script;
     }
@@ -199,7 +222,12 @@ proc start_hats hat, arg="" {
     repeat length hats {
         if hats[threadI] == sprite_id and hats[threadI + 1] == $hat {
             if hats[threadI + 2] == $arg or $arg == "" {
-                start_thread hats[threadI + 3];
+                if hats[threadI + 1] == "event_whenbroadcastreceived" {
+                    # if starting a message receiver, add that to threads list so that thread knows
+                    start_thread hats[threadI + 3], $arg, $msg_id;
+                } else {
+                    start_thread hats[threadI + 3];
+                }
             }
         }
         threadI += 4;
@@ -210,7 +238,7 @@ proc init_runtime {
     # vars and lists will be created as needed
     # if it's global, it uses that, otherwise a local var/list is created
     delete vars;
-    delete threads; # thread has: pos, status, start time
+    delete threads; # thread has: pos, status, start time, message id
     delete messages;
 
     init_sprite;
@@ -228,19 +256,24 @@ proc init_runtime {
     delete received_messages;
 }
 
-proc start_thread pos {
+proc start_thread pos, message_name="", message_id="" {
     add $pos to threads;
     add "" to threads;
     add "" to threads;
+    add $message_name to threads;
+    add $message_id to threads;
 }
 
 proc stop_thread pos {
-    repeat 3 {
+    if threads[$pos + 4] > "" {
+        received_messages_exec_count[threads[$pos + 4]] += 1;
+    }
+    repeat 5 {
         delete threads[$pos];
     }
     # shift down later indexes appropriately to ensure thread unpausing still works
-    if $pos < askI {askI -= 3;}
-    if $pos < soundI {soundI -= 3;}
+    if $pos < askI {askI -= 5;}
+    if $pos < soundI {soundI -= 5;}
 }
 
 proc pause_current_thread secs="" {
@@ -262,7 +295,7 @@ proc unpause_thread idx {
 proc exec_threads {
     log "executing all threads... sprite id: " & sprite_id;
     threadI = 1;
-    repeat length threads / 3 {
+    repeat length threads / 5 {
         exec_one_thread threadI;
     }
 }
@@ -277,7 +310,7 @@ proc exec_one_thread threadPos {
             threads[current_thread + 1] = "";
             threads[current_thread + 2] = "";
         } else {
-            threadI += 3; # make sure to run other threads too
+            threadI += 5; # make sure to run other threads too
             stop_this_script;
         }
     }
@@ -304,10 +337,11 @@ proc exec_one_thread threadPos {
         } elif stop_level == "sprite" {
             stop_all_threads;
         } else {
-            stop_all_execution;
+            stop_all_threads;
+            broadcast "stop_program";
         }
     } else {
-        threadI += 3;
+        threadI += 5;
     }
 }
 
@@ -315,10 +349,6 @@ proc stop_all_threads {
     until length threads == 0 {
         stop_thread 1;
     }
-}
-
-proc stop_all_execution {
-    stop_all_threads;
 }
 
 proc exec_cmd cmd {

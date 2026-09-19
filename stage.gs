@@ -64,6 +64,9 @@ struct Token {
 list Token code;
 list hats;
 list messages; # for storing messages to be handled - events have: id, current time, name
+list received_messages_exec_count; # stores number of times message received
+list message_receiver_count;
+list message_names;
 
 list opcode_lookup "assets/data/opcodes.txt";
 

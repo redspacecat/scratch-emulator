@@ -20,6 +20,8 @@ proc exec_control cmd {
         clone_id = "";
     } elif $cmd == Opcode.control_delete_this_clone { # delete this clone
         if clone_id > "" {
+            stop_all_threads; # stop threads first to make sure receiver counts are counted correctly
+            update_message_counts -1; # decrement message receiver counts
             delete_this_clone;
         }
     }

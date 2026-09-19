@@ -4,6 +4,9 @@ proc compile {
     delete code;
     delete tmp_vars;
     delete hats;
+    delete message_receiver_count;
+    delete received_messages_exec_count;
+    delete message_names; # stores all unique messages
 
     save_current_sprite;
 
@@ -37,6 +40,20 @@ proc compile {
             code[i].val = code[i].val in opcode_lookup;
         }
         i++;
+    }
+
+    # count messages
+    local i = 1;
+    repeat length hats / 4 {
+        if hats[i + 1] == "event_whenbroadcastreceived" {
+            local name = hats[i + 2];
+            if name not in message_names {
+                add name to message_names;
+                add 0 to message_receiver_count;
+            }
+            message_receiver_count[name in message_names] += 1;
+        }
+        i += 4;
     }
 }
 
