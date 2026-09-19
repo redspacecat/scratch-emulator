@@ -1,5 +1,5 @@
 proc exec_events cmd {
-    if $cmd == Opcode.event_broadcast { # broadcast
+    if $cmd == Opcode.event_broadcast or $cmd == Opcode.event_broadcastandwait { # broadcast
         pop 1;
         # queue broadcast
         CURRENT_BROADCAST_ID++;
@@ -8,8 +8,6 @@ proc exec_events cmd {
         add args[1] to messages; # message name
 
         add 0 to received_messages_exec_count;
-    } elif $cmd == Opcode.event_broadcastandwait { # broadcast and wait
-
     }
 }
 

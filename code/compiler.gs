@@ -165,6 +165,35 @@ proc compile_block idx, warp=false {
             add_text b_label1_text($idx);
         }
         add_cmd b_opcode($idx);
+        if b_opcode($idx) == "event_broadcastandwait" {
+            # for broadcast and wait, add special logic for waiting, wait until loop
+            add_text "__BROADCAST-ID-" & $idx;
+            add_cmd "get_broadcast_id";
+            add_cmd "data_setvariableto";
+
+            add_text "__BROADCAST-GOAL-" & $idx;
+            add_text b_input1_text($idx); # broadcast name
+            add_cmd "get_broadcast_receiver_count";
+            add_cmd "data_setvariableto";
+
+            set_tmp "LOOP-START-" & $idx, length code + 1;
+
+            # compile block condition
+            add_text "__BROADCAST-ID-" & $idx;
+            add_cmd "data_variable";
+            add_text "__BROADCAST-GOAL-" & $idx;
+            add_cmd "data_variable";
+            add_cmd "is_broadcast_receive_done";
+
+            add_placeholder "LOOP-END", $idx;
+            add_cmd "jump_if";
+
+            # go back to top of loop
+            get_tmp "LOOP-START-" & $idx;
+            add_text tmp_val;
+            add_cmd "jump_yield";
+            replace_placeholder "LOOP-END", $idx;
+        }
     }
 }
 

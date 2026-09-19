@@ -3,6 +3,9 @@ jump_if
 jump_yield
 jump_allow_yield
 end
+is_broadcast_receive_done
+get_broadcast_receiver_count
+get_broadcast_id
 motion_movesteps
 motion_turnright
 motion_turnleft

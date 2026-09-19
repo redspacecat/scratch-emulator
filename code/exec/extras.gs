@@ -29,5 +29,13 @@ proc exec_extras cmd {
     } elif $cmd == Opcode.end { # end execution of current script, same as stop this script
         stop = true;
         stop_level = "script";
+    } elif $cmd == Opcode.is_broadcast_receive_done {
+        pop 2;
+        push received_messages_exec_count[args[1]] >= args[2];
+    } elif $cmd == Opcode.get_broadcast_receiver_count {
+        pop 1; # broadcast name
+        push message_receiver_count[args[1] in message_names];
+    } elif $cmd == Opcode.get_broadcast_id {
+        push CURRENT_BROADCAST_ID;
     }
 }
