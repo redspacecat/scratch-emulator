@@ -564,6 +564,19 @@ nowarp proc handle_input {
 
                 redraw;
             }
+        } else {
+            if not (PALETTE_SHOWN or SPRITES_SHOWN) {
+                # if not moving a block, drag the code area
+                mx = mouse_x();
+                my = mouse_y();
+                until not mouse_down() {
+                    SCROLL_X -= mouse_x() - mx;
+                    SCROLL_Y -= mouse_y() - my;
+                    mx = mouse_x();
+                    my = mouse_y();
+                    redraw;
+                }
+            }
         }
     }
 }
