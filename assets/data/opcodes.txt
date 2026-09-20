@@ -85,6 +85,7 @@ sensing_mousedown
 sensing_mousex
 sensing_mousey
 sensing_setdragmode
+sensing_draggable
 sensing_loudness
 sensing_timer
 sensing_resettimer
@@ -137,3 +138,5 @@ pen_changePenColorParamBy
 pen_setPenColorParamTo
 pen_changePenSizeBy
 pen_setPenSizeTo
+pen_isPenDown
+pen_penSize

@@ -49,11 +49,17 @@ proc exec_sensing cmd {
         if $cmd < Opcode.sensing_of {
             if $cmd < Opcode.sensing_timer {
                 if $cmd < Opcode.sensing_loudness { # set drag mode
-                    pop 1;
-                    if args[1] == "draggable" {
-                        set_drag_mode_draggable;
+                    if $cmd < Opcode.sensing_draggable {
+                        pop 1;
+                        if args[1] == "draggable" {
+                            set_drag_mode_draggable;
+                            var_draggable = true;
+                        } else {
+                            set_drag_mode_not_draggable;
+                            var_draggable = false;
+                        }
                     } else {
-                        set_drag_mode_not_draggable;
+                        push var_draggable == true;
                     }
                 } else { # loudness
                     push loudness();

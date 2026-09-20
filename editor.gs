@@ -1760,7 +1760,20 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     local start_x = b_x(blockIdx);
     local current_x = start_x;
     local block_starting_height = b_height(blockIdx);
-    local block_total_height = if (bshape == "stack" or bshape == "c") if (b_category(blockIdx) == Category.Extensions or $extension) 25 else 21 else 16;
+    if (bshape == "stack" or bshape == "c") {
+        if (b_category(blockIdx) == Category.Extensions or $extension) {
+            local block_total_height = 25;
+        } else {
+            local block_total_height = 21;
+        }
+    } else {
+        if (b_category(blockIdx) == Category.Extensions or $extension) {
+            local block_total_height = 20;
+        } else {
+            local block_total_height = 16;
+        }
+    }
+    # local block_total_height = if (bshape == "stack" or bshape == "c") if (b_category(blockIdx) == Category.Extensions or $extension) 25 else 21 else 16;
 
     if bshape == "c" {
         # we want to measure the current position of the two block stacks,

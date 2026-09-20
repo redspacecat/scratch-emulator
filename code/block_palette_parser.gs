@@ -224,7 +224,11 @@ proc parse_palette_block x_offset=0 {
                 by -= block_stack_height + 7;
             }
         } elif shape == "reporter" or shape == "boolean" {
-            by -= block_reporter_height + 5;
+            if category == Category.Extensions {
+                by -= block_reporter_height + 9;
+            } else {
+                by -= block_reporter_height + 5;
+            }
         } elif shape == "c" {
             if slot_count == 1 {
                 by -= block_c_1_height + 7;

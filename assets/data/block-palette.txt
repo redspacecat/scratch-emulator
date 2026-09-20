@@ -232,6 +232,8 @@ mouse y
 
 sensing_setdragmode,stack
 set drag mode,[dragModes|draggable
+sensing_draggable,boolean
+draggable?
 
 
 sensing_loudness,reporter
@@ -408,3 +410,9 @@ pen_changePenSizeBy,stack
 @p     change pen size by,(1
 pen_setPenSizeTo,stack
 @p     set pen size to,(1
+
+
+pen_isPenDown,boolean
+@p     pen down?
+pen_penSize,reporter
+@p     pen size

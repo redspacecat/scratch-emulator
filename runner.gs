@@ -117,6 +117,12 @@ proc init_sprite {
     point_in_direction 90;
     goto 0, 0;
     pen_up;
+    set_pen_color "#0000ff";
+    set_pen_size 1;
+
+    var_pen_size = 1;
+    var_pen_down = false;
+    var_draggable = true;
 }
 
 on "init_runtime" {
@@ -390,7 +396,7 @@ proc exec_cmd cmd {
                 exec_lists $cmd;
             } else {
                 # extensions and custom blocks
-                if $cmd <= Opcode.pen_setPenSizeTo {
+                if $cmd <= Opcode.pen_penSize {
                     exec_pen $cmd;
                 }
             }

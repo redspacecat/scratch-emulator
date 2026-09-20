@@ -9,8 +9,10 @@ proc exec_pen cmd {
         } else {
             if $cmd < Opcode.pen_penUp {
                 pen_down;
+                var_pen_down = true;
             } elif $cmd < Opcode.pen_setPenColorToColor {
                 pen_up;
+                var_pen_down = false;
             } else {
                 pop 1;
                 set_pen_color args[1];
@@ -45,9 +47,17 @@ proc exec_pen cmd {
             if $cmd < Opcode.pen_setPenSizeTo {
                 pop 1;
                 change_pen_size args[1];
+                var_pen_size += args[1];
             } else {
-                pop 1;
-                set_pen_size args[1];
+                if $cmd < Opcode.pen_isPenDown {
+                    pop 1;
+                    set_pen_size args[1];
+                    var_pen_size = args[1];
+                } elif $cmd < Opcode.pen_penSize {
+                    push var_pen_down == true;
+                } else {
+                    push var_pen_size;
+                }
             }
         }
     }
