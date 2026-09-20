@@ -43,6 +43,7 @@ on "render_editor" {
     switch_costume "large";
 
     start_time = days_since_2000();
+    render_dots;
     render_blocks;
     render_palette_sidebar;
     render_sprite_sidebar;
@@ -59,13 +60,6 @@ proc render_blocks {
         # render regular blocks
         max_nesting_level = 0;
         InputRank h_i = highlighted_input;
-
-        set_pen_size 240;
-        goto 120, 180;
-        set_pen_color "#ffffff";
-        pen_down;
-        change_y -360;
-        pen_up;
 
         if h_c_placement.preview_idx > "" {
             render_one_block h_c_placement.preview_idx;
@@ -122,6 +116,30 @@ proc render_blocks {
 
     if "editor"."dragged_script_idx" > 0 {
         render_one_root "editor"."dragged_script_idx";
+    }
+}
+
+proc render_dots {
+    if REDRAW {
+        set_pen_size 240;
+        goto 120, 180;
+        set_pen_color "#ffffff";
+        pen_down;
+        change_y -360;
+        pen_up;
+
+        set_pen_color "#dddddd";
+        set_pen_size 1;
+        goto -240 - SCROLL_X % 20, -180 - SCROLL_Y % 20;
+        repeat 19 {
+            repeat 25 {
+                pen_down;
+                pen_up;
+                change_x 20;
+            }
+            change_y 20;
+            set_x -240 - SCROLL_X % 20;
+        }
     }
 }
 
