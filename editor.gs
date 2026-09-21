@@ -930,7 +930,6 @@ proc move_blocks_in_palette_down idx, change {
 
 proc shift_block_indexes_down start, idx, change {
     local idx = $start;
-    log $idx;
     until idx > length blocks {
         if b_parent(idx) > $idx {b_parent(idx) += $change;}
         if b_previous(idx) > $idx {b_previous(idx) += $change;}
@@ -1118,7 +1117,6 @@ proc update_all_blocks_sizes {
     # update block dimensions, iterating in reverse bfs order to start with the most nested blocks
     local i = length sort_order;
     repeat length sort_order {
-        log "updating " & sort_order[i];
         update_block_dimensions sort_order[i], false;
         i--;
     }

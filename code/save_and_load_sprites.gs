@@ -62,7 +62,7 @@ proc save_current_sprite {
     }
     sprites[selected_sprite].lists = save_code;
 
-    log "saving took " & (days_since_2000() - start) * 86400000 & " ms";
+    log "saving took " & round((days_since_2000() - start) * 86400000) & " ms";
 }
 
 proc save_block idx {
@@ -232,16 +232,16 @@ proc load_sprite sprite, do_size_updates=true {
         i += 15;
     }
 
-    log "loading took " & (days_since_2000() - start) * 86400000 & " ms";
+    log "loading took " & round((days_since_2000() - start) * 86400000) & " ms";
 
     if $do_size_updates {
         start = days_since_2000();
         update_all_blocks_sizes;
-        log "resizing took " & (days_since_2000() - start) * 86400000 & " ms";
+        log "resizing took " & round((days_since_2000() - start) * 86400000) & " ms";
 
         start = days_since_2000();
         update_all_blocks_c_styles;
-        log "updating c end styles took " & (days_since_2000() - start) * 86400000 & " ms";
+        log "updating c end styles took " & round((days_since_2000() - start) * 86400000) & " ms";
     }
 }
 

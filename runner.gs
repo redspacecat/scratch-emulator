@@ -299,7 +299,6 @@ proc unpause_thread idx {
 }
 
 proc exec_threads {
-    log "executing all threads... sprite id: " & sprite_id;
     threadI = 1;
     repeat length threads / 5 {
         exec_one_thread threadI;
@@ -358,7 +357,7 @@ proc stop_all_threads {
 }
 
 proc exec_cmd cmd {
-    log "running cmd: " & opcode_lookup[$cmd] & "," & sprite_id & "," & current_thread;
+    log "running cmd: " & opcode_lookup[$cmd];
 
     if $cmd < Opcode.operator_add { # motion - sensing
         if $cmd < Opcode.event_whenflagclicked { # motion - sound
