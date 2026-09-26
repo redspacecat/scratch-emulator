@@ -495,18 +495,18 @@ nowarp proc handle_input {
 
                         bx = b_x(dropdown) - scroll_x_offset;
                         by = b_y(dropdown) - scroll_y_offset;
-                        log bx;
-                        log by;
                         dropdown_height = MIN(140, length dropdown_data * 20);
-                        dropdown_width = 120;
-                        if by - b_height(dropdown) - 10 - dropdown_height < -180 { # goes off bottom of screen
+                        if by - b_height(dropdown) - 10 - dropdown_height < -175 { # goes off bottom of screen
                             dropdown_direction = 1; # 1 is up
-                            dropdown_y = by + 10 + dropdown_height;
+                            dropdown_y = by + 12 + dropdown_height;
+                            dropdown_offset = -10;
                         } else {
                             dropdown_direction = 0; # 0 is down
                             dropdown_y = by - b_height(dropdown) - 10;
+                            dropdown_offset = 10;
                         }
-                        dropdown_x = bx + b_width(dropdown) / 2 - dropdown_width / 2;
+                        dropdown_input_x = get_block_input(dropdown, dropdown_input, b_input_x) - scroll_x_offset + get_block_input(dropdown, dropdown_input, b_input_width) / 2; # center of dropdown input
+                        dropdown_x = dropdown_input_x - dropdown_width / 2;
 
                         until mouse_down() {
                             set_dropdown_hovered;
@@ -519,7 +519,7 @@ nowarp proc handle_input {
                         if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
                             dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
                             set_block_input hovered_block, hovered_input, b_input_text, dropdown_data[dropdown_hovered + 1];
-                            update_block_dimensions hovered_block;
+                            propagate_size_change hovered_block;
                         }
 
                         close_dropdown;
@@ -628,6 +628,7 @@ proc set_dropdown_hovered {
     } else {
         dropdown_hovered = -1;
     }
+    dropdown_offset += (0 - dropdown_offset) / 2.5;
 }
 
 proc handle_drag no_recurse=false {
@@ -643,7 +644,7 @@ proc handle_drag no_recurse=false {
     t_x = b_x(dragged_block);
     t_y = b_y(dragged_block);
     if t_shape != "stack" and t_shape != "c" {
-        t_y -= b_height(dragged_block) / 2;
+        t_y -= b_height(dragged_block) / 4;
     }
 
     delete tmp_input_ranking;
@@ -798,11 +799,20 @@ proc handle_drag no_recurse=false {
 
 proc open_dropdown {
     delete dropdown_data;
+    local max_text_width = 0;
     local i = (get_block_input(dropdown, dropdown_input, b_input_dropdown_list) in dropdown_data_lists) + 1;
     until dropdown_data_lists[i] == "" {
         add dropdown_data_lists[i] to dropdown_data;
+        local w = width_of_text(dropdown_data_lists[i], 1);
+        if w > max_text_width {
+            max_text_width = w;
+        }
         i++;
     }
+    if length dropdown_data == 0 {
+        add "" to dropdown_data;
+    }
+    dropdown_width = MAX(90, max_text_width + 40);
 }
 
 proc close_dropdown {

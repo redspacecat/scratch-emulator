@@ -115,30 +115,72 @@ proc render_blocks {
     render_dropdown;
 }
 
-%define d "editor"."dropdown"
-%define dx "editor"."dropdown_x"
-%define dy "editor"."dropdown_y"
-%define dwidth "editor"."dropdown_width"
-%define dheight "editor"."dropdown_height"
-%define dscroll "editor"."dropdown_scroll"
-%define dhovered "editor"."dropdown_hovered"
-
 proc render_dropdown {
     if REDRAW {
+        local d = "editor"."dropdown";
         if d > 0 {
+            local dx = "editor"."dropdown_x";
+            local dy = "editor"."dropdown_y" + round("editor"."dropdown_offset");
+            local dwidth = "editor"."dropdown_width";
+            local dheight = "editor"."dropdown_height";
+            local dscroll = "editor"."dropdown_scroll";
+            local dhovered = "editor"."dropdown_hovered";
+            local dfacing = "editor"."dropdown_direction";
+
+            # dropdown arrow
+            set_pen_size 2;
+            set_pen_color colors[b_category(d) + 1];
+            if dfacing == 0 {
+                goto "editor"."dropdown_input_x" - 8, dy;
+                pen_down;
+                goto x_position() + 8, y_position() + 6;
+                goto x_position() + 8, y_position() - 6;
+                pen_up;
+            } else {
+                goto "editor"."dropdown_input_x" - 8, dy - dheight - 2;
+                pen_down;
+                goto x_position() + 8, y_position() - 6;
+                goto x_position() + 8, y_position() + 6;
+                pen_up;
+            }
+
+            # borders around dropdown
+            set_pen_color colors[b_category(d) + 1];
+            goto dx + 2, dy - 2;
+            set_pen_size 6;
+            pen_down;
+            change_x dwidth - 2;
+            change_y -(dheight - 2);
+            change_x -(dwidth - 2);
+            change_y dheight - 2;
+            pen_up;
             set_pen_color colors[b_category(d)];
-            fill_rect dx, dx + dwidth, dy - dheight, dy;
+            goto dx + 3, dy - 3;
+            set_pen_size 6;
+            pen_down;
+            change_x dwidth - 4;
+            change_y -(dheight - 4);
+            change_x -(dwidth - 4);
+            change_y dheight - 4;
+            pen_up;
+
+            # hovered item
+            set_pen_color colors[b_category(d)];
+            fill_rect dx + 5, dx + dwidth - 3, dy - dheight + 4, dy - 4;
             if dhovered > -1 {
                 set_pen_color colors[b_category(d) + 1];
                 local y = dy - dhovered * 20 - dscroll;
-                fill_rect dx, dx + dwidth, MAX(dy - dheight, y - 20), MIN(dy, y);
+                fill_rect dx + 2, dx + dwidth - 2, MAX(dy - dheight, y - 20), MIN(dy - 3, y - 3);
             }
+
+            # text
             local i = 1;
             repeat length dropdown_data {
                 local y = dy - i * 20 + 7 - dscroll;
                 if y < dy - 3 and y > dy - dheight + 3 {
                     if dropdown_data[i] == get_block_input(d, "editor"."dropdown_input", b_input_text) {
                         set_pen_color "#000000";
+                        set_pen_size 1;
                         goto dx + 11, y + 6;
                         pen_down;
                         goto dx + 7, y - 2;
@@ -151,6 +193,7 @@ proc render_dropdown {
                 i++;
             }
 
+            # scrollbar
             if length dropdown_data > 7 {
                 set_pen_color "#bebebe";
                 set_pen_size 4;
@@ -162,6 +205,34 @@ proc render_dropdown {
                 change_y -scrollbar_height;
                 pen_up;
             }
+
+            # dropdown arrow fill
+            set_pen_size 2;
+            set_pen_color colors[b_category(d)];
+            if dfacing == 0 {
+                set_pen_color colors[b_category(d)];
+                goto "editor"."dropdown_input_x" - 7, dy - 0.5;
+                pen_down;
+                goto x_position() + 7, y_position() + 5;
+                goto x_position() + 7, y_position() - 5;
+                pen_up;
+            } else {
+                set_pen_color colors[b_category(d)];
+                goto "editor"."dropdown_input_x" - 7, dy - dheight - 1.5;
+                pen_down;
+                goto x_position() + 7, y_position() - 5;
+                goto x_position() + 7, y_position() + 5;
+                pen_up;
+            }
+            goto "editor"."dropdown_input_x", if (dfacing) dy - dheight - 4 else dy + 2;
+            set_pen_size 6;
+            pen_down;
+            pen_up;
+            goto "editor"."dropdown_input_x" - 4, if (dfacing) dy - dheight - 2 else dy;
+            set_pen_size 2;
+            pen_down;
+            change_x 8;
+            pen_up;
         }
     }
 }
