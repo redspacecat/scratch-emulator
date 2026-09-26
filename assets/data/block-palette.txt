@@ -65,7 +65,7 @@ think,$Hmm...
 
 
 looks_switchcostumeto,stack
-switch costume to,{costumes|costume1
+switch costume to,{costumes|Cat-a
 looks_nextcostume,stack
 next costume
 looks_switchbackdropto,stack

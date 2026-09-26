@@ -336,7 +336,6 @@ on "sidebar_display_loop" {
         }
         if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 179) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
             target_palette_x = 220;
-            close_dropdown;
 
             if LAG_MODE {
                 target_palette_x_time = 1;
@@ -352,6 +351,7 @@ on "sidebar_display_loop" {
         if target_palette_x_time > 0 {
             PALETTE_SCROLL_X += round((target_palette_x - PALETTE_SCROLL_X) / 2.5);
             target_palette_x_time--;
+            close_dropdown;
             redraw;
             if target_palette_x_time == 0 and target_palette_x > 0 {
                 PALETTE_SHOWN = false;
@@ -534,10 +534,16 @@ nowarp proc handle_input {
                         until mouse_down() {
                             set_dropdown_hovered;
                             redraw;
+                            if dropdown == 0 {
+                                stop_this_script;
+                            }
                         }
                         until not mouse_down() {
                             set_dropdown_hovered;
                             redraw;
+                            if dropdown == 0 {
+                                stop_this_script;
+                            }
                         }
                         if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
                             dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
@@ -1971,7 +1977,11 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
                 if bshape == "boolean" {
                     current_x += Padding.boolean_edge;
                 } else {
-                    current_x += Padding.start;
+                    if bshape == "reporter" and text_width < 5 {
+                        current_x += 8 - text_width / 2;
+                    } else {
+                        current_x += Padding.start;
+                    }
                 }
             } else {
                 current_x += Padding.base;
@@ -2060,7 +2070,7 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     if bshape == "c" {
         total_width = MAX(c_block_min_width, total_width);
     }
-    b_width(blockIdx) = total_width;
+    b_width(blockIdx) = MAX(16, total_width);
 
     if bshape == "c" {
         b_prong_1_height(blockIdx) = block_total_height;

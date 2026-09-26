@@ -58,7 +58,7 @@ list block_palette_text;
 list dropdown_data;
 list costume_names;
 list sound_names;
-list broadcasts;
+list broadcasts = ["message1"];
 
 struct Token {
     type,
