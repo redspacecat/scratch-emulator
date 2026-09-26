@@ -17,6 +17,8 @@ list global_vars;
 list local_lists;
 list global_lists;
 
+list dropdown_data_lists "assets/data/dropdowns.txt";
+
 var first_time = true; # for storing whether it's the first time initializing since the project was loaded
 
 enum Padding {
@@ -90,6 +92,8 @@ proc init_editor all { # all param is for initializing the editor for the first 
     target_sprites_x = 0;
     target_sprites_x_time = 0;
     no_category_switch = 0;
+    
+    dropdown = 0;
 
     dragged_block = 0;
     dragged_script_idx = 0;
@@ -235,14 +239,7 @@ onkey "up arrow" {
         stop_this_script;
     }
     if not key_pressed("up arrow") {
-        if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-            PALETTE_SCROLL_Y += 20;
-            if PALETTE_SCROLL_Y > 0 {
-                PALETTE_SCROLL_Y = 0;
-            }
-        } else {
-            SCROLL_Y += 20;
-        }
+        scroll_y 20;
         redraw;
     }
 }
@@ -252,16 +249,34 @@ onkey "down arrow" {
         stop_this_script;
     }
     if not key_pressed("down arrow") {
+        scroll_y -20;
+        redraw;
+    }
+}
+
+proc scroll_y amount {
+    if dropdown > 0 {
+        if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
+            dropdown_scroll += $amount;
+            if dropdown_scroll > 0 {
+                dropdown_scroll = 0;
+            }
+            if dropdown_scroll < length dropdown_data * -20 + dropdown_height {
+                dropdown_scroll = length dropdown_data * -20 + dropdown_height;
+            }
+            dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
+        }
+    } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-            PALETTE_SCROLL_Y -= 20;
+            PALETTE_SCROLL_Y += $amount;
             if PALETTE_SCROLL_Y < palette_y_max {
                 PALETTE_SCROLL_Y = palette_y_max;
             }
         } else {
-            SCROLL_Y -= 20;
+            SCROLL_Y += $amount;
         }
-        redraw;
     }
+    redraw;
 }
 
 on "render_loop" {
@@ -291,26 +306,10 @@ on "sidebar_display_loop" {
             redraw;
         }
         if key_pressed("up arrow") {
-            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-                PALETTE_SCROLL_Y += 15;
-                if PALETTE_SCROLL_Y > 0 {
-                    PALETTE_SCROLL_Y = 0;
-                }
-            } else {
-                SCROLL_Y += 15;
-            }
-            redraw;
+            scroll_y 15;
         }
         if key_pressed("down arrow") {
-            if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-                PALETTE_SCROLL_Y -= 15;
-                if PALETTE_SCROLL_Y < palette_y_max {
-                    PALETTE_SCROLL_Y = palette_y_max;
-                }
-            } else {
-                SCROLL_Y -= 15;
-            }
-            redraw;
+            scroll_y -15;
         }
 
         # palette handling
@@ -327,6 +326,7 @@ on "sidebar_display_loop" {
         }
         if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 179) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
             target_palette_x = 220;
+            close_dropdown;
 
             if LAG_MODE {
                 target_palette_x_time = 1;
@@ -482,32 +482,73 @@ nowarp proc handle_input {
             if not mouse_down() {
                 hovered_input = find_hovered_input(mx, my, hovered_block);
                 if hovered_input > "" {
-                    # hovered input, prompt to replace text
+                    # hovered input, prompt to edit input
                     highlight_lightly = true;
                     InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
                     redraw;
-                    ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
-                    local something_inputted = false;
-                    if answer() == "" {
-                        ask "Do you want to set this input to an empty string? (y)";
-                        if "y" in answer() {
-                            inputted_text = "";
+                    if get_block_input(hovered_block, hovered_input, b_input_dropdown_shape) {
+                        # open dropdown menu
+                        dropdown = hovered_block;
+                        dropdown_input = hovered_input;
+                        dropdown_scroll = 0;
+                        open_dropdown;
+
+                        bx = b_x(dropdown) - scroll_x_offset;
+                        by = b_y(dropdown) - scroll_y_offset;
+                        log bx;
+                        log by;
+                        dropdown_height = MIN(140, length dropdown_data * 20);
+                        dropdown_width = 120;
+                        if by - b_height(dropdown) - 10 - dropdown_height < -180 { # goes off bottom of screen
+                            dropdown_direction = 1; # 1 is up
+                            dropdown_y = by + 10 + dropdown_height;
+                        } else {
+                            dropdown_direction = 0; # 0 is down
+                            dropdown_y = by - b_height(dropdown) - 10;
+                        }
+                        dropdown_x = bx + b_width(dropdown) / 2 - dropdown_width / 2;
+
+                        until mouse_down() {
+                            set_dropdown_hovered;
+                            redraw;
+                        }
+                        until not mouse_down() {
+                            set_dropdown_hovered;
+                            redraw;
+                        }
+                        if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
+                            dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
+                            set_block_input hovered_block, hovered_input, b_input_text, dropdown_data[dropdown_hovered + 1];
+                            update_block_dimensions hovered_block;
+                        }
+
+                        close_dropdown;
+                        redraw;
+                    } else {
+                        # edit block text
+                        ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
+                        local something_inputted = false;
+                        if answer() == "" {
+                            ask "Do you want to set this input to an empty string? (y)";
+                            if "y" in answer() {
+                                inputted_text = "";
+                                something_inputted = true;
+                            }
+                        } else {
+                            inputted_text = answer();
                             something_inputted = true;
                         }
-                    } else {
-                        inputted_text = answer();
-                        something_inputted = true;
-                    }
-                    if something_inputted {
-                        if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
-                            inputted_text = filter_only_numbers(inputted_text);
+                        if something_inputted {
+                            if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
+                                inputted_text = filter_only_numbers(inputted_text);
+                            }
+                            set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
+                            propagate_size_change hovered_block;
                         }
-                        set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
-                        propagate_size_change hovered_block;
+                        InputRank highlighted_input = InputRank {};
+                        highlight_lightly = false;
+                        redraw;
                     }
-                    InputRank highlighted_input = InputRank {};
-                    highlight_lightly = false;
-                    redraw;
                 }
             } else {
                 # dragging block
@@ -578,6 +619,14 @@ nowarp proc handle_input {
                 }
             }
         }
+    }
+}
+
+proc set_dropdown_hovered {
+    if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
+        dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
+    } else {
+        dropdown_hovered = -1;
     }
 }
 
@@ -745,6 +794,21 @@ proc handle_drag no_recurse=false {
     }
 
     # log (days_since_2000() - start_time) * 86400000 & " ms/call";
+}
+
+proc open_dropdown {
+    delete dropdown_data;
+    local i = (get_block_input(dropdown, dropdown_input, b_input_dropdown_list) in dropdown_data_lists) + 1;
+    until dropdown_data_lists[i] == "" {
+        add dropdown_data_lists[i] to dropdown_data;
+        i++;
+    }
+}
+
+proc close_dropdown {
+    dropdown = 0;
+    InputRank highlighted_input = InputRank {};
+    highlight_lightly = false;
 }
 
 proc new_variable scope, name {

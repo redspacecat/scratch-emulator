@@ -1,0 +1,160 @@
+positions
+random position
+mouse-pointer
+_sprites_
+
+directions
+mouse-pointer
+random direction
+_sprites_
+
+rotationStyle
+left-right
+don't rotate
+all around
+
+costumes
+_costumes_
+backdrops
+backdrop1
+
+graphicEffects
+color
+fisheye
+whirl
+pixelate
+mosaic
+brightness
+ghost
+
+layers
+front
+back
+
+numberName
+number
+name
+
+sounds
+_sounds_
+
+soundEffects
+pitch
+pan left/right
+
+keys
+space
+up arrow
+down arrow
+right arrow
+left arrow
+any
+a
+b
+c
+d
+e
+f
+g
+h
+i
+j
+k
+l
+m
+n
+o
+p
+q
+r
+s
+t
+u
+v
+w
+x
+y
+z
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+greaterthan
+loudness
+timer
+
+messages
+_messages_
+
+stops
+this script
+other scripts in sprite
+all
+
+cloneOptions
+myself
+
+touchingObjects
+mouse-pointer
+edge
+_sprites_
+
+distanceTargets
+mouse-pointer
+_sprites_
+
+dragModes
+draggable
+not draggable
+
+spriteProperties
+x position
+y position
+direction
+
+sprites
+_sprites_
+
+currentx
+year
+month
+date
+day of week
+hour
+minute
+second
+
+mathop
+abs
+floor
+ceiling
+sqrt
+sin
+cos
+tan
+asin
+acos
+atan
+ln
+log
+e ^
+10 ^
+
+variables
+_variables_
+
+lists
+_lists_
+
+penParams
+color
+staturation
+brightness
+transparency

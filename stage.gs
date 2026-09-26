@@ -55,6 +55,7 @@ var LAST_SCREEN_REFRESH;
 var TIMER_BASE;
 
 list block_palette_text;
+list dropdown_data;
 
 struct Token {
     type,

@@ -108,14 +108,61 @@ proc render_blocks {
         render_palette_text;
     }
 
-    # local i = PALETTE_END;
-    # until i > length blocks {
-    #     render_one_block i;
-    #     i += BLOCK_LENGTH;
-    # }
-
     if "editor"."dragged_script_idx" > 0 {
         render_one_root "editor"."dragged_script_idx";
+    }
+
+    render_dropdown;
+}
+
+%define d "editor"."dropdown"
+%define dx "editor"."dropdown_x"
+%define dy "editor"."dropdown_y"
+%define dwidth "editor"."dropdown_width"
+%define dheight "editor"."dropdown_height"
+%define dscroll "editor"."dropdown_scroll"
+%define dhovered "editor"."dropdown_hovered"
+
+proc render_dropdown {
+    if REDRAW {
+        if d > 0 {
+            set_pen_color colors[b_category(d)];
+            fill_rect dx, dx + dwidth, dy - dheight, dy;
+            if dhovered > -1 {
+                set_pen_color colors[b_category(d) + 1];
+                local y = dy - dhovered * 20 - dscroll;
+                fill_rect dx, dx + dwidth, MAX(dy - dheight, y - 20), MIN(dy, y);
+            }
+            local i = 1;
+            repeat length dropdown_data {
+                local y = dy - i * 20 + 7 - dscroll;
+                if y < dy - 3 and y > dy - dheight + 3 {
+                    if dropdown_data[i] == get_block_input(d, "editor"."dropdown_input", b_input_text) {
+                        set_pen_color "#000000";
+                        goto dx + 11, y + 6;
+                        pen_down;
+                        goto dx + 7, y - 2;
+                        goto dx + 4, y + 1;
+                        pen_up;
+                    }
+                    set_pen_color "#ffffff";
+                    plain_text round(dx + 17), round(y), 1, dropdown_data[i], "l", true; 
+                }
+                i++;
+            }
+
+            if length dropdown_data > 7 {
+                set_pen_color "#bebebe";
+                set_pen_size 4;
+                local total_height = length dropdown_data * 20;
+                local track_height = dheight - 5;
+                local scrollbar_height = track_height * (dheight / total_height);
+                goto dx + dwidth - 2, dy - 2 - track_height * (-dscroll / total_height);
+                pen_down;
+                change_y -scrollbar_height;
+                pen_up;
+            }
+        }
     }
 }
 
@@ -1176,7 +1223,7 @@ proc fill_rect_hq fromx, tox, fromy, toy, iter {
     pen_up;
 }
 
-proc fill_rect x1, x2, y1, y2, blah {
+proc fill_rect x1, x2, y1, y2, blah=0 {
     # stop_this_script;
     set_pen_size 1;
     goto $x1, $y1;
