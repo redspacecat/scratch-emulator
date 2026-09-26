@@ -310,9 +310,11 @@ proc draw_category i {
 proc measure_costumes {
     delete costume_widths;
     delete costume_heights;
+    delete costume_names;
     switch_costume "Cat-a";
     base_costume = costume_number() - 1;
     until costume_name() == "@r" {
+        add costume_name() to costume_names;
         goto -240, 0;
         until not touching_edge() {
             change_x 1;

@@ -234,6 +234,16 @@ onkey "m" {
     }
 }
 
+onkey "e" {
+    if RUNNING {
+        stop_this_script;
+    }
+    ask "New message name?";
+    if answer() > "" and not (answer() in broadcasts or answer() in broadcasts) {
+        add answer() to broadcasts;
+    }
+}
+
 onkey "up arrow" {
     if RUNNING {
         stop_this_script;
@@ -507,6 +517,19 @@ nowarp proc handle_input {
                         }
                         dropdown_input_x = get_block_input(dropdown, dropdown_input, b_input_x) - scroll_x_offset + get_block_input(dropdown, dropdown_input, b_input_width) / 2; # center of dropdown input
                         dropdown_x = dropdown_input_x - dropdown_width / 2;
+                        # keep dropdown within screen area
+                        if dropdown_x < -200 {
+                            dropdown_x = -200;
+                        }
+                        if dropdown_x + dropdown_width > 235 {
+                            dropdown_x = 235 - dropdown_width;
+                        }
+                        if dropdown_input_x < -192 {
+                            dropdown_input_x = -192;
+                        }
+                        if dropdown_input_x > 228 {
+                            dropdown_input_x = 228;
+                        }
 
                         until mouse_down() {
                             set_dropdown_hovered;
@@ -799,13 +822,15 @@ proc handle_drag no_recurse=false {
 
 proc open_dropdown {
     delete dropdown_data;
-    local max_text_width = 0;
+    max_text_width = 0;
     local i = (get_block_input(dropdown, dropdown_input, b_input_dropdown_list) in dropdown_data_lists) + 1;
     until dropdown_data_lists[i] == "" {
-        add dropdown_data_lists[i] to dropdown_data;
-        local w = width_of_text(dropdown_data_lists[i], 1);
-        if w > max_text_width {
-            max_text_width = w;
+        local t = dropdown_data_lists[i];
+        if t[1] == "$" and t[length t] == "$" {
+            # if special dropdown list
+            handle_custom_dropdown t;
+        } else {
+            add_dropdown_item t;
         }
         i++;
     }
@@ -813,6 +838,69 @@ proc open_dropdown {
         add "" to dropdown_data;
     }
     dropdown_width = MAX(90, max_text_width + 40);
+}
+
+list tmp_all; # for temporarily combining local and global variables and lists
+
+proc handle_custom_dropdown t {
+    if $t == "$sprites$" {
+        local i = 1;
+        repeat length sprites {
+            add_dropdown_item sprites[i].name;
+            i++;
+        }
+    } elif $t == "$costumes$" {
+        local i = 1;
+        repeat length costume_names {
+            add_dropdown_item costume_names[i];
+            i++;
+        }
+    } elif $t == "$sounds$" {
+        local i = 1;
+        repeat length sound_names {
+            add_dropdown_item sound_names[i];
+            i++;
+        }
+    } elif $t == "$messages$" {
+        local i = 1;
+        repeat length broadcasts {
+            add_dropdown_item broadcasts[i];
+            i++;
+        }
+    } elif $t == "$variables$" or $t == "$lists$" {
+        delete tmp_all;
+        if $t == "$variables$" {
+            EXTEND(local_vars, tmp_all);
+            EXTEND(global_vars, tmp_all);
+        } else {
+            EXTEND(local_lists, tmp_all);
+            EXTEND(global_lists, tmp_all);
+        }
+        INSERTION_SORT(tmp_all);
+
+        local i = 1;
+        repeat length tmp_all {
+            add_dropdown_item tmp_all[i];
+            i++;
+        }
+
+        if $t == "$variables$" {
+            add_dropdown_item "Rename variable";
+            add_dropdown_item "Delete the \"" & get_block_input(dropdown, dropdown_input, b_input_text) & "\" variable";
+        } else {
+            add_dropdown_item "Rename list";
+            add_dropdown_item "Delete the \"" & get_block_input(dropdown, dropdown_input, b_input_text) & "\" list";
+        }
+    }
+}
+
+proc add_dropdown_item str {
+    add $str to dropdown_data;
+    local w = width_of_text($str, 1);
+    if w > max_text_width {
+        max_text_width = w;
+    }
+
 }
 
 proc close_dropdown {

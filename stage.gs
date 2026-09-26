@@ -56,6 +56,9 @@ var TIMER_BASE;
 
 list block_palette_text;
 list dropdown_data;
+list costume_names;
+list sound_names;
+list broadcasts;
 
 struct Token {
     type,
