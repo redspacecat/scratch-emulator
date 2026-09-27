@@ -282,6 +282,19 @@ proc scroll_y amount {
             if PALETTE_SCROLL_Y < palette_y_max {
                 PALETTE_SCROLL_Y = palette_y_max;
             }
+            if PALETTE_SCROLL_Y > 0 {
+                PALETTE_SCROLL_Y = 0;
+            }
+        } elif mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
+            if length sprites > 4 { # don't allow scrolling if we don't have enough sprites
+                SPRITES_SCROLL_Y += $amount;
+                if SPRITES_SCROLL_Y < length sprites * -67 + 330 {
+                    SPRITES_SCROLL_Y = length sprites * -67 + 330;
+                }
+                if SPRITES_SCROLL_Y > 0 {
+                    SPRITES_SCROLL_Y = 0;
+                }
+            }
         } else {
             SCROLL_Y += $amount;
         }
@@ -459,7 +472,7 @@ nowarp proc handle_input {
                     ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
                     if "y" in answer() {
                         delete sprites[selected_sprite];
-                        switch_selected_sprite 1;
+                        switch_selected_sprite 1, false; # don't save deleted sprite's blocks
                     }
                 }
             } else {

@@ -47,6 +47,7 @@ on "render_editor" {
     render_blocks;
     render_palette_sidebar;
     render_sprite_sidebar;
+    # render_menubar;
     # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
 
     REDRAW = false;
@@ -442,6 +443,15 @@ proc render_sprite_sidebar {
     }
     set_size 100;
     switch_costume "large";
+}
+
+proc render_menubar { # bar at top of screen
+    set_pen_color "#edf8fb";
+    set_pen_size 20;
+    goto -250, 175;
+    pen_down;
+    change_x 500;
+    pen_up;
 }
 
 proc draw_square x, y, width, height, size {

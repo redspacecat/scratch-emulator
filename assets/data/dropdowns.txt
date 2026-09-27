@@ -157,6 +157,6 @@ $lists$
 
 penParams
 color
-staturation
+saturation
 brightness
 transparency

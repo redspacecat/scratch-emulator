@@ -1,7 +1,9 @@
 %define if_tok(offset) if (tokens[offset] > "") tokens[offset] + PALETTE_END else ""
 
-proc switch_selected_sprite sprite {
-    save_current_sprite;
+proc switch_selected_sprite sprite, save=true {
+    if $save {
+        save_current_sprite;
+    }
     load_sprite $sprite;
     selected_sprite = $sprite;
     redraw;
