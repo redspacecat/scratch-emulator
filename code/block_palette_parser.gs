@@ -22,7 +22,7 @@ proc parse_block_palette {
     delete block_palette_text;
 
     local i = 1; # skip the first informational line of the list
-    by = 165;
+    by = 150;
     bx = -205;
     block_stack_height = 21;
     block_stack_extension_height = 25;
@@ -56,7 +56,7 @@ proc parse_block_palette {
     }
 
     PALETTE_END = length blocks + 1;
-    palette_y_max = by + 165;
+    palette_y_max = by + 150;
 }
 
 list parsed_inputs;
@@ -79,7 +79,7 @@ proc parse_palette_block x_offset=0 {
         j = 1;
         parse_token " ", toks_1[2];
         if token != "For" { # don't include "for this sprite only/for all sprites" text
-            add by - 165 to category_y;
+            add by - 150 to category_y;
         }
         by -= 10;
         stop_this_script;

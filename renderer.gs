@@ -46,8 +46,8 @@ on "render_editor" {
     render_dots;
     render_blocks;
     render_palette_sidebar;
+    render_menubar;
     render_sprite_sidebar;
-    # render_menubar;
     # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
 
     REDRAW = false;
@@ -101,7 +101,7 @@ proc render_blocks {
 
         set_pen_size 4;
         set_pen_color "#bebebe";
-        goto PALETTE_MAX_X - 2 - PALETTE_SCROLL_X, 177 - (360 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
+        goto PALETTE_MAX_X - 2 - PALETTE_SCROLL_X, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
         pen_down;
         change_y -30;
         pen_up;
@@ -285,7 +285,7 @@ proc render_palette_sidebar {
     change_y -360;
     pen_up;
 
-    goto -223, 162;
+    goto -223, 147;
     i = 1;
     repeat 9 {
         draw_category i;
@@ -446,12 +446,33 @@ proc render_sprite_sidebar {
 }
 
 proc render_menubar { # bar at top of screen
+    # background line
     set_pen_color "#edf8fb";
-    set_pen_size 20;
-    goto -250, 175;
+    set_pen_size 16;
+    goto -250, 172;
     pen_down;
     change_x 500;
     pen_up;
+
+    # hovered button
+    set_pen_color "#dee9ec";
+    if "editor"."hovered_menu_button" > "" {
+        fill_rect menu_buttons["editor"."hovered_menu_button"] - 7, menu_buttons["editor"."hovered_menu_button"] + menu_buttons["editor"."hovered_menu_button" + 2] + 7, 164, 180;
+    }
+    set_pen_color "#cbd7db";
+    fill_rect menu_buttons["editor"."selected_workspace"] - 7, menu_buttons["editor"."selected_workspace"] + menu_buttons["editor"."selected_workspace" + 2] + 7, 164, 180;
+
+    # text
+    set_pen_color "#000000";
+    local i = 1;
+    repeat length menu_buttons / 3 {
+        plain_text menu_buttons[i], 168, 1, menu_buttons[i + 1], "l", true;
+        i += 3;
+    }
+
+    if not SPRITES_SHOWN {
+        plain_text 202, 168, 1, "Sprites -->", "c", true;
+    }
 }
 
 proc draw_square x, y, width, height, size {

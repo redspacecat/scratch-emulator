@@ -59,6 +59,7 @@ list dropdown_data;
 list costume_names;
 list sound_names;
 list broadcasts = ["message1"];
+list menu_buttons;
 
 struct Token {
     type,

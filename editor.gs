@@ -53,6 +53,12 @@ struct Tri {
     y3
 }
 
+enum Workspace {
+    Code=1,
+    Costumes=4,
+    Sounds=7
+}
+
 proc init_editor all { # all param is for initializing the editor for the first time, when project is first loaded
     delete roots;
     delete dragged_blocks;
@@ -83,7 +89,18 @@ proc init_editor all { # all param is for initializing the editor for the first 
 
         switch_selected_sprite 1;
         auto_lag_mode_change = true;
+
+        delete menu_buttons;
+        add_menu_button "Code";
+        add_menu_button "Costumes";
+        add_menu_button "Sounds";
+        add_menu_button "New", 20;
+        add_menu_button "Save";
+        add_menu_button "Load";
+        add_menu_button "Run";
+
     }
+    selected_workspace = Workspace.Code;
 
     target_palette_x = 0;
     target_palette_y = 0;
@@ -421,6 +438,11 @@ on "sidebar_display_loop" {
         if not LAG_MODE {
             redraw;
         }
+
+        hovered_menu_button = "";
+        if mouse_y() > 164 { # top menu bar
+            check_menu_buttons;
+        }
     }
 }
 
@@ -480,7 +502,7 @@ nowarp proc handle_input {
             }
         }
     } elif mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
-        clicked_category = floor((177 - mouse_y()) / 30) + 1;
+        clicked_category = floor((162 - mouse_y()) / 30) + 1;
         if clicked_category <= length category_y {
             target_palette_y = category_y[clicked_category];
             target_palette_y_time = 20;
@@ -2207,4 +2229,25 @@ func filter_only_numbers(input) {
         i++;
     }
     return output;
+}
+
+proc add_menu_button text, extra_space=0 {
+    if length menu_buttons > 0 {
+        add menu_buttons[length menu_buttons - 2] + menu_buttons[length menu_buttons] + 14 + $extra_space to menu_buttons;
+    } else {
+        add -240 + 7 + $extra_space to menu_buttons;
+    }
+    add $text to menu_buttons;
+    add width_of_text($text, 1) to menu_buttons;
+}
+
+proc check_menu_buttons {
+    local i = 1;
+    repeat length menu_buttons / 3 {
+        if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: menu_buttons[i] - 7, x2: menu_buttons[i] + menu_buttons[i + 2] + 7, y1: 164, y2: 179}) {
+            hovered_menu_button = i;
+            stop_this_script;
+        }
+        i += 3;
+    }
 }
