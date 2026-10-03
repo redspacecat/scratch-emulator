@@ -53,12 +53,6 @@ struct Tri {
     y3
 }
 
-enum Workspace {
-    Code=1,
-    Costumes=4,
-    Sounds=7
-}
-
 proc init_editor all { # all param is for initializing the editor for the first time, when project is first loaded
     delete roots;
     delete dragged_blocks;
@@ -74,8 +68,8 @@ proc init_editor all { # all param is for initializing the editor for the first 
 
         delete sprites;
         add Sprite {name: "Cat", costume: 1, blocks: "", vars: "", lists: ""} to sprites;
-        add Sprite {name: "Dango Cat", costume: 10, blocks: "", vars: "", lists: ""} to sprites;
-        add Sprite {name: "Gobo", costume: 4, blocks: "", vars: "", lists: ""} to sprites;
+        add Sprite {name: "Dango Cat", costume: 3, blocks: "", vars: "", lists: ""} to sprites;
+        add Sprite {name: "Gobo", costume: 5, blocks: "", vars: "", lists: ""} to sprites;
 
         parse_block_palette;
         create_palette_lookup;
@@ -100,7 +94,7 @@ proc init_editor all { # all param is for initializing the editor for the first 
         add_menu_button "Run";
 
     }
-    selected_workspace = Workspace.Code;
+    # selected_workspace = Workspace.Code;
 
     target_palette_x = 0;
     target_palette_y = 0;
@@ -120,6 +114,8 @@ proc init_editor all { # all param is for initializing the editor for the first 
     InputRank highlighted_input = InputRank {};
     InputRank highlighted_conn = InputRank {};
     PreviewBlock h_c_placement = PreviewBlock {};
+    PALETTE_SHOWN = false;
+    SPRITES_SHOWN = false;
 
     load_sprite selected_sprite;
 
@@ -128,10 +124,11 @@ proc init_editor all { # all param is for initializing the editor for the first 
 
 onflag {
     erase_all;
+    selected_workspace = Workspace.Code;
     if RUNNING {
         RUNNING = false;
 
-        broadcast "start_editor";
+        broadcast "start_workspace";
     } else {
         RUNNING = true;
 
@@ -145,18 +142,31 @@ onflag {
         broadcast_and_wait "stop_program";
         RUNNING = false;
 
-        broadcast "start_editor";
+        broadcast "start_workspace";
     }
+}
+
+on "start_workspace" {
+    stop_other_scripts;
+    redraw;
+    broadcast "menu_bar";
+    broadcast "start_editor";
 }
 
 on "start_editor" {
     init_editor first_time;
     broadcast "render_loop";
     broadcast "input_loop";
-    broadcast "sidebar_display_loop";
+    broadcast "ui_handle_loop";
 
     if not $tw_is_turbowarp {
         broadcast "lag_mode_checker";
+    }
+}
+
+on "menu_bar" {
+    forever {
+        check_menu_buttons;
     }
 }
 
@@ -334,64 +344,74 @@ on "input_loop" {
     }
 }
 
-on "sidebar_display_loop" {
+on "ui_handle_loop" {
     forever {
-        # input
-        if key_pressed("left arrow") {
-            SCROLL_X -= 15;
-            redraw;
-        }
-        if key_pressed("right arrow") {
-            SCROLL_X += 15;
-            redraw;
-        }
-        if key_pressed("up arrow") {
-            scroll_y 15;
-        }
-        if key_pressed("down arrow") {
-            scroll_y -15;
+        if selected_workspace == Workspace.Code {
+            # input
+            if key_pressed("left arrow") {
+                SCROLL_X -= 15;
+                redraw;
+            }
+            if key_pressed("right arrow") {
+                SCROLL_X += 15;
+                redraw;
+            }
+            if key_pressed("up arrow") {
+                scroll_y 15;
+            }
+            if key_pressed("down arrow") {
+                scroll_y -15;
+            }
+
+            # palette handling
+            if mouse_x() < PALETTE_MIN_X and mouse_y() < 164 and PALETTE_SHOWN == false and target_palette_x_time == 0 {
+                PALETTE_SHOWN = true;
+                PALETTE_SCROLL_X = 150;
+                target_palette_x = 0;
+                
+                if LAG_MODE {
+                    target_palette_x_time = 1;
+                } else {
+                    target_palette_x_time = 10;
+                }
+            }
+            if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 163) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
+                target_palette_x = 220;
+
+                if LAG_MODE {
+                    target_palette_x_time = 1;
+                } else {
+                    target_palette_x_time = 6;
+                }
+            }
+
+            if target_palette_y_time > 0 {
+                PALETTE_SCROLL_Y += round((target_palette_y - PALETTE_SCROLL_Y) / 2.5);
+                target_palette_y_time--;
+            }
+            if target_palette_x_time > 0 {
+                PALETTE_SCROLL_X += round((target_palette_x - PALETTE_SCROLL_X) / 2.5);
+                target_palette_x_time--;
+                close_dropdown;
+                redraw;
+                if target_palette_x_time == 0 and target_palette_x > 0 {
+                    PALETTE_SHOWN = false;
+                }
+                if target_palette_x_time == 0 and target_palette_x == 0 {
+                    PALETTE_SCROLL_X = 0;
+                }
+            }
+            if no_category_switch > 0 {
+                no_category_switch--;
+            }
         }
 
-        # palette handling
-        if mouse_x() < PALETTE_MIN_X and mouse_y() < 180 and PALETTE_SHOWN == false and target_palette_x_time == 0 {
-            PALETTE_SHOWN = true;
-            PALETTE_SCROLL_X = 150;
-            target_palette_x = 0;
-            
-            if LAG_MODE {
-                target_palette_x_time = 1;
+        if selected_workspace == Workspace.Costumes {
+            if SPRITES_SHOWN {
+                highlighted_costume = "";
             } else {
-                target_palette_x_time = 10;
+                highlighted_costume = find_hovered_costume(mouse_x(), mouse_y());
             }
-        }
-        if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 179) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
-            target_palette_x = 220;
-
-            if LAG_MODE {
-                target_palette_x_time = 1;
-            } else {
-                target_palette_x_time = 6;
-            }
-        }
-
-        if target_palette_y_time > 0 {
-            PALETTE_SCROLL_Y += round((target_palette_y - PALETTE_SCROLL_Y) / 2.5);
-            target_palette_y_time--;
-        }
-        if target_palette_x_time > 0 {
-            PALETTE_SCROLL_X += round((target_palette_x - PALETTE_SCROLL_X) / 2.5);
-            target_palette_x_time--;
-            close_dropdown;
-            redraw;
-            if target_palette_x_time == 0 and target_palette_x > 0 {
-                PALETTE_SHOWN = false;
-            }
-            if target_palette_x_time == 0 and target_palette_x == 0 {
-                PALETTE_SCROLL_X = 0;
-            }
-        }
-        if no_category_switch > 0 {
-            no_category_switch--;
         }
 
         # sprite list
@@ -438,11 +458,6 @@ on "sidebar_display_loop" {
         if not LAG_MODE {
             redraw;
         }
-
-        hovered_menu_button = "";
-        if mouse_y() > 164 { # top menu bar
-            check_menu_buttons;
-        }
     }
 }
 
@@ -455,6 +470,23 @@ func find_hovered_sprite(x, y) {
             return i;
         }
         i++;
+        y -= 67;
+    }
+    return "";
+}
+
+func find_hovered_costume(x, y) {
+    local i = 1;
+    local y = 133;
+    repeat 4 {
+        local x = -233;
+        repeat 7 {
+            if point_in_rect(Point {x: $x, y: $y}, Rect {x1: x, x2: x + 65 - 6, y1: y - 65, y2: y - 6}) {
+                return i;
+            }
+            i++;
+            x += 67;
+        }
         y -= 67;
     }
     return "";
@@ -476,6 +508,22 @@ proc get_sprite_hovered_text x, y { # checks if the sprite's name in the sprite 
 
 nowarp proc handle_input {
     wait_until(mouse_down());
+    if hovered_menu_button > 0 and hovered_menu_button < 8 and mouse_down() {
+        # when menu button clicked
+        if selected_workspace == Workspace.Code {
+            save_current_sprite;
+        }
+        if hovered_menu_button == 1 {
+            selected_workspace = Workspace.Code;
+        } elif hovered_menu_button == 4 {
+            selected_workspace = Workspace.Costumes;
+        } else {
+            selected_workspace = Workspace.Sounds;
+        }
+        log "starting workspace " & selected_workspace;
+        broadcast "start_workspace";
+        stop_this_script;
+    }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
         wait_until(not mouse_down());
         local clicked_sprite = find_hovered_sprite(mouse_x(), mouse_y());
@@ -501,7 +549,18 @@ nowarp proc handle_input {
                 switch_selected_sprite clicked_sprite;
             }
         }
-    } elif mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
+    }
+    if selected_workspace == Workspace.Costumes {
+        wait_until(not mouse_down());
+        if highlighted_costume > "" {
+            sprites[selected_sprite].costume = highlighted_costume;
+        }
+    }
+    if selected_workspace != Workspace.Code {
+        stop_this_script;
+    }
+
+    if mouse_x() < PALETTE_MIN_X and dragged_block == 0 {
         clicked_category = floor((162 - mouse_y()) / 30) + 1;
         if clicked_category <= length category_y {
             target_palette_y = category_y[clicked_category];
@@ -531,7 +590,7 @@ nowarp proc handle_input {
                     highlight_lightly = true;
                     InputRank highlighted_input = InputRank {block: hovered_block, input: hovered_input};
                     redraw;
-                    if get_block_input(hovered_block, hovered_input, b_input_dropdown_shape) {
+                    if get_block_input(hovered_block, hovered_input, b_input_dropdown_shape) > "" {
                         # open dropdown menu
                         dropdown = hovered_block;
                         dropdown_input = hovered_input;
@@ -2242,12 +2301,15 @@ proc add_menu_button text, extra_space=0 {
 }
 
 proc check_menu_buttons {
-    local i = 1;
-    repeat length menu_buttons / 3 {
-        if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: menu_buttons[i] - 7, x2: menu_buttons[i] + menu_buttons[i + 2] + 7, y1: 164, y2: 179}) {
-            hovered_menu_button = i;
-            stop_this_script;
+    hovered_menu_button = "";
+    if mouse_y() > 164 { # menu bar
+        local i = 1;
+        repeat length menu_buttons / 3 {
+            if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: menu_buttons[i] - 7, x2: menu_buttons[i] + menu_buttons[i + 2] + 7, y1: 164, y2: 179}) {
+                hovered_menu_button = i;
+                stop_this_script;
+            }
+            i += 3;
         }
-        i += 3;
     }
 }

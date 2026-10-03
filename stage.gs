@@ -57,7 +57,7 @@ var TIMER_BASE;
 list block_palette_text;
 list dropdown_data;
 list costume_names;
-list sound_names;
+list sound_names "assets/data/sounds.txt";
 list broadcasts = ["message1"];
 list menu_buttons;
 
@@ -96,3 +96,5 @@ struct AsyncAction {
 # when calling `say for secs` params are added to the list
 # when receiving it, all instances of that action by that sprite are removed
 list AsyncAction async_actions;
+
+var selected_workspace;

@@ -1,7 +1,7 @@
 # %include code/PTE_font
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
-# costumes "assets/images/costumes/main/dango-cat.svg";
+sounds "assets/sounds/*";
 
 %define special_targets(num) if (args[num] in target_arg_lookup) target_arg_lookup[(args[num] in target_arg_lookup) + 1] else args[num]
 %define special_targets_tmp(num) if (tmp_args[num] in target_arg_lookup) target_arg_lookup[(tmp_args[num] in target_arg_lookup) + 1] else tmp_args[num]

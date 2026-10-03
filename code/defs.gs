@@ -29,3 +29,9 @@ enum Category {
     Extensions=31,
     Preview=34
 }
+
+enum Workspace {
+    Code=1,
+    Costumes=4,
+    Sounds=7
+}

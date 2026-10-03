@@ -43,9 +43,15 @@ on "render_editor" {
     switch_costume "large";
 
     start_time = days_since_2000();
-    render_dots;
-    render_blocks;
-    render_palette_sidebar;
+    if selected_workspace == Workspace.Code {
+        render_dots;
+        render_blocks;
+        render_palette_sidebar;
+    } elif selected_workspace == Workspace.Costumes {
+        render_costumes;
+    } else {
+        render_sounds;
+    }
     render_menubar;
     render_sprite_sidebar;
     # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
@@ -331,6 +337,75 @@ proc measure_costumes {
     }
 }
 
+proc render_costumes {
+    # costumes
+
+    set_pen_color "#edf8fb"; # background
+    set_pen_size 270;
+    goto -240, -3;
+    pen_down;
+    change_x 480;
+    pen_up;
+
+    set_pen_color "#000000";
+    plain_text 0, 145, 1, "Costumes", "c", true;
+
+    local x = -233;
+    local i = 1;
+    local y = 130;
+    local width = 65;
+    repeat length costume_names {
+        if sprites["editor"."selected_sprite"].costume == i {
+            draw_sprite_box x, y, width;
+
+            set_pen_color "#ffffff";
+            plain_text x + 33, y - 58, 1, costume_names[i], "c", true;
+        } else {
+            set_pen_color if ("editor"."highlighted_costume" == i) "#855cd6" else "#c6cdd6";
+            draw_square x + 3, y - 3, 59, 59, 14;
+            set_pen_color if ("editor"."highlighted_costume" == i) "#ffffff" else "#edf8fb";
+            draw_square x + 4, y - 4, 57, 57, 13;
+
+            set_pen_size 45;
+            goto x + width / 2, y - width / 2;
+            pen_down;
+            pen_up;
+
+            set_pen_color "#000000";
+            plain_text x + 33, y - 58, 1, costume_names[i], "c", true;
+        }
+
+        # render preview of sprite
+        goto x + width / 2, y - 25;
+        switch_costume base_costume + i; # i var is costume number
+        set_size 35 / MAX(costume_widths[i], costume_heights[i]) * 100;
+        stamp;
+        switch_costume "large";
+
+        x += 67;
+        if x > 233 {
+            y -= 67;
+            x = -233;
+        }
+        i++;
+    }
+}
+
+proc render_sounds {
+    # sounds
+
+    set_pen_color "#000000";
+    plain_text 0, 145, 1, "Sounds", "c", true;
+    local i = 1;
+    local x = -50;
+    local y = 108;
+    repeat length sound_names {
+        plain_text x, y, 1, i & ". " & sound_names[i], "l", true;
+        y -= 15;
+        i++;
+    }
+}
+
 proc render_sprite_sidebar {
     if SPRITES_SHOWN {
         point_in_direction 90;
@@ -359,33 +434,7 @@ proc render_sprite_sidebar {
         local width = 65;
         repeat length sprites {
             if "editor"."selected_sprite" == i {
-                set_pen_color "#c6bdef";
-                draw_square x, y, 65, 65, 20;
-                set_pen_color "#855cd6";
-                draw_square x + 3, y - 3, 59, 59, 14;
-                set_pen_color "#ffffff";
-                draw_square x + 4, y - 4, 57, 57, 13;
-
-                set_pen_size 45;
-                goto x + width / 2, y - width / 2;
-                pen_down;
-                pen_up;
-
-                set_pen_color "#855cd6";
-                set_pen_size 14;
-                goto x + 4 + 13 / 2, y - 4 - 57 + 13 / 2;
-                pen_down;
-                change_x 57 - 13;
-                pen_up;
-
-                set_pen_color "#855cd6";
-                set_pen_size 4;
-                goto x + 5, y - 4 - 57 + 12;
-                pen_down;
-                change_x 55;
-                change_y -3;
-                change_x -55;
-                pen_up;
+                draw_sprite_box x, y, width;
 
                 if length sprites > 1 {
                     goto x + 57, y - 6;
@@ -445,6 +494,36 @@ proc render_sprite_sidebar {
     switch_costume "large";
 }
 
+proc draw_sprite_box x, y, size {
+    set_pen_color "#c6bdef";
+    draw_square $x, $y, 65, 65, 20;
+    set_pen_color "#855cd6";
+    draw_square $x + 3, $y - 3, 59, 59, 14;
+    set_pen_color "#ffffff";
+    draw_square $x + 4, $y - 4, 57, 57, 13;
+
+    set_pen_size 45;
+    goto $x + $size / 2, $y - $size / 2;
+    pen_down;
+    pen_up;
+
+    set_pen_color "#855cd6";
+    set_pen_size 14;
+    goto $x + 4 + 13 / 2, $y - 4 - 57 + 13 / 2;
+    pen_down;
+    change_x 57 - 13;
+    pen_up;
+
+    set_pen_color "#855cd6";
+    set_pen_size 4;
+    goto $x + 5, $y - 4 - 57 + 12;
+    pen_down;
+    change_x 55;
+    change_y -3;
+    change_x -55;
+    pen_up;
+}
+
 proc render_menubar { # bar at top of screen
     # background line
     set_pen_color "#edf8fb";
@@ -460,7 +539,7 @@ proc render_menubar { # bar at top of screen
         fill_rect menu_buttons["editor"."hovered_menu_button"] - 7, menu_buttons["editor"."hovered_menu_button"] + menu_buttons["editor"."hovered_menu_button" + 2] + 7, 164, 180;
     }
     set_pen_color "#cbd7db";
-    fill_rect menu_buttons["editor"."selected_workspace"] - 7, menu_buttons["editor"."selected_workspace"] + menu_buttons["editor"."selected_workspace" + 2] + 7, 164, 180;
+    fill_rect menu_buttons[selected_workspace] - 7, menu_buttons[selected_workspace] + menu_buttons[selected_workspace + 2] + 7, 164, 180;
 
     # text
     set_pen_color "#000000";
