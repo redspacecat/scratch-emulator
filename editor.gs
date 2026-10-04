@@ -67,9 +67,9 @@ proc init_editor all { # all param is for initializing the editor for the first 
         delete global_lists;
 
         delete sprites;
-        add Sprite {name: "Cat", costume: 1, blocks: "", vars: "", lists: ""} to sprites;
-        add Sprite {name: "Dango Cat", costume: 3, blocks: "", vars: "", lists: ""} to sprites;
-        add Sprite {name: "Gobo", costume: 5, blocks: "", vars: "", lists: ""} to sprites;
+        add Sprite {name: "Cat", costume: 1} to sprites;
+        add Sprite {name: "Dango Cat", costume: 3} to sprites;
+        add Sprite {name: "Gobo", costume: 5} to sprites;
 
         parse_block_palette;
         create_palette_lookup;
@@ -115,7 +115,6 @@ proc init_editor all { # all param is for initializing the editor for the first 
     InputRank highlighted_conn = InputRank {};
     PreviewBlock h_c_placement = PreviewBlock {};
     PALETTE_SHOWN = false;
-    SPRITES_SHOWN = false;
 
     load_sprite selected_sprite;
 
@@ -315,8 +314,8 @@ proc scroll_y amount {
         } elif mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
             if length sprites > 4 { # don't allow scrolling if we don't have enough sprites
                 SPRITES_SCROLL_Y += $amount;
-                if SPRITES_SCROLL_Y < length sprites * -67 + 330 {
-                    SPRITES_SCROLL_Y = length sprites * -67 + 330;
+                if SPRITES_SCROLL_Y < length sprites * -67 + 315 {
+                    SPRITES_SCROLL_Y = length sprites * -67 + 315;
                 }
                 if SPRITES_SCROLL_Y > 0 {
                     SPRITES_SCROLL_Y = 0;
@@ -526,27 +525,38 @@ nowarp proc handle_input {
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
         wait_until(not mouse_down());
-        local clicked_sprite = find_hovered_sprite(mouse_x(), mouse_y());
-        log "clicked on sprite " & clicked_sprite;
-        if clicked_sprite > "" {
-            if clicked_sprite == selected_sprite {
-                if sprite_name_underline > "" {
-                    ask "Enter new name for sprite \"" & sprites[selected_sprite].name & "\" (enter nothing to cancel)";
-                    if answer() > "" {
-                        sprites[selected_sprite].name = answer();
-                    }
-                } elif point_in_circle(
-                    Point {x: mouse_x() + SPRITES_SCROLL_X, y: mouse_y() - SPRITES_SCROLL_Y},
-                    Point {x: 170 + 57 + SPRITES_SCROLL_X, y: (155 - (67 * (selected_sprite - 1))) - 6 - SPRITES_SCROLL_Y},
-                    11) and length sprites > 1 {
-                    ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
-                    if "y" in answer() {
-                        delete sprites[selected_sprite];
-                        switch_selected_sprite 1, false; # don't save deleted sprite's blocks
-                    }
+        if mouse_y() < -163 { # clicked on "new sprite" button
+            ask "New sprite name?";
+            if answer() > "" {
+                add Sprite { name: answer(), costume: random(1, length costume_names)} to sprites;
+                switch_selected_sprite length sprites;
+                selected_workspace = Workspace.Costumes;
+                broadcast "start_workspace";
+                stop_this_script;
+            }
+        } else {
+            local clicked_sprite = find_hovered_sprite(mouse_x(), mouse_y());
+            log "clicked on sprite " & clicked_sprite;
+            if point_in_circle( # delete button, check outside clicked_sprite > "" since button extends outside
+                Point {x: mouse_x() + SPRITES_SCROLL_X, y: mouse_y()},
+                Point {x: 170 + 57 + SPRITES_SCROLL_X, y: (155 - SPRITES_SCROLL_Y - (67 * (selected_sprite - 1))) - 6},
+                11) and length sprites > 1 {
+                ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
+                if "y" in answer() {
+                    delete sprites[selected_sprite];
+                    switch_selected_sprite 1, false; # don't save deleted sprite's blocks
                 }
-            } else {
-                switch_selected_sprite clicked_sprite;
+            } elif clicked_sprite > "" {
+                if clicked_sprite == selected_sprite {
+                    if sprite_name_underline > "" {
+                        ask "Enter new name for sprite \"" & sprites[selected_sprite].name & "\" (enter nothing to cancel)";
+                        if answer() > "" {
+                            sprites[selected_sprite].name = answer();
+                        }
+                    }
+                } else {
+                    switch_selected_sprite clicked_sprite;
+                }
             }
         }
     }

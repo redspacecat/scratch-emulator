@@ -78,9 +78,9 @@ list opcode_lookup "assets/data/opcodes.txt";
 struct Sprite {
     name,
     costume,
-    blocks,
-    vars,
-    lists
+    blocks="",
+    vars="",
+    lists=""
 }
 
 list Sprite sprites;

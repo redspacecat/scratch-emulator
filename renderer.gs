@@ -425,7 +425,7 @@ proc render_sprite_sidebar {
 
         # text
         set_pen_color "#000000";
-        plain_text 203 + SPRITES_SCROLL_X, 165, 1, "Sprites", "c", true;
+        plain_text 203 + SPRITES_SCROLL_X, 165 - SPRITES_SCROLL_Y, 1, "Sprites", "c", true;
 
         # sprites
         local x = 170 + SPRITES_SCROLL_X;
@@ -489,6 +489,17 @@ proc render_sprite_sidebar {
             y -= 67;
             i++;
         }
+
+        # new sprite button
+        goto 176 + SPRITES_SCROLL_X, -174;
+        set_pen_color "#cbd7db";
+        set_pen_size 20;
+        pen_down;
+        change_x 100;
+        pen_up;
+        set_pen_color "#000000";
+        plain_text 203 + SPRITES_SCROLL_X, -176, 1, "+ New Sprite", "c", true;
+        
     }
     set_size 100;
     switch_costume "large";
