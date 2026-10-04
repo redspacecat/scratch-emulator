@@ -1069,7 +1069,7 @@ proc handle_palette_vars {
             y: y,
             width: 100,
             height: 16,
-            insert_positition: pos,
+            insert_position: pos,
             label1: TextLabel {x: -100, text: global_vars[i]};
         update_block_dimensions pos;
         i++;
@@ -1090,7 +1090,7 @@ proc handle_palette_vars {
             y: y,
             width: 100,
             height: 16,
-            insert_positition: pos,
+            insert_position: pos,
             label1: TextLabel {x: -100, text: local_vars[i]};
         update_block_dimensions pos;
         i++;
@@ -1145,7 +1145,7 @@ proc handle_palette_lists {
             y: y,
             width: 100,
             height: 16,
-            insert_positition: pos,
+            insert_position: pos,
             label1: TextLabel {x: -100, text: global_lists[i]};
         update_block_dimensions pos;
         i++;
@@ -1166,7 +1166,7 @@ proc handle_palette_lists {
             y: y,
             width: 100,
             height: 16,
-            insert_positition: pos,
+            insert_position: pos,
             label1: TextLabel {x: -100, text: local_lists[i]};
         update_block_dimensions pos;
         i++;
@@ -1181,7 +1181,7 @@ proc handle_palette_lists {
     palette_y_max += y_change;
     category_y[10] += y_change;
     # shift palette text labels down
-    local i = 38; # start at the y position of the next text label
+    local i = 41; # start at the y position of the next text label
     until i > length block_palette_text {
         block_palette_text[i] += y_change;
         i += 3;
@@ -1592,7 +1592,7 @@ proc add_block
         Input input2=Input {},
         Input input3=Input {},
         nesting_level=0,
-        insert_positition="" {
+        insert_position="" {
         
     add $opcode to blocks;
     add $shape to blocks;
@@ -1651,11 +1651,11 @@ proc add_block
     add $input3.nested_block to blocks;
 
     local blockIdx = last_block_idx;
-    if $insert_positition > "" {
+    if $insert_position > "" {
         # move blocks to insert position
         blockIdx = length blocks;
         repeat BLOCK_LENGTH {
-            insert blocks[blockIdx] at blocks[$insert_positition];
+            insert blocks[blockIdx] at blocks[$insert_position];
             # blockIdx++;
             delete blocks[blockIdx + 1];
         }
