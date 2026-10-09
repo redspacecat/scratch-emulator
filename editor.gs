@@ -220,46 +220,6 @@ onkey "s" {
     }
 }
 
-onkey "l" {
-    if RUNNING {
-        stop_this_script;
-    }
-    ask "New local variable name?";
-    if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
-        new_variable "local", answer();
-    }
-}
-
-onkey "g" {
-    if RUNNING {
-        stop_this_script;
-    }
-    ask "New global variable name?";
-    if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
-        new_variable "global", answer();
-    }
-}
-
-onkey "n" {
-    if RUNNING {
-        stop_this_script;
-    }
-    ask "New local list name?";
-    if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
-        new_list "local", answer();
-    }
-}
-
-onkey "m" {
-    if RUNNING {
-        stop_this_script;
-    }
-    ask "New global list name?";
-    if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
-        new_list "global", answer();
-    }
-}
-
 onkey "e" {
     if RUNNING {
         stop_this_script;
@@ -403,6 +363,9 @@ on "ui_handle_loop" {
             if no_category_switch > 0 {
                 no_category_switch--;
             }
+
+            new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[23] - 26, x2: -205 + 82, y2: block_palette_text[23] - 8});
+            new_list_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[32] - 26, x2: -205 + 62, y2: block_palette_text[32] - 8});
         }
 
         if selected_workspace == Workspace.Costumes {
@@ -739,8 +702,39 @@ nowarp proc handle_input {
                 redraw;
             }
         } else {
-            if not (PALETTE_SHOWN or SPRITES_SHOWN) {
-                # if not moving a block, drag the code area
+            if PALETTE_SHOWN {
+                # new variable and list button click handling
+                wait_until(not(mouse_down()));
+                if new_variable_btn_hovered {
+                    ask "New variable type: (enter \"local\" for \"this sprite only\" and \"global\" for \"for all sprites\")";
+                    type = answer();
+                    if type == "local" or type == "l" or type == "global" or type == "g" {
+                        ask "New variable name?";
+                        if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
+                            if type == "local" or type == "l" {
+                                new_variable "local", answer();
+                            } else {
+                                new_variable "global", answer();
+                            }
+                        }
+                    }
+                }
+                if new_list_btn_hovered {
+                    ask "New list type: (enter \"local\" for \"this sprite only\" and \"global\" for \"for all sprites\")";
+                    type = answer();
+                    if type == "local" or type == "l" or type == "global" or type == "g" {
+                        ask "New list name?";
+                        if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
+                            if type == "local" or type == "l" {
+                                new_list "local", answer();
+                            } else {
+                                new_list "global", answer();
+                            }
+                        }
+                    }
+                }
+            } elif not SPRITES_SHOWN {
+                # if not moving a block or clicking on a button, drag the code area
                 mx = mouse_x();
                 my = mouse_y();
                 until not mouse_down() {

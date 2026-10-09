@@ -287,7 +287,11 @@ proc render_palette_text {
     change_x 68;
     pen_up;
     goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
-    set_pen_color "#ffffff";
+    if "editor"."new_variable_btn_hovered" {
+        set_pen_color "#ececec";
+    } else {
+        set_pen_color "#ffffff";
+    }
     set_pen_size 16;
     pen_down;
     change_x 68;
@@ -303,7 +307,11 @@ proc render_palette_text {
     change_x 47;
     pen_up;
     goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
-    set_pen_color "#ffffff";
+    if "editor"."new_list_btn_hovered" {
+        set_pen_color "#ececec";
+    } else {
+        set_pen_color "#ffffff";
+    }
     set_pen_size 16;
     pen_down;
     change_x 47;
