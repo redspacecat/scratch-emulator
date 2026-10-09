@@ -273,11 +273,43 @@ proc render_dots {
 
 proc render_palette_text {
     set_pen_color "#000000";
-    local i  = 1;
+    local i = 1;
     repeat length block_palette_text / 3 {
         plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l", true;
         i += 3;
     }
+
+    # new variable button
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
+    set_pen_color "#606060";
+    set_pen_size 18;
+    pen_down;
+    change_x 68;
+    pen_up;
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
+    set_pen_color "#ffffff";
+    set_pen_size 16;
+    pen_down;
+    change_x 68;
+    pen_up;
+    set_pen_color "#000000";
+    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 20, 1, "Make a Variable", "l", true;
+
+    # new list button
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
+    set_pen_color "#606060";
+    set_pen_size 18;
+    pen_down;
+    change_x 47;
+    pen_up;
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
+    set_pen_color "#ffffff";
+    set_pen_size 16;
+    pen_down;
+    change_x 47;
+    pen_up;
+    set_pen_color "#000000";
+    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 20, 1, "Make a List", "l", true;
 }
 
 proc render_palette_sidebar {
@@ -501,7 +533,7 @@ proc render_sprite_sidebar {
         change_x 100;
         pen_up;
         set_pen_color "#000000";
-        plain_text 203 + SPRITES_SCROLL_X, -176, 1, "+ New Sprite", "c", true;
+        plain_text 203 + SPRITES_SCROLL_X, -176, 1, "Make a Sprite", "c", true;
         
     }
     set_size 100;

@@ -322,6 +322,10 @@ text,Variables
 
 
 
+
+
+
+
 text,For all sprites:
 
 
@@ -345,6 +349,10 @@ hide variable,[variables|my variable
 
 
 text,Lists
+
+
+
+
 
 
 

@@ -159,9 +159,9 @@ proc compile_block idx, warp=false {
         compile_input 1, $idx;
         compile_input 2, $idx;
         compile_input 3, $idx;
-        if b_opcode($idx) == "data_variable" {
-            # for variables, we're compiling them from a data_variable block with a text label
-            # to a data_variable block with an input, where the input is the variable name, the text label
+        if b_opcode($idx) == "data_variable" or b_opcode($idx) == "datalist_listcontents" {
+            # for variables or lists, we're compiling them from a data_variable or datalist_listcontents block with a text label
+            # to a data_variable or datalist_listcontents block with an input, where the input is the variable name, the text label
             add_text b_label1_text($idx);
         }
         add_cmd b_opcode($idx);

@@ -1056,7 +1056,7 @@ proc handle_palette_vars {
         delete blocks[start_idx];
     }
 
-    local y = b_y(("operator_mathop" in blocks)) - 71;
+    local y = b_y(("operator_mathop" in blocks)) - 91;
     local start_y = y;
     local i = 1;
     local pos = start_idx;
@@ -1132,7 +1132,7 @@ proc handle_palette_lists {
         delete blocks[start_idx];
     }
 
-    local y = b_y(("data_hidevariable" in blocks)) - 78;
+    local y = b_y(("data_hidevariable" in blocks)) - 98;
     local start_y = y;
     local i = 1;
     local pos = start_idx;
