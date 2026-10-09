@@ -357,8 +357,6 @@ proc stop_all_threads {
 }
 
 proc exec_cmd cmd {
-    log "running cmd: " & opcode_lookup[$cmd];
-
     if $cmd < Opcode.operator_add { # motion - sensing
         if $cmd < Opcode.event_whenflagclicked { # motion - sound
             if $cmd < Opcode.looks_sayforsecs { # extras - motion
