@@ -205,7 +205,9 @@ delete this clone
 text,Sensing
 
 sensing_touchingobject,boolean
-touching,{touchingObjects|mouse-pointer
+touching,[touchingObjects|mouse-pointer
+sensing_touchinganysprite,boolean
+touching any sprite?
 sensing_touchingcolor,boolean
 touching color,##abcdef,?
 sensing_coloristouchingcolor,boolean

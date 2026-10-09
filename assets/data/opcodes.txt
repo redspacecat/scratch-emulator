@@ -75,6 +75,7 @@ control_start_as_clone
 control_create_clone_of
 control_delete_this_clone
 sensing_touchingobject
+sensing_touchinganysprite
 sensing_touchingcolor
 sensing_coloristouchingcolor
 sensing_distanceto

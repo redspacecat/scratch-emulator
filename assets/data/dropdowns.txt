@@ -106,7 +106,6 @@ myself
 touchingObjects
 mouse-pointer
 edge
-$sprites$
 
 distanceTargets
 mouse-pointer

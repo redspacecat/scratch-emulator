@@ -2,9 +2,13 @@ proc exec_sensing cmd {
     if $cmd < Opcode.sensing_setdragmode {
         if $cmd < Opcode.sensing_askandwait { # touching - distance
             if $cmd < Opcode.sensing_coloristouchingcolor {
-                if $cmd < Opcode.sensing_touchingcolor { # touching object
-                    pop 1;
-                    push touching(special_targets(1));
+                if $cmd < Opcode.sensing_touchingcolor {
+                    if $cmd < Opcode.sensing_touchinganysprite { # touching object
+                        pop 1;
+                        push touching(special_targets(1));
+                    } else { # touching any sprite
+                        push touching("runner");
+                    }
                 } else { # touching color
                     pop 1;
                     push touching_color(args[1]);
