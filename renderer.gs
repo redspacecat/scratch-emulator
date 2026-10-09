@@ -47,6 +47,7 @@ on "render_editor" {
         render_dots;
         render_blocks;
         render_palette_sidebar;
+        render_dragged_blocks;
     } elif selected_workspace == Workspace.Costumes {
         render_costumes;
     } else {
@@ -115,11 +116,13 @@ proc render_blocks {
         render_palette_text;
     }
 
+    render_dropdown;
+}
+
+proc render_dragged_blocks {
     if "editor"."dragged_script_idx" > 0 {
         render_one_root "editor"."dragged_script_idx";
     }
-
-    render_dropdown;
 }
 
 proc render_dropdown {
