@@ -1076,26 +1076,43 @@ proc handle_palette_vars {
         pos += BLOCK_LENGTH;
         y -= 21;
     }
+    if length global_vars == 0 {
+        y += 20;
+    }
 
-    y -= 10;
-    block_palette_text[29] = y; # variables for this sprite only text y pos
-    y -= 10;
-    local i = 1;
-    repeat length local_vars {
-        add_block
-            opcode: "data_variable",
-            shape: "reporter",
-            category: Category.Variables,
-            x: -205,
-            y: y,
-            width: 100,
-            height: 16,
-            insert_position: pos,
-            label1: TextLabel {x: -100, text: local_vars[i]};
-        update_block_dimensions pos;
-        i++;
-        pos += BLOCK_LENGTH;
-        y -= 21;
+    if length global_vars == 0 { # hide text if there are no vars of that type
+        block_palette_text[27] = "";
+    } else {
+        block_palette_text[27] = "For all sprites:";
+    }
+    if length local_vars == 0 {
+        block_palette_text[30] = "";
+    } else {
+        block_palette_text[30] = "For this sprite only:";
+    }
+
+    if length local_vars > 0 { # unless there are local vars, don't bother looping
+        y -= 10;
+        block_palette_text[29] = y; # variables for this sprite only text y pos
+        y -= 10;
+
+        local i = 1;
+        repeat length local_vars {
+            add_block
+                opcode: "data_variable",
+                shape: "reporter",
+                category: Category.Variables,
+                x: -205,
+                y: y,
+                width: 100,
+                height: 16,
+                insert_position: pos,
+                label1: TextLabel {x: -100, text: local_vars[i]};
+            update_block_dimensions pos;
+            i++;
+            pos += BLOCK_LENGTH;
+            y -= 21;
+        }
     }
 
     local idx_change = ("data_setvariableto" in blocks) - end_idx;
@@ -1152,26 +1169,43 @@ proc handle_palette_lists {
         pos += BLOCK_LENGTH;
         y -= 21;
     }
+    if length global_lists == 0 {
+        y += 20;
+    }
 
-    y -= 10;
-    block_palette_text[38] = y; # lists for this sprite only text y pos
-    y -= 10;
-    local i = 1;
-    repeat length local_lists {
-        add_block
-            opcode: "datalist_listcontents",
-            shape: "reporter",
-            category: Category.Lists,
-            x: -205,
-            y: y,
-            width: 100,
-            height: 16,
-            insert_position: pos,
-            label1: TextLabel {x: -100, text: local_lists[i]};
-        update_block_dimensions pos;
-        i++;
-        pos += BLOCK_LENGTH;
-        y -= 21;
+    if length global_lists == 0 { # hide text if there are no lists of that type
+        block_palette_text[36] = "";
+    } else {
+        block_palette_text[36] = "For all sprites:";
+    }
+    if length local_lists == 0 {
+        block_palette_text[39] = "";
+    } else {
+        block_palette_text[39] = "For this sprite only:";
+    }
+
+    if length local_lists > 0 { # unless there are local lists, don't bother looping
+        y -= 10;
+        block_palette_text[38] = y; # lists for this sprite only text y pos
+        y -= 10;
+
+        local i = 1;
+        repeat length local_lists {
+            add_block
+                opcode: "datalist_listcontents",
+                shape: "reporter",
+                category: Category.Lists,
+                x: -205,
+                y: y,
+                width: 100,
+                height: 16,
+                insert_position: pos,
+                label1: TextLabel {x: -100, text: local_lists[i]};
+            update_block_dimensions pos;
+            i++;
+            pos += BLOCK_LENGTH;
+            y -= 21;
+        }
     }
 
     local idx_change = ("datalist_addtolist" in blocks) - end_idx;
