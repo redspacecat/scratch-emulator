@@ -13,9 +13,7 @@ hide;
 %define base_boolean_width 18
 
 list local_vars;
-list global_vars;
 list local_lists;
-list global_lists;
 
 list dropdown_data_lists "assets/data/dropdowns.txt";
 

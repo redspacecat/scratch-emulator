@@ -22,15 +22,10 @@ set_x 0;
 set_y 0;
 hide;
 
-struct Var {
-    name,
-    val
-}
-
 list stack;
 list args;
 list tmp_args; # for storing args for longer running blocks
-list Var vars;
+list Var runtime_local_vars;
 list threads;
 list received_messages;
 
@@ -46,6 +41,14 @@ proc init {
     base_costume = costume_number() - 1;
     CURRENT_CLONE_ID = 0;
     CURRENT_BROADCAST_ID = 0;
+
+    # copy global variables over so we know which variables are global and local
+    delete runtime_global_vars;
+    i = 1;
+    repeat length global_vars {
+        add Var {name: global_vars[i], val: 0} to runtime_global_vars;
+        i++;
+    }
 }
 
 on "create_sprites" {
@@ -243,7 +246,7 @@ proc start_hats hat, arg="", msg_id="" {
 proc init_runtime {
     # vars and lists will be created as needed
     # if it's global, it uses that, otherwise a local var/list is created
-    delete vars;
+    delete runtime_local_vars;
     delete threads; # thread has: pos, status, start time, message id
     delete messages;
 

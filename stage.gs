@@ -92,9 +92,19 @@ struct AsyncAction {
     action
 }
 
+struct Var {
+    name,
+    val
+}
+
 # stores actions like `say for secs` or `ask` that cause delays
 # when calling `say for secs` params are added to the list
 # when receiving it, all instances of that action by that sprite are removed
 list AsyncAction async_actions;
+# global vars for the runtime
+list Var runtime_global_vars;
 
 var selected_workspace;
+
+list global_vars;
+list global_lists;
