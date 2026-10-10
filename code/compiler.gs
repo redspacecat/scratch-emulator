@@ -10,7 +10,7 @@ proc compile {
 
     save_current_sprite;
 
-    local spriteNum = 1;
+    spriteNum = 1;
     repeat length sprites {
         # load code into editor
         load_sprite spriteNum, false;

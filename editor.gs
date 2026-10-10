@@ -569,9 +569,11 @@ nowarp proc handle_input {
                             if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
                                 if (name in local_vars) {
                                     local_vars[name in local_vars] = answer();
+                                    edit_data_item type, "local", name, answer();
                                 }
                                 if (name in global_vars) {
                                     global_vars[name in global_vars] = answer();
+                                    edit_data_item type, "global", name, answer();
                                 }
                             } else {
                                 ask "Invalid name (press enter to close)";
@@ -581,9 +583,11 @@ nowarp proc handle_input {
                             if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
                                 if (name in local_lists) {
                                     local_lists[name in local_lists] = answer();
+                                    edit_data_item type, "local", name, answer();
                                 }
                                 if (name in global_lists) {
                                     global_lists[name in global_lists] = answer();
+                                    edit_data_item type, "global", name, answer();
                                 }
                             } else {
                                 ask "Invalid name (press enter to close)";
@@ -596,17 +600,21 @@ nowarp proc handle_input {
                                 # delete variable
                                 if (name in local_vars) {
                                     delete local_vars[(name in local_vars)];
+                                    edit_data_item type, "local", name, delete_block: true;
                                 }
                                 if (name in global_vars) {
                                     delete global_vars[(name in global_vars)];
+                                    edit_data_item type, "global", name, delete_block: true;
                                 }
                             } else {
                                 # delete list
                                 if (name in local_lists) {
                                     delete local_lists[(name in local_lists)];
+                                    edit_data_item type, "local", name, delete_block: true;
                                 }
                                 if (name in global_lists) {
                                     delete global_lists[(name in global_lists)];
+                                    edit_data_item type, "global", name, delete_block: true;
                                 }
                             }
                         }
@@ -979,8 +987,58 @@ proc handle_drag no_recurse=false {
             highlighted_input_nested_block = "";
         }
     }
+}
 
-    # log (days_since_2000() - start_time) * 86400000 & " ms/call";
+proc edit_data_item type, scope, name, replacement="", delete_block=false {
+    save_current_sprite;
+
+    spriteNum = if ($scope == "local") selected_sprite else 1;
+    repeat_count = if ($scope == "local") 1 else length sprites;
+    repeat repeat_count {
+        load_sprite spriteNum;
+        local i = PALETTE_END;
+        until i > length blocks {
+            target_cat = if ($type == "variable") Category.Variables else Category.Lists;
+            target_block = if ($type == "variable") "data_variable" else "datalist_listcontents";
+
+            if b_category(i) == target_cat {
+                if b_opcode(i) == target_block {
+                    if b_label1_text(i) == $name {
+                        if $delete_block {
+                            delete_block i;
+                        } else {
+                            b_label1_text(i) = $replacement;
+                        }
+                    }
+                } else {
+                    inputNum = 1;
+                    repeat 3 {
+                        if get_block_input(i, inputNum, b_input_dropdown_shape) == "square" {
+                            if get_block_input(i, inputNum, b_input_text) == $name {
+                                if $delete_block {
+                                    delete_block i;
+                                } else {
+                                    set_block_input i, inputNum, b_input_text, $replacement;
+                                }
+                            }
+                        }
+                        inputNum++;
+                    }
+                }
+            }
+
+            i += BLOCK_LENGTH;
+        }
+
+        # resize blocks before saving
+        update_all_blocks_sizes;
+        update_all_blocks_c_styles;
+
+        save_current_sprite spriteNum;
+
+        spriteNum++;
+    }
+    load_sprite selected_sprite;
 }
 
 proc open_dropdown {

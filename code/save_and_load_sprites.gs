@@ -9,7 +9,7 @@ proc switch_selected_sprite sprite, save=true {
     redraw;
 }
 
-proc save_current_sprite {
+proc save_current_sprite target="" {
     start = days_since_2000();
     # code
 
@@ -44,7 +44,7 @@ proc save_current_sprite {
         save_block i;
         i += BLOCK_LENGTH;
     }
-    sprites[selected_sprite].blocks = save_code;
+    sprites[if ($target > "") $target else selected_sprite].blocks = save_code;
 
     # variables
     save_code = "";
@@ -53,7 +53,7 @@ proc save_current_sprite {
         save_code &= escape(local_vars[i], ",") & ",";
         i++;
     }
-    sprites[selected_sprite].vars = save_code;
+    sprites[if ($target > "") $target else selected_sprite].vars = save_code;
 
     # lists
     save_code = "";
@@ -62,7 +62,7 @@ proc save_current_sprite {
         save_code &= escape(local_lists[i], ",") & ",";
         i++;
     }
-    sprites[selected_sprite].lists = save_code;
+    sprites[if ($target > "") $target else selected_sprite].lists = save_code;
 
     log "saving took " & round((days_since_2000() - start) * 86400000) & " ms";
 }
