@@ -1388,33 +1388,53 @@ proc update_c_end_styles idx {
     b_prong_3_style($idx) = if (slot_2_end_style > "") slot_2_end_style else "normal";
 }
 
-proc delete_block idx, remove_items=false, entire_stack=false { # doesn't delete nested blocks
-    local blockIdx = $idx;
-    local parentIdx = b_parent(blockIdx);
-    if b_nesting_level(blockIdx) == 0 {
-        if b_previous(blockIdx) > "" {
-            b_next(b_previous(blockIdx)) = b_next(blockIdx);
-        } else {
-            if b_slot_1_nested_block(parentIdx) == $idx {
-                b_slot_1_nested_block(parentIdx) = b_next(blockIdx);
-            }
-            if b_slot_2_nested_block(parentIdx) == $idx {
-                b_slot_2_nested_block(parentIdx) = b_next(blockIdx);
-            }
+proc delete_block idx, remove_items=false {
+    parentIdx = b_parent($idx);
+    if b_previous($idx) > "" {
+        b_next(b_previous($idx)) = b_next($idx);
+    } else {
+        if b_slot_1_nested_block(parentIdx) == $idx {
+            b_slot_1_nested_block(parentIdx) = b_next($idx);
         }
-        if b_next(blockIdx) > "" {
-            b_previous(b_next(blockIdx)) = b_previous(blockIdx);
-            move_block_position b_next(blockIdx), 0, b_height(blockIdx);
+        if b_slot_2_nested_block(parentIdx) == $idx {
+            b_slot_2_nested_block(parentIdx) = b_next($idx);
         }
-
-        update_c_end_styles parentIdx;
     }
+    if b_next($idx) > "" {
+        b_previous(b_next($idx)) = b_previous($idx);
+        if $idx in roots {
+            # if removing current block from roots, make sure to add next block to roots
+            delete roots[$idx in roots];
+            add b_next($idx) to roots;
+        } else {
+            # only move next block up if it's in the middle of the stack
+            move_block_position b_next($idx), 0, b_height($idx);
+        }
+    }
+
+    # delete inputs
+    if (b_input1_nested_block($idx) > "") {delete_block b_input1_nested_block($idx);}
+    if (b_input2_nested_block($idx) > "") {delete_block b_input2_nested_block($idx);}
+    if (b_input3_nested_block($idx) > "") {delete_block b_input3_nested_block($idx);}
+    if (b_slot_1_nested_block($idx) > "") {delete_block b_slot_1_nested_block($idx);}
+    if (b_slot_2_nested_block($idx) > "") {delete_block b_slot_2_nested_block($idx);}
+
+    parentIdx = b_parent($idx);
+
+    if parentIdx > "" { # remove parent references
+        if b_input1_nested_block(parentIdx) == $idx {b_input1_nested_block(parentIdx) = "";}
+        if b_input2_nested_block(parentIdx) == $idx {b_input2_nested_block(parentIdx) = "";}
+        if b_input3_nested_block(parentIdx) == $idx {b_input3_nested_block(parentIdx) = "";}
+        if b_slot_1_nested_block(parentIdx) == $idx {b_slot_1_nested_block(parentIdx) = "";}
+        if b_slot_2_nested_block(parentIdx) == $idx {b_slot_2_nested_block(parentIdx) = "";}
+    }
+
     if $remove_items {
         repeat BLOCK_LENGTH {
-            delete blocks[blockIdx];
+            delete blocks[$idx];
         }
     } else {
-        local i = blockIdx;
+        local i = $idx;
         repeat BLOCK_LENGTH {
             blocks[i] = "";
             i++;
