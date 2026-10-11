@@ -232,16 +232,6 @@ onkey "s" {
     }
 }
 
-onkey "e" {
-    if RUNNING {
-        stop_this_script;
-    }
-    ask "New message name?";
-    if answer() > "" and not (answer() in broadcasts or answer() in broadcasts) {
-        add answer() to broadcasts;
-    }
-}
-
 onkey "up arrow" {
     if RUNNING {
         stop_this_script;
@@ -605,61 +595,9 @@ nowarp proc handle_input {
                     name = b_label1_text(hovered_block);
                     ask "Do you want to rename or delete this " & type & "? (enter \"rename\" or \"delete\")";
                     if answer() == "rename" {
-                        ask "What do you want to rename this " & type & " to? (current: \"" & name & "\")";
-                        if type == "variable" {
-                            # rename variable
-                            if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
-                                if (name in local_vars) {
-                                    local_vars[name in local_vars] = answer();
-                                    edit_data_item type, "local", name, answer();
-                                }
-                                if (name in global_vars) {
-                                    global_vars[name in global_vars] = answer();
-                                    edit_data_item type, "global", name, answer();
-                                }
-                            } else {
-                                ask "Invalid name (press enter to close)";
-                            }
-                        } else {
-                            # rename list
-                            if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
-                                if (name in local_lists) {
-                                    local_lists[name in local_lists] = answer();
-                                    edit_data_item type, "local", name, answer();
-                                }
-                                if (name in global_lists) {
-                                    global_lists[name in global_lists] = answer();
-                                    edit_data_item type, "global", name, answer();
-                                }
-                            } else {
-                                ask "Invalid name (press enter to close)";
-                            }
-                        }
+                        rename_data type, name;
                     } elif answer() == "delete" {
-                        ask "Are you sure you want to delete all instances of the \"" & name & "\" " & type & "?(y/n)";
-                        if "y" in answer() {
-                            if type == "variable" {
-                                # delete variable
-                                if (name in local_vars) {
-                                    delete local_vars[(name in local_vars)];
-                                    edit_data_item type, "local", name, delete_block: true;
-                                }
-                                if (name in global_vars) {
-                                    delete global_vars[(name in global_vars)];
-                                    edit_data_item type, "global", name, delete_block: true;
-                                }
-                            } else {
-                                # delete list
-                                if (name in local_lists) {
-                                    delete local_lists[(name in local_lists)];
-                                    edit_data_item type, "local", name, delete_block: true;
-                                }
-                                if (name in global_lists) {
-                                    delete global_lists[(name in global_lists)];
-                                    edit_data_item type, "global", name, delete_block: true;
-                                }
-                            }
-                        }
+                        delete_data type, name;
                     }
                     handle_palette_vars;
                     handle_palette_lists;
@@ -722,7 +660,7 @@ nowarp proc handle_input {
                             }
                             if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
                                 dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
-                                set_block_input hovered_block, hovered_input, b_input_text, dropdown_data[dropdown_hovered + 1];
+                                handle_dropdown_item_click b_category(hovered_block), dropdown_data[dropdown_hovered + 1];
                                 propagate_size_change hovered_block;
                             }
 
@@ -834,6 +772,98 @@ nowarp proc handle_input {
             }
         }
     }
+}
+
+proc rename_data type, name {
+    ask "What do you want to rename this " & $type & " to? (current: \"" & $name & "\")";
+    if $type == "variable" {
+        # rename variable
+        if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
+            if ($name in local_vars) {
+                local_vars[$name in local_vars] = answer();
+                edit_data_item $type, "local", $name, answer();
+            }
+            if ($name in global_vars) {
+                global_vars[$name in global_vars] = answer();
+                edit_data_item $type, "global", $name, answer();
+            }
+        } else {
+            ask "Invalid name (press enter to close)";
+        }
+    } else {
+        # rename list
+        if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
+            if ($name in local_lists) {
+                local_lists[$name in local_lists] = answer();
+                edit_data_item $type, "local", $name, answer();
+            }
+            if ($name in global_lists) {
+                global_lists[$name in global_lists] = answer();
+                edit_data_item $type, "global", $name, answer();
+            }
+        } else {
+            ask "Invalid name (press enter to close)";
+        }
+    }
+}
+
+proc delete_data type, name {
+    ask "Are you sure you want to delete all instances of the \"" & $name & "\" " & $type & "?(y/n)";
+    if "y" in answer() {
+        if $type == "variable" {
+            # delete variable
+            if ($name in local_vars) {
+                delete local_vars[($name in local_vars)];
+                edit_data_item $type, "local", $name, delete_block: true;
+            }
+            if ($name in global_vars) {
+                delete global_vars[($name in global_vars)];
+                edit_data_item $type, "global", $name, delete_block: true;
+            }
+        } else {
+            # delete list
+            if ($name in local_lists) {
+                delete local_lists[($name in local_lists)];
+                edit_data_item $type, "local", $name, delete_block: true;
+            }
+            if ($name in global_lists) {
+                delete global_lists[($name in global_lists)];
+                edit_data_item $type, "global", $name, delete_block: true;
+            }
+        }
+    }
+}
+
+nowarp proc handle_dropdown_item_click category, value {
+    if $category == Category.Events {
+        if $value == "New message" {
+            ask "New message name?";
+            if answer() > "" and not (answer() in broadcasts or answer() in broadcasts) {
+                add answer() to broadcasts;
+                INSERTION_SORT(broadcasts);
+            }
+            b_input1_text(hovered_block) = answer();
+            stop_this_script;
+        }
+    } elif $category == Category.Variables or $category == Category.Lists {
+        val = get_block_input(hovered_block, hovered_input, b_input_text); # current value of the dropdown
+        type = if ($category == Category.Variables) "variable" else "list"; # whether it's a variable or list
+       
+        if $value == "Delete the \"" & val & "\" " & type {
+            delete_data type, val;
+            stop_this_script;
+        }
+        if $value == "Rename " & type {
+            rename_data type, val;
+            stop_this_script;
+        }
+    }
+    # if there were no special actions applied, just set the value
+    set_block_input hovered_block, hovered_input, b_input_text, $value;
+}
+
+proc update_palette_broadcasts {
+    update_palette_dropdown_values ("event_whenbroadcastreceived" in blocks), ("event_broadcastandwait" in blocks), broadcasts[1];
 }
 
 nowarp proc ui_new_variable msg="" {

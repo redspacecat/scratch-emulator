@@ -165,6 +165,7 @@ proc load_sprite sprite, do_size_updates=true {
     }
     handle_palette_vars;
     handle_palette_lists;
+    update_palette_broadcasts;
     
     # load code
     local bl = sprites[$sprite].blocks;
