@@ -586,7 +586,19 @@ nowarp proc handle_input {
         hovered_block = if (mouse_x() > PALETTE_MIN_X) find_hovered_block(mx, my) else 0;
         if hovered_block > 0 {
             wait_until((not mouse_down()) or abs(mouse_x() + scroll_x_offset - mx) > 2 or abs(mouse_y() + scroll_y_offset - my) > 2);
-            if not mouse_down() {
+
+            if b_category(hovered_block) == Category.Variables and length local_vars == 0 and length global_vars == 0 {
+                # if you try to use a variable block but have no variables, prompt to make one
+                ui_new_variable "You must create a variable before you can do that! ";
+                stop_this_script;
+            }
+            if b_category(hovered_block) == Category.Lists and length local_lists == 0 and length global_lists == 0 {
+                # if you try to use a list block but have no lists, prompt to make one
+                ui_new_list "You must create a list before you can do that! ";
+                stop_this_script;
+            }
+            
+            if not mouse_down() { # clicked on block
                 if b_opcode(hovered_block) == "data_variable" or b_opcode(hovered_block) == "datalist_listcontents" {
                     # handle variable and list actions
                     type = if (b_opcode(hovered_block) == "data_variable") "variable" else "list";
@@ -624,7 +636,7 @@ nowarp proc handle_input {
                             }
                         }
                     } elif answer() == "delete" {
-                        ask "Are you sure you want to delete the \"" & name & "\" " & type & "? (y/n)";
+                        ask "Are you sure you want to delete all instances of the \"" & name & "\" " & type & "?(y/n)";
                         if "y" in answer() {
                             if type == "variable" {
                                 # delete variable
@@ -803,32 +815,10 @@ nowarp proc handle_input {
                 # new variable and list button click handling
                 wait_until(not(mouse_down()));
                 if new_variable_btn_hovered {
-                    ask "New variable type: (enter \"local\" for \"this sprite only\" and \"global\" for \"for all sprites\")";
-                    type = answer();
-                    if type == "local" or type == "l" or type == "global" or type == "g" {
-                        ask "New variable name?";
-                        if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
-                            if type == "local" or type == "l" {
-                                new_variable "local", answer();
-                            } else {
-                                new_variable "global", answer();
-                            }
-                        }
-                    }
+                    ui_new_variable;
                 }
                 if new_list_btn_hovered {
-                    ask "New list type: (enter \"local\" for \"this sprite only\" and \"global\" for \"for all sprites\")";
-                    type = answer();
-                    if type == "local" or type == "l" or type == "global" or type == "g" {
-                        ask "New list name?";
-                        if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
-                            if type == "local" or type == "l" {
-                                new_list "local", answer();
-                            } else {
-                                new_list "global", answer();
-                            }
-                        }
-                    }
+                    ui_new_list;
                 }
             } elif not SPRITES_SHOWN {
                 # if not moving a block or clicking on a button, drag the code area
@@ -841,6 +831,36 @@ nowarp proc handle_input {
                     my = mouse_y();
                     redraw;
                 }
+            }
+        }
+    }
+}
+
+nowarp proc ui_new_variable msg="" {
+    ask $msg & "New variable type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+    type = answer();
+    if type == "local" or type == "l" or type == "global" or type == "g" {
+        ask "New variable name?";
+        if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
+            if type == "local" or type == "l" {
+                new_variable "local", answer();
+            } else {
+                new_variable "global", answer();
+            }
+        }
+    }
+}
+
+nowarp proc ui_new_list msg="" {
+    ask $msg & "New list type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+    type = answer();
+    if type == "local" or type == "l" or type == "global" or type == "g" {
+        ask "New list name?";
+        if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
+            if type == "local" or type == "l" {
+                new_list "local", answer();
+            } else {
+                new_list "global", answer();
             }
         }
     }
@@ -1273,6 +1293,12 @@ proc handle_palette_vars {
     move_blocks_in_palette_down ("data_setvariableto" in blocks), y_change;
     # shift block indexes down
     shift_block_indexes_down PALETTE_END, PALETTE_END - idx_change - 1, idx_change;
+
+    # update the default value in the dropdowns
+    default_val = global_vars[1];
+    if default_val == "" { default_val = local_vars[1]; }
+    if default_val == "" { default_val = ""; }
+    update_palette_dropdown_values ("data_setvariableto" in blocks), ("data_hidevariable" in blocks), default_val;
 }
 
 proc handle_palette_lists {
@@ -1365,6 +1391,29 @@ proc handle_palette_lists {
     move_blocks_in_palette_down ("datalist_addtolist" in blocks), y_change;
     # shift block indexes down
     shift_block_indexes_down PALETTE_END, PALETTE_END - idx_change - 1, idx_change;
+
+    # update the default value in the dropdowns
+    default_val = global_lists[1];
+    if default_val == "" { default_val = local_lists[1]; }
+    if default_val == "" { default_val = ""; }
+    update_palette_dropdown_values ("datalist_addtolist" in blocks), ("datalist_hidelist" in blocks), default_val;
+
+}
+
+proc update_palette_dropdown_values from_idx, to_idx, val {
+    local idx = $from_idx;
+    until idx > $to_idx {
+        inputNum = 1;
+        repeat 3 {
+            if get_block_input(idx, inputNum, b_input_dropdown_shape) > "" {
+                set_block_input idx, inputNum, b_input_text, $val;
+                update_block_dimensions idx;
+            }
+            inputNum++;
+        }
+
+        idx += BLOCK_LENGTH;
+    }
 }
 
 proc move_blocks_in_palette_down idx, change {
