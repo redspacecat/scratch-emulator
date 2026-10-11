@@ -1406,7 +1406,7 @@ proc delete_block idx, remove_items=false {
             add b_next($idx) to roots;
         } else {
             # only move next block up if it's in the middle of the stack
-            move_block_position b_next($idx), 0, b_height($idx);
+            # we move the block further down after updating the size to prevent issues
         }
     }
 
@@ -1427,6 +1427,16 @@ proc delete_block idx, remove_items=false {
         if b_slot_2_nested_block(parentIdx) == $idx {b_slot_2_nested_block(parentIdx) = "";}
     }
 
+    if parentIdx > "" {
+        propagate_size_change parentIdx;
+    }
+
+    # move block AFTER updating the size, which happens after removing all nested blocks in inputs
+    # this makes sure that the height being changed is the actual correct height
+    if b_next($idx) > "" {
+        move_block_position b_next($idx), 0, b_height($idx);
+    }
+
     if $remove_items {
         repeat BLOCK_LENGTH {
             delete blocks[$idx];
@@ -1438,9 +1448,7 @@ proc delete_block idx, remove_items=false {
             i++;
         }
     }
-    if parentIdx > "" {
-        propagate_size_change parentIdx;
-    }
+
     if $idx in roots {
         delete roots[$idx in roots];
     }
