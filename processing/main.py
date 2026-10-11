@@ -15,7 +15,7 @@ PATH_SOURCE_PROJECT = os.path.join(ROOT_DIR, PROJECT_NAME)
 PATH_TARGET_PROJECT = temp_path
 
 with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as project:
-    project.order_sprites(['blank', 'editor', 'renderer', 'compiler', 'runner'])
+    project.order_sprites(['blank', 'editor', 'renderer', 'compiler', 'runner', 'save & load'])
     project.remove_field_text()
     project.move_turbowarp_comment()
 

@@ -51,7 +51,7 @@ struct Tri {
     y3
 }
 
-proc init_editor all { # all param is for initializing the editor for the first time, when project is first loaded
+nowarp proc init_editor all { # all param is for initializing the editor for the first time, when project is first loaded
     delete roots;
     delete dragged_blocks;
     delete local_vars;
@@ -65,9 +65,7 @@ proc init_editor all { # all param is for initializing the editor for the first 
         delete global_lists;
 
         delete sprites;
-        add Sprite {name: "Cat", costume: 1} to sprites;
-        add Sprite {name: "Dango Cat", costume: 3} to sprites;
-        add Sprite {name: "Gobo", costume: 5} to sprites;
+        broadcast_and_wait "init_new_project";
 
         parse_block_palette;
         create_palette_lookup;
@@ -127,20 +125,26 @@ onflag {
 
         broadcast "start_workspace";
     } else {
-        RUNNING = true;
-
-        compile;
-        broadcast_and_wait "create_sprites";
-        broadcast_and_wait "init_runtime";
-        broadcast_and_wait "run";
-
-        wait 0.5;
-
-        broadcast_and_wait "stop_program";
-        RUNNING = false;
-
-        broadcast "start_workspace";
+        broadcast_and_wait "handle_run_project";
     }
+}
+
+on "handle_run_project" {
+    erase_all;
+    stop_other_scripts;
+    RUNNING = true;
+
+    compile;
+    broadcast_and_wait "create_sprites";
+    broadcast_and_wait "init_runtime";
+    broadcast_and_wait "run";
+
+    wait 0.5;
+
+    broadcast_and_wait "stop_program";
+    RUNNING = false;
+
+    broadcast "start_workspace";
 }
 
 on "start_workspace" {
@@ -497,14 +501,19 @@ nowarp proc handle_input {
     }
     if hovered_menu_button > 0 {
         wait_until(not(mouse_down()));
-        if hovered_menu_button == 10 {
-            # new
-        } elif hovered_menu_button == 13 {
+        if hovered_menu_button == 10 { # new
+            ask "Are you sure you want to make a new project? The current project will be overwritten. (y/n)";
+            if "y" in answer() {
+                broadcast_and_wait "new_project";
+            }
+        } elif hovered_menu_button == 13 { # save
             broadcast_and_wait "save";
             stop_this_script;
-        } elif hovered_menu_button == 16 {
+        } elif hovered_menu_button == 16 { # load
             broadcast_and_wait "load";
             stop_this_script;
+        } elif hovered_menu_button == 19 { # run
+            broadcast_and_wait "handle_run_project";
         }
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
