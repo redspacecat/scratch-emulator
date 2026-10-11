@@ -26,6 +26,7 @@ list stack;
 list args;
 list tmp_args; # for storing args for longer running blocks
 list Var runtime_local_vars;
+list r_local_lists;
 list threads;
 list received_messages;
 
@@ -47,6 +48,19 @@ proc init {
     i = 1;
     repeat length global_vars {
         add Var {name: global_vars[i], val: 0} to runtime_global_vars;
+        i++;
+    }
+
+    list_identifier = ""; # to make sure indentifying list names is unique, as items and names are all stored in the same list
+    repeat 10 {
+        list_identifier &= "abcdefghijklmnopqrstuvwxyz0123456789`-=[]\\;',./~!@#$%^&*()_+{}|:\"<>? "[random(1, 69)];
+    }
+
+    delete r_global_lists;
+    i = 1;
+    repeat length global_lists {
+        add list_identifier & global_lists[i] to r_global_lists;
+        add 0 to r_global_lists;
         i++;
     }
 }
@@ -247,6 +261,7 @@ proc init_runtime {
     # vars and lists will be created as needed
     # if it's global, it uses that, otherwise a local var/list is created
     delete runtime_local_vars;
+    delete r_local_lists;
     delete threads; # thread has: pos, status, start time, message id
     delete messages;
 

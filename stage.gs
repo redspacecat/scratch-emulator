@@ -103,6 +103,7 @@ struct Var {
 list AsyncAction async_actions;
 # global vars for the runtime
 list Var runtime_global_vars;
+list r_global_lists;
 
 var selected_workspace;
 
