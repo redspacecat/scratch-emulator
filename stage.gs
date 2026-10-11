@@ -76,8 +76,8 @@ list message_names;
 list opcode_lookup "assets/data/opcodes.txt";
 
 struct Sprite {
-    name,
-    costume,
+    name="",
+    costume="",
     blocks="",
     vars="",
     lists=""
@@ -109,3 +109,5 @@ var selected_workspace;
 
 list global_vars;
 list global_lists;
+
+list save_code_output;

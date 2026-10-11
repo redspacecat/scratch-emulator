@@ -150,6 +150,10 @@ on "start_workspace" {
     broadcast "start_editor";
 }
 
+on "stop_workspace" {
+    stop_other_scripts;
+}
+
 on "start_editor" {
     init_editor first_time;
     broadcast "render_loop";
@@ -159,6 +163,12 @@ on "start_editor" {
     if not $tw_is_turbowarp {
         broadcast "lag_mode_checker";
     }
+}
+
+on "load_finished" {
+    switch_selected_sprite 1, save: false;
+    selected_workspace = Workspace.Code;
+    broadcast "start_workspace";
 }
 
 on "menu_bar" {
@@ -372,6 +382,7 @@ on "ui_handle_loop" {
             } else {
                 highlighted_costume = find_hovered_costume(mouse_x(), mouse_y());
             }
+            redraw;
         }
 
         # sprite list
@@ -483,6 +494,18 @@ nowarp proc handle_input {
         log "starting workspace " & selected_workspace;
         broadcast "start_workspace";
         stop_this_script;
+    }
+    if hovered_menu_button > 0 {
+        wait_until(not(mouse_down()));
+        if hovered_menu_button == 10 {
+            # new
+        } elif hovered_menu_button == 13 {
+            broadcast_and_wait "save";
+            stop_this_script;
+        } elif hovered_menu_button == 16 {
+            broadcast_and_wait "load";
+            stop_this_script;
+        }
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
         wait_until(not mouse_down());

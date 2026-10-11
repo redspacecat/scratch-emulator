@@ -7,6 +7,13 @@ proc switch_selected_sprite sprite, save=true {
     load_sprite $sprite;
     selected_sprite = $sprite;
     redraw;
+
+    SCROLL_X = 30;
+    SCROLL_Y = 15;
+}
+
+on "save_current_sprite" {
+    save_current_sprite;
 }
 
 proc save_current_sprite target="" {

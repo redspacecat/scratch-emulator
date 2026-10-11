@@ -49,9 +49,13 @@ on "render_editor" {
         render_palette_sidebar;
         render_dragged_blocks;
     } elif selected_workspace == Workspace.Costumes {
-        render_costumes;
+        if REDRAW {
+            render_costumes;
+        }
     } else {
-        render_sounds;
+        if REDRAW {
+            render_sounds;
+        }
     }
     render_menubar;
     render_sprite_sidebar;

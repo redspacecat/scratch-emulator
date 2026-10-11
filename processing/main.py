@@ -21,24 +21,23 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
 
     # Add the monitors
 
-    # def add_list_monitor(name: str):
-    #     monitor_data = {
-    #         "id": name,
-    #         "mode": "list",
-    #         "opcode": "data_listcontents",
-    #         "params": {"LIST": name},
-    #         "spriteName": None,
-    #         "value": [],
-    #         "width": 400,
-    #         "height": 230,
-    #         "x": 40,
-    #         "y": 60,
-    #         "visible": False
-    #     }
-    #     project.project_data['monitors'].append(monitor_data)
+    def add_list_monitor(name: str):
+        monitor_data = {
+            "id": name,
+            "mode": "list",
+            "opcode": "data_listcontents",
+            "params": {"LIST": name},
+            "spriteName": None,
+            "value": [],
+            "width": 460,
+            "height": 115,
+            "x": 10,
+            "y": 122,
+            "visible": False
+        }
+        project.project_data['monitors'].append(monitor_data)
 
-    # add_list_monitor('copy_this')
-    # add_list_monitor('output')
+    add_list_monitor('save_code_output')
 
 
     # project.add_build_comment('Scratch Emulator\nCreated by redspacecat', "blank")
