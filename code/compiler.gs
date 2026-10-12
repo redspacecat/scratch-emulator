@@ -1,7 +1,5 @@
 %include code/opcodes
 
-list used_messages;
-
 proc compile {
     delete code;
     delete tmp_vars;
@@ -9,7 +7,6 @@ proc compile {
     delete message_receiver_count;
     delete received_messages_exec_count;
     delete message_names; # stores all unique messages
-    delete used_messages;
 
     save_current_sprite;
 
@@ -31,17 +28,6 @@ proc compile {
                 compile_root b_next(root_idx);
             }
             i++;
-        }
-
-        local idx = PALETTE_END;
-        repeat length blocks {
-            if b_opcode(idx) == "event_whenbroadcastreceived" or b_opcode(idx) == "event_broadcast" or b_opcode(idx) == "event_broadcastandwait" {
-                val = get_block_input(idx, 1, b_input_text);
-                if val not in used_messages {
-                    add val to used_messages;
-                }
-            }
-            idx += BLOCK_LENGTH;
         }
 
         spriteNum++;
@@ -69,10 +55,6 @@ proc compile {
         }
         i += 4;
     }
-
-    # remove unused messages
-    COPY(used_messages, broadcasts);
-    INSERTION_SORT(broadcasts);
 }
 
 proc compile_root root {

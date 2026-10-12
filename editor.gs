@@ -368,6 +368,7 @@ on "ui_handle_loop" {
 
             new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[23] - 26, x2: -205 + 82, y2: block_palette_text[23] - 8});
             new_list_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[32] - 26, x2: -205 + 62, y2: block_palette_text[32] - 8});
+            clean_messages_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[14] + 122, x2: -205 + 130, y2: block_palette_text[14] + 140});
         }
 
         if selected_workspace == Workspace.Costumes {
@@ -758,6 +759,9 @@ nowarp proc handle_input {
                 if new_list_btn_hovered {
                     ui_new_list;
                 }
+                if clean_messages_btn_hovered {
+                    delete_unused_messages;
+                }
             } elif not SPRITES_SHOWN {
                 # if not moving a block or clicking on a button, drag the code area
                 mx = mouse_x();
@@ -841,8 +845,8 @@ nowarp proc handle_dropdown_item_click category, value {
             if answer() > "" and not (answer() in broadcasts or answer() in broadcasts) {
                 add answer() to broadcasts;
                 INSERTION_SORT(broadcasts);
+                b_input1_text(hovered_block) = answer();
             }
-            b_input1_text(hovered_block) = answer();
             stop_this_script;
         }
     } elif $category == Category.Variables or $category == Category.Lists {
@@ -2604,4 +2608,41 @@ proc check_menu_buttons {
             i += 3;
         }
     }
+}
+
+proc delete_unused_messages {
+    delete broadcasts;
+
+    save_current_sprite;
+
+    spriteNum = 1;
+    repeat length sprites {
+        # load code into editor
+        load_sprite spriteNum, false;
+
+        local idx = PALETTE_END;
+        repeat length blocks {
+            if b_opcode(idx) == "event_whenbroadcastreceived" or b_opcode(idx) == "event_broadcast" or b_opcode(idx) == "event_broadcastandwait" {
+                val = get_block_input(idx, 1, b_input_text);
+                if val not in broadcasts {
+                    add val to broadcasts;
+                }
+            }
+            idx += BLOCK_LENGTH;
+        }
+
+        spriteNum++;
+    }
+
+    if length broadcasts == 0 {
+        add "message1" to broadcasts;
+    }
+
+    INSERTION_SORT(broadcasts);
+
+    load_sprite(selected_sprite);
+}
+
+onkey "d" {
+    delete_unused_messages;
 }

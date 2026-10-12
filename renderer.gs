@@ -322,6 +322,26 @@ proc render_palette_text {
     pen_up;
     set_pen_color "#000000";
     plain_text -200 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 20, 1, "Make a List", "l", true;
+
+    # remove unused broadcasts button
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
+    set_pen_color "#606060";
+    set_pen_size 18;
+    pen_down;
+    change_x 125;
+    pen_up;
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
+    if "editor"."clean_messages_btn_hovered" {
+        set_pen_color "#ececec";
+    } else {
+        set_pen_color "#ffffff";
+    }
+    set_pen_size 16;
+    pen_down;
+    change_x 125;
+    pen_up;
+    set_pen_color "#000000";
+    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 129, 1, "Removed Unused Messages", "l", true;
 }
 
 proc render_palette_sidebar {
