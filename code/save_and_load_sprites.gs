@@ -231,6 +231,10 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
             b_label3_x(idx) = b_x(idx) + Padding.start; # move "else" text to correct x position
         }
 
+        if b_opcode(idx) == "control_stop" and b_input1_text(idx) == "other scripts in sprite" {
+            b_end_style(idx) = "normal";
+        }
+
         load_bval idx, b_idx_input2_text, i, 5, false;
         load_bval idx, b_idx_input2_nested_block, i, 6;
         load_bval idx, b_idx_input3_text, i, 7, false;

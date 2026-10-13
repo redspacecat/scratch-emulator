@@ -861,6 +861,18 @@ nowarp proc handle_dropdown_item_click category, value {
             rename_data type, val;
             stop_this_script;
         }
+    } elif $category == Category.Control {
+        if b_opcode(hovered_block) == "control_stop" {
+            if $value == "other scripts in sprite" {
+                b_end_style(hovered_block) = "normal";
+            } else {
+                b_end_style(hovered_block) = "cap";
+            }
+            if b_parent(hovered_block) > "" {
+                propagate_size_change b_parent(hovered_block);
+                update_c_end_styles b_parent(hovered_block);
+            }
+        }
     }
     # if there were no special actions applied, just set the value
     set_block_input hovered_block, hovered_input, b_input_text, $value;
@@ -1196,6 +1208,12 @@ proc handle_custom_dropdown t {
             add_dropdown_item "Rename list";
             add_dropdown_item "Delete the \"" & get_block_input(dropdown, dropdown_input, b_input_text) & "\" list";
         }
+    } elif $t == "$stops$" {
+        if b_next(dropdown) == "" { # don't add cap-style block options if connected to a stack
+            add_dropdown_item "all";
+            add_dropdown_item "this script";
+        }
+        add_dropdown_item "other scripts in sprite";
     }
 }
 
@@ -1543,7 +1561,8 @@ proc delete_block idx, remove_items=false {
     }
 
     if parentIdx > "" {
-        propagate_size_change parentIdx;
+        propagate_size_change parentIdx; # update sizes
+        update_c_end_styles parentIdx; # make sure when blocks are deleted the c end style updates
     }
 
     # move block AFTER updating the size, which happens after removing all nested blocks in inputs
@@ -2641,8 +2660,4 @@ proc delete_unused_messages {
     INSERTION_SORT(broadcasts);
 
     load_sprite(selected_sprite);
-}
-
-onkey "d" {
-    delete_unused_messages;
 }

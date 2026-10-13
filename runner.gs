@@ -342,6 +342,9 @@ proc exec_threads {
     threadI = 1;
     repeat length threads / 5 {
         exec_one_thread threadI;
+        if threadI == 0 {
+            stop_this_script;
+        }
     }
 }
 
@@ -380,7 +383,7 @@ proc exec_one_thread threadPos {
         if stop_level == "script" {
             stop_thread current_thread;
         } elif stop_level == "sprite" {
-            stop_all_threads;
+            stop_other_threads;
         } else {
             stop_all_threads;
             broadcast "stop_program";
@@ -394,6 +397,18 @@ proc stop_all_threads {
     until length threads == 0 {
         stop_thread 1;
     }
+}
+
+proc stop_other_threads {
+    # to stop all other threads, we need to delete all threads before this thread and all threads after
+    repeat (threadI - 1) / 5{ # stops all threads before our current thread
+        stop_thread 1;
+    }
+
+    until length threads / 5 == 1 { # stops all threads after our current thread
+        stop_thread 2;
+    }
+    threadI = 0; # stop running threads and yield to next frame
 }
 
 proc exec_cmd cmd {

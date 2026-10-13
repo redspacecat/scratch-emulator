@@ -96,9 +96,7 @@ New message
 $messages$
 
 stops
-this script
-other scripts in sprite
-all
+$stops$
 
 cloneOptions
 myself

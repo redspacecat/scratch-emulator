@@ -9,6 +9,7 @@ proc exec_control cmd {
             stop_level = "script";
         } elif args[1] == "other scripts in sprite" {
             stop = true;
+            yield = p + 1; # after stopping threads, resume the next frame
             stop_level = "sprite";
         } elif args[1] == "all" {
             stop = true;
