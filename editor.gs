@@ -2618,7 +2618,7 @@ proc delete_unused_messages {
     spriteNum = 1;
     repeat length sprites {
         # load code into editor
-        load_sprite spriteNum, false;
+        load_sprite spriteNum, false, false;
 
         local idx = PALETTE_END;
         repeat length blocks {

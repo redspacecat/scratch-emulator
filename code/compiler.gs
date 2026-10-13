@@ -13,7 +13,7 @@ proc compile {
     spriteNum = 1;
     repeat length sprites {
         # load code into editor
-        load_sprite spriteNum, false;
+        load_sprite spriteNum, false, false;
 
         # compile code
         local i = 1;

@@ -15,7 +15,12 @@ proc exec_motion cmd {
             } else { # go to - go to xy
                 if $cmd < Opcode.motion_gotoxy { # go to
                     pop 1;
-                    goto special_targets(1);
+                    target = special_targets(1);
+                    if target[1] == "_" {
+                        goto target;
+                    } else {
+                        goto s_info((target in sprites.name), s_info_x), s_info((target in sprites.name), s_info_y);
+                    }
                 } else { # go to xy
                     pop 2;
                     goto args[1], args[2];
@@ -47,7 +52,14 @@ proc exec_motion cmd {
                     point_in_direction args[1];
                 } else { # point towards
                     pop 1;
-                    point_towards special_targets(1);
+                    target = special_targets(1);
+                    if target[1] == "_" {
+                        point_towards target[1];
+                    } else {
+                        x = s_info((target in sprites.name), s_info_x);
+                        y = s_info((target in sprites.name), s_info_y);
+                        point_in_direction atan((x - x_position()) / (y - y_position() + "0")) + (180 * (y < y_position()));
+                    }
                 }
             }
         }
@@ -100,7 +112,12 @@ proc exec_motion cmd {
 on "exec_glide_to" {
     check_async_action "glide_to";
     if action_status {
-        glide special_targets_tmp(2), tmp_args[1];
+        target = special_targets_tmp(2);
+        if target[1] == "_" {
+            glide target, tmp_args[1];
+        } else {
+            glide s_info((target in sprites.name), s_info_x), s_info((target in sprites.name), s_info_y), tmp_args[1];
+        }
         log "finished glide";
     }
 }

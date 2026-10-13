@@ -137,7 +137,7 @@ func escape(text, char) {
 list tokens;
 list sort_order;
 
-proc load_sprite sprite, do_size_updates=true {
+proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
     start = days_since_2000();
 
     # delete blocks;
@@ -151,21 +151,26 @@ proc load_sprite sprite, do_size_updates=true {
         delete blocks[length blocks];
     }
 
-    # load variables and lists
-    # parse_block_palette;
-    j = 1;
-    until j > length sprites[$sprite].vars {
-        parse_token ",", sprites[$sprite].vars;
-        add token to local_vars;
+    if $do_palette_updates {
+        # load variables and lists
+        # parse_block_palette;
+        j = 1;
+        until j > length sprites[$sprite].vars {
+            parse_token ",", sprites[$sprite].vars;
+            add token to local_vars;
+        }
+        j = 1;
+        until j > length sprites[$sprite].lists {
+            parse_token ",", sprites[$sprite].lists;
+            add token to local_lists;
+        }
+        handle_palette_vars;
+        handle_palette_lists;
+        update_palette_broadcasts;
+        # update property of target block
+        b_input2_text(("sensing_of" in blocks)) = sprites[1].name;
+        update_block_dimensions ("sensing_of" in blocks);
     }
-    j = 1;
-    until j > length sprites[$sprite].lists {
-        parse_token ",", sprites[$sprite].lists;
-        add token to local_lists;
-    }
-    handle_palette_vars;
-    handle_palette_lists;
-    update_palette_broadcasts;
     
     # load code
     local bl = sprites[$sprite].blocks;

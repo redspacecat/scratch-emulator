@@ -19,7 +19,14 @@ proc exec_sensing cmd {
                     push color_is_touching_color(args[1], args[2]);
                 } else { # distance to
                     pop 1;
-                    push distance_to(special_targets(1));
+                    target = special_targets(1);
+                    if target[1] == "_" {
+                        push distance_to(target);
+                    } else {
+                        x = s_info((target in sprites.name), s_info_x);
+                        y = s_info((target in sprites.name), s_info_y);
+                        push DIST(x_position(), y_position(), x, y);
+                    }
                 }
             }
         } else { # ask - mouse y
@@ -78,7 +85,17 @@ proc exec_sensing cmd {
         } else {
             if $cmd < Opcode.sensing_online {
                 if $cmd < Opcode.sensing_current { # () of ()
-
+                    pop 2;
+                    if args[1] == "x position" {
+                        val = s_info_x;
+                    }
+                    if args[1] == "y position" {
+                        val = s_info_y;
+                    }
+                    if args[1] == "direction" {
+                        val = s_info_dir;
+                    }
+                    push(s_info((args[2] in sprites.name), val));
                 } elif $cmd < Opcode.sensing_dayssince2000 { # current
                     pop 1;
                     if args[1] == "year" {

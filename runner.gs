@@ -6,6 +6,13 @@ sounds "assets/sounds/*";
 %define special_targets(num) if (args[num] in target_arg_lookup) target_arg_lookup[(args[num] in target_arg_lookup) + 1] else args[num]
 %define special_targets_tmp(num) if (tmp_args[num] in target_arg_lookup) target_arg_lookup[(tmp_args[num] in target_arg_lookup) + 1] else tmp_args[num]
 
+%include std/math
+
+%define s_info_x 1
+%define s_info_y 2
+%define s_info_dir 3
+%define s_info(id, offset) sprite_info[(id - 1) * 3 + offset]
+
 %include code/opcodes
 %include code/exec/extras
 %include code/exec/motion
@@ -32,6 +39,7 @@ list received_messages;
 
 list target_arg_lookup = [
     "random position", "_random_",
+    "random direction", "_random_",
     "mouse-pointer", "_mouse_",
     "edge", "_edge_",
     "myself", "_myself_"
@@ -62,6 +70,11 @@ proc init {
         add list_identifier & global_lists[i] to r_global_lists;
         add 0 to r_global_lists;
         i++;
+    }
+
+    delete sprite_info;
+    repeat length sprites * 3 {
+        add "" to sprite_info;
     }
 }
 
@@ -184,6 +197,15 @@ nowarp proc run {
     forever {
         check_messages;
         exec_threads;
+        update_shared_info;
+    }
+}
+
+proc update_shared_info { # updates properties that should be accessible to other sprites
+    if clone_id == "" {
+        s_info(sprite_id, s_info_x) = x_position();
+        s_info(sprite_id, s_info_y) = y_position();
+        s_info(sprite_id, s_info_dir) = direction();
     }
 }
 

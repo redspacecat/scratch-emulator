@@ -253,7 +253,7 @@ reset timer
 
 
 sensing_of,reporter
-[spriteProperties|backdrop #,of,{sprites|Stage
+[spriteProperties|x position,of,{sprites|
 
 
 sensing_current,reporter
