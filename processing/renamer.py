@@ -47,7 +47,7 @@ class ScratchProjectEditor:
         if "targets" not in self.project_data:
             return
 
-        # uild a map of custom block proccodes
+        # build a map of custom block proccodes
         proccode_map = {}
         for target in self.project_data["targets"]:
             if "blocks" in target and isinstance(target["blocks"], dict):
@@ -147,6 +147,8 @@ class ScratchProjectEditor:
                                     if isinstance(sub_item, list) and len(sub_item) >= 2:
                                         if sub_item[0] in (12, 13) and isinstance(sub_item[1], str):
                                             sub_item[1] = self._format_identifier(sub_item[1], is_var_or_list=True)
+                                        elif sub_item[0] == 11 and len(sub_item) >= 3 and isinstance(sub_item[1], str):
+                                            sub_item[1] = self._format_identifier(sub_item[1])
 
                     # custom blocks
                     if "mutation" in block and isinstance(block["mutation"], dict):
