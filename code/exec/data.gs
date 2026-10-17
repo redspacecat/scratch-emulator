@@ -168,6 +168,7 @@ proc list_get name, index {
 
 proc list_itemnum name, value {
     list_idx $name;
+    idx = 1;
     if list_scope == "local" {
         repeat l_local_len {
             if l_local_idx(idx) == $value {
@@ -185,6 +186,7 @@ proc list_itemnum name, value {
             idx++;
         }
     }
+    push 0;
 }
 
 proc list_length name {
