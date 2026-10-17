@@ -50,6 +50,7 @@ proc init {
     base_costume = costume_number() - 1;
     CURRENT_CLONE_ID = 0;
     CURRENT_BROADCAST_ID = 0;
+    hide;
 
     # copy global variables over so we know which variables are global and local
     delete runtime_global_vars;
@@ -76,6 +77,9 @@ proc init {
     repeat length sprites * 3 {
         add "" to sprite_info;
     }
+
+    program_inactivity = 0;
+    show program_inactivity;
 }
 
 on "create_sprites" {
@@ -164,14 +168,23 @@ on "run" {
     if sprite_id > "" {
         run;
     } else {
+        switch_costume "blank";
+        show;
         forever {
             LAST_SCREEN_REFRESH = days_since_2000();
+            program_inactivity++; # increase program inactivity counter
+            move 0;
         }
     }
 }
 
 on "stop_program" {
     delete threads;
+    delete_this_clone;
+}
+
+on "terminate_program" {
+    stop_other_scripts;
     delete_this_clone;
 }
 
@@ -287,8 +300,6 @@ proc init_runtime {
     delete threads; # thread has: pos, status, start time, message id
     delete messages;
 
-    init_sprite;
-
     soundI = 0;
     askI = 0;
     delete tmp_args;
@@ -339,6 +350,10 @@ proc unpause_thread idx {
 }
 
 proc exec_threads {
+    if length threads > 0 {
+        program_inactivity = 0;
+    }
+    
     threadI = 1;
     repeat length threads / 5 {
         exec_one_thread threadI;
