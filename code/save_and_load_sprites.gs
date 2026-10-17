@@ -2,14 +2,18 @@
 
 proc switch_selected_sprite sprite, save=true {
     if $save {
+        sprites[selected_sprite].scroll_x = SCROLL_X; # save scroll positions
+        sprites[selected_sprite].scroll_y = SCROLL_Y;
         save_current_sprite;
     }
     load_sprite $sprite;
     selected_sprite = $sprite;
     redraw;
 
-    SCROLL_X = 30;
-    SCROLL_Y = 15;
+    if $save {
+        SCROLL_X = sprites[selected_sprite].scroll_x;
+        SCROLL_Y = sprites[selected_sprite].scroll_y;
+    }
 }
 
 on "save_current_sprite" {

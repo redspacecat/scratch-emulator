@@ -275,7 +275,7 @@ onkey "down arrow" {
 }
 
 proc scroll_y amount {
-    scroll_amount = $amount * dt;
+    scroll_amount = round($amount * dt);
     if dropdown > 0 {
         if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
             dropdown_scroll += scroll_amount;
@@ -333,11 +333,11 @@ on "ui_handle_loop" {
         if selected_workspace == Workspace.Code {
             # input
             if key_pressed("left arrow") {
-                SCROLL_X -= 15 * dt;
+                SCROLL_X -= round(15 * dt);
                 redraw;
             }
             if key_pressed("right arrow") {
-                SCROLL_X += 15 * dt;
+                SCROLL_X += round(15 * dt);
                 redraw;
             }
             if key_pressed("up arrow") {

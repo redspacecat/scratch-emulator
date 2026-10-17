@@ -30,8 +30,8 @@ onclick {
 # for placement into and so they can be layered on top
 list dragged_blocks;
 
-var SCROLL_X = 30;
-var SCROLL_Y = 15;
+var SCROLL_X = 0;
+var SCROLL_Y = 0;
 var PALETTE_SCROLL_X = 0;
 var PALETTE_SCROLL_Y = 0;
 var PALETTE_MIN_X = -205;
@@ -80,7 +80,9 @@ struct Sprite {
     costume="",
     blocks="",
     vars="",
-    lists=""
+    lists="",
+    scroll_x=0,
+    scroll_y=0
 }
 
 list Sprite sprites;

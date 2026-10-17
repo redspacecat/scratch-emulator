@@ -158,4 +158,7 @@ proc load str {
         new_sprite.lists = token;
         add new_sprite to sprites;
     }
+
+    SCROLL_X = 0;
+    SCROLL_Y = 0;
 }
