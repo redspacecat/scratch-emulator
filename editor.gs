@@ -12,6 +12,9 @@ hide;
 
 %define base_boolean_width 18
 
+%define variable_category_end "data_changevariableby"
+%define list_category_end "datalist_listcontainsitem"
+
 list local_vars;
 list local_lists;
 
@@ -1356,7 +1359,7 @@ proc handle_palette_vars {
     default_val = global_vars[1];
     if default_val == "" { default_val = local_vars[1]; }
     if default_val == "" { default_val = ""; }
-    update_palette_dropdown_values ("data_setvariableto" in blocks), ("data_hidevariable" in blocks), default_val;
+    update_palette_dropdown_values ("data_setvariableto" in blocks), (variable_category_end in blocks), default_val;
 }
 
 proc handle_palette_lists {
@@ -1366,7 +1369,7 @@ proc handle_palette_lists {
     INSERTION_SORT(local_lists);
     INSERTION_SORT(global_lists);
 
-    local start_idx = ("data_hidevariable" in blocks) + BLOCK_LENGTH;
+    local start_idx = (variable_category_end in blocks) + BLOCK_LENGTH;
     local end_idx = "datalist_addtolist" in blocks;
 
     # remove all lists
@@ -1374,7 +1377,7 @@ proc handle_palette_lists {
         delete blocks[start_idx];
     }
 
-    local y = b_y(("data_hidevariable" in blocks)) - 98;
+    local y = b_y((variable_category_end in blocks)) - 98;
     local start_y = y;
     local i = 1;
     local pos = start_idx;
@@ -1454,7 +1457,7 @@ proc handle_palette_lists {
     default_val = global_lists[1];
     if default_val == "" { default_val = local_lists[1]; }
     if default_val == "" { default_val = ""; }
-    update_palette_dropdown_values ("datalist_addtolist" in blocks), ("datalist_hidelist" in blocks), default_val;
+    update_palette_dropdown_values ("datalist_addtolist" in blocks), (list_category_end in blocks), default_val;
 
 }
 

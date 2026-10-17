@@ -148,8 +148,6 @@ event_whenbackdropswitchesto,stack
 when backdrop switches to,{backdrops|backdrop1
 
 
-event_whengreaterthan,stack
-when,[greaterthan|loudness,>,(10
 
 
 
@@ -346,10 +344,6 @@ data_setvariableto,stack
 set,[variables|my variable,to,$0
 data_changevariableby,stack
 change,[variables|my variable,by,(1
-data_showvariable,stack
-show variable,[variables|my variable
-data_hidevariable,stack
-hide variable,[variables|my variable
 
 
 
@@ -394,12 +388,6 @@ datalist_lengthoflist,reporter
 length of,[lists|my list
 datalist_listcontainsitem,boolean
 [lists|my list,contains,$thing
-
-
-datalist_showlist,stack
-show list,[lists|my list
-datalist_hidelist,stack
-hide list,[lists|my list
 
 
 

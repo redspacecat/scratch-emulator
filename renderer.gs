@@ -90,7 +90,7 @@ proc render_blocks {
 
     if PALETTE_SHOWN {
         set_pen_size 0;
-        goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X, 180;
+        goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X - 1, 180;
         if LAG_MODE {
             pen_down;
             set_pen_color "#edf8fb";
