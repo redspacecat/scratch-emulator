@@ -971,7 +971,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
             pen_down;
             set_pen_size pen_size;
-            change_x $width - pen_size + 6;
+            set_x $x + pen_size / 2 + $width - pen_size + 6;
             pen_up;
         }
 
@@ -981,7 +981,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
         pen_down;
         set_pen_size pen_size;
-        change_x $width - pen_size + 2;
+        set_x $x + pen_size / 2 + $width - pen_size + 2;
         pen_up;
 
         pen_size = $height;
@@ -990,7 +990,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         goto $x + pen_size / 2, $y - pen_size / 2;
         pen_down;
         set_pen_size pen_size;
-        change_x $width - pen_size;
+        set_x $x + pen_size / 2 + $width - pen_size;
         pen_up;
     }
     elif $shape == "boolean" {
@@ -1247,7 +1247,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
                 goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
                 pen_down;
                 set_pen_size pen_size;
-                change_x $width - pen_size + 6;
+                set_x ($x + pen_size / 2 - 3) + ($width - pen_size + 6);
                 pen_up;
 
                 set_pen_transparency 0;
@@ -1267,7 +1267,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
             goto $x + pen_size / 2 - 1, $y - pen_size / 2 + 1;
             pen_down;
             set_pen_size pen_size;
-            change_x $width - pen_size + 2;
+            set_x ($x + pen_size / 2 - 1) + ($width - pen_size + 2);
             pen_up;
 
             if $dropdown_shape > "" {
@@ -1285,7 +1285,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
                 goto $x + pen_size / 2, $y - pen_size / 2;
                 pen_down;
                 set_pen_size pen_size;
-                change_x $width - pen_size;
+                set_x ($x + pen_size / 2) + ($width - pen_size);
                 pen_up;
             }
         } else {
