@@ -141,3 +141,5 @@ pen_changePenSizeBy
 pen_setPenSizeTo
 pen_isPenDown
 pen_penSize
+pen_printText
+pen_textWidth

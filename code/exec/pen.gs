@@ -55,8 +55,16 @@ proc exec_pen cmd {
                     var_pen_size = args[1];
                 } elif $cmd < Opcode.pen_penSize {
                     push var_pen_down == true;
-                } else {
+                } elif $cmd < Opcode.pen_printText {
                     push var_pen_size;
+                } elif $cmd < Opcode.pen_textWidth {
+                    # print text
+                    pop 3;
+                    safe_plain_text round(args[2]), round(args[3]), 1, args[1];
+                } else {
+                    # text width
+                    pop 1;
+                    push safe_width_of_text(args[1], 1);
                 }
             }
         }

@@ -31,8 +31,10 @@ proc exec_looks cmd {
                 if $cmd < Opcode.looks_nextcostume { # switch costume to
                     pop 1;
                     switch_costume args[1];
+                    post_costume_handle;
                 } elif $cmd < Opcode.looks_switchbackdropto { # next costume
                     next_costume;
+                    post_costume_handle;
                 } else { # switch backdrop to
                     pop 1;
                     switch_backdrop args[1];
@@ -119,7 +121,7 @@ proc exec_looks cmd {
                     if args[1] == "name" {
                         push costume_name();
                     } else {
-                        push costume_number();
+                        push costume_number() - base_costume;
                     }
                 } elif $cmd < Opcode.looks_size { # backdrop number name
                     pop 1;
@@ -149,5 +151,11 @@ on "exec_think" {
     if action_status {
         think tmp_args[8], tmp_args[9];
         log "finished think";
+    }
+}
+
+proc post_costume_handle {
+    if costume_number() < base_costume {
+        switch_costume costume_number() + base_costume;
     }
 }

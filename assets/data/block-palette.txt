@@ -418,3 +418,9 @@ pen_isPenDown,boolean
 @p     pen down?
 pen_penSize,reporter
 @p     pen size
+
+
+pen_printText,stack
+@p     print,$apple,at x:,(0,y:,(0
+pen_textWidth,reporter
+@p     width of,$banana

@@ -1,4 +1,5 @@
 %include code/PTE_font
+%include code/PTE_costumes
 
 %include std/list
 %include std/math

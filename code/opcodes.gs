@@ -141,5 +141,7 @@ enum Opcode {
     pen_changePenSizeBy=140,
     pen_setPenSizeTo=141,
     pen_isPenDown=142,
-    pen_penSize=143
+    pen_penSize=143,
+    pen_printText=144,
+    pen_textWidth=145
 }

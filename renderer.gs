@@ -1,7 +1,8 @@
 hide;
 
-%include code/PTE_font.gs
-%include code/helpful_utils.gs
+%include code/PTE_font
+%include code/PTE_costumes
+%include code/helpful_utils
 %include std/math
 
 costumes "assets/images/costumes/main/*";

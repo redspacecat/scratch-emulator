@@ -1,4 +1,5 @@
-# %include code/PTE_font
+%include code/PTE_font
+%include code/PTE_costumes_safe
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
 sounds "assets/sounds/*";
@@ -79,7 +80,6 @@ proc init {
     }
 
     program_inactivity = 0;
-    show program_inactivity;
 }
 
 on "create_sprites" {
@@ -353,7 +353,7 @@ proc exec_threads {
     if length threads > 0 {
         program_inactivity = 0;
     }
-    
+
     threadI = 1;
     repeat length threads / 5 {
         exec_one_thread threadI;
@@ -463,7 +463,7 @@ proc exec_cmd cmd {
                 exec_lists $cmd;
             } else {
                 # extensions and custom blocks
-                if $cmd <= Opcode.pen_penSize {
+                if $cmd <= Opcode.pen_textWidth {
                     exec_pen $cmd;
                 }
             }
