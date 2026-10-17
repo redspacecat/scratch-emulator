@@ -6,7 +6,7 @@ hide;
 
 var delimiter = "‖";
 var start_char = "§";
-var new_project = "§my variable,‖‖message1,‖Sprite1‖1‖;‖‖‖";
+var new_project_data = "§my variable,‖‖message1,‖Sprite1‖1‖;‖‖‖";
 
 onflag {
     hide save_code_output;
@@ -34,12 +34,12 @@ on "load" {
 }
 
 on "init_new_project" {
-    load new_project;
+    load new_project_data;
 }
 
 on "new_project" {
     broadcast_and_wait "stop_workspace";
-    load new_project;
+    load new_project_data;
     broadcast "load_finished";
 }
 
