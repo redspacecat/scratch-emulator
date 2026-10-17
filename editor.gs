@@ -259,7 +259,7 @@ onkey "up arrow" {
         stop_this_script;
     }
     if not key_pressed("up arrow") {
-        scroll_y 20;
+        scroll_y 30;
         redraw;
     }
 }
@@ -269,7 +269,7 @@ onkey "down arrow" {
         stop_this_script;
     }
     if not key_pressed("down arrow") {
-        scroll_y -20;
+        scroll_y -30;
         redraw;
     }
 }
