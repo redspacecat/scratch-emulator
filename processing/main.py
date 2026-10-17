@@ -30,7 +30,7 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
             "spriteName": None,
             "value": [],
             "width": 460,
-            "height": 115,
+            "height": 117,
             "x": 10,
             "y": 122,
             "visible": False
