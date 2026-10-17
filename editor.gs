@@ -170,6 +170,15 @@ on "start_editor" {
     if not $tw_is_turbowarp {
         broadcast "lag_mode_checker";
     }
+
+    forever {
+        count_fps;
+        dt = 10 / fps;
+        if dt > 3 {
+            dt = 3;
+        }
+        log dt;
+    }
 }
 
 on "load_finished" {
@@ -200,6 +209,15 @@ on "lag_mode_checker" {
 
     wait 15;
     broadcast "lag_mode_checker";
+}
+
+nowarp proc count_fps {
+    local fps_count = 0;
+    local start_timer = timer();
+    until timer() > start_timer + 1/3 {
+        fps_count++;
+    }
+    fps = fps_count;
 }
 
 proc check_past_fps {
@@ -257,9 +275,10 @@ onkey "down arrow" {
 }
 
 proc scroll_y amount {
+    scroll_amount = $amount * dt;
     if dropdown > 0 {
         if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
-            dropdown_scroll += $amount;
+            dropdown_scroll += scroll_amount;
             if dropdown_scroll > 0 {
                 dropdown_scroll = 0;
             }
@@ -270,7 +289,7 @@ proc scroll_y amount {
         }
     } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
-            PALETTE_SCROLL_Y += $amount;
+            PALETTE_SCROLL_Y += scroll_amount;
             if PALETTE_SCROLL_Y < palette_y_max {
                 PALETTE_SCROLL_Y = palette_y_max;
             }
@@ -279,7 +298,7 @@ proc scroll_y amount {
             }
         } elif mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
             if length sprites > 4 { # don't allow scrolling if we don't have enough sprites
-                SPRITES_SCROLL_Y += $amount;
+                SPRITES_SCROLL_Y += scroll_amount;
                 if SPRITES_SCROLL_Y < length sprites * -67 + 315 {
                     SPRITES_SCROLL_Y = length sprites * -67 + 315;
                 }
@@ -288,7 +307,7 @@ proc scroll_y amount {
                 }
             }
         } else {
-            SCROLL_Y += $amount;
+            SCROLL_Y += scroll_amount;
         }
     }
     redraw;
@@ -314,11 +333,11 @@ on "ui_handle_loop" {
         if selected_workspace == Workspace.Code {
             # input
             if key_pressed("left arrow") {
-                SCROLL_X -= 15;
+                SCROLL_X -= 15 * dt;
                 redraw;
             }
             if key_pressed("right arrow") {
-                SCROLL_X += 15;
+                SCROLL_X += 15 * dt;
                 redraw;
             }
             if key_pressed("up arrow") {
