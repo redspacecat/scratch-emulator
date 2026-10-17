@@ -90,16 +90,16 @@ proc render_blocks {
 
     if PALETTE_SHOWN {
         set_pen_size 0;
-        goto -102 - PALETTE_SCROLL_X, 180;
-        pen_down;
+        goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X, 180;
         if LAG_MODE {
+            pen_down;
             set_pen_color "#edf8fb";
-            set_pen_size 224;
-            change_x 8;
+            set_pen_size 205 + PALETTE_MAX_X;
         } else {
+            pen_down;
             set_pen_color "#e5f4f8";
             set_pen_transparency 30;
-            set_pen_size 208;
+            set_pen_size 205 + PALETTE_MAX_X;
         }
         change_y -360;
         pen_up;
@@ -112,7 +112,7 @@ proc render_blocks {
 
         set_pen_size 4;
         set_pen_color "#bebebe";
-        goto PALETTE_MAX_X - 2 - PALETTE_SCROLL_X, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
+        goto PALETTE_MAX_X - 4 - PALETTE_SCROLL_X, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
         pen_down;
         change_y -30;
         pen_up;

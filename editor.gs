@@ -217,6 +217,7 @@ proc check_past_fps {
 proc set_lag_mode state {
     LAG_MODE = $state;
     PALETTE_MAX_X = if ($state) 16 else 0;
+    update_palette_max_width;
 }
 
 onkey "s" {
@@ -421,7 +422,7 @@ on "ui_handle_loop" {
             }
         }
 
-        if not LAG_MODE {
+        if (not LAG_MODE) or lag_mode_override {
             redraw;
         }
     }
@@ -663,6 +664,7 @@ nowarp proc handle_input {
                                 dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
                                 handle_dropdown_item_click b_category(hovered_block), dropdown_data[dropdown_hovered + 1];
                                 propagate_size_change hovered_block;
+                                update_palette_max_width;
                             }
 
                             close_dropdown;
@@ -809,10 +811,11 @@ proc rename_data type, name {
             ask "Invalid name (press enter to close)";
         }
     }
+    update_palette_max_width;
 }
 
 proc delete_data type, name {
-    ask "Are you sure you want to delete all instances of the \"" & $name & "\" " & $type & "?(y/n)";
+    ask "Are you sure you want to delete all instances of the \"" & $name & "\" " & $type & "? (y/n)";
     if "y" in answer() {
         if $type == "variable" {
             # delete variable
@@ -835,6 +838,7 @@ proc delete_data type, name {
                 edit_data_item $type, "global", $name, delete_block: true;
             }
         }
+        update_palette_max_width;
     }
 }
 
@@ -893,6 +897,7 @@ nowarp proc ui_new_variable msg="" {
             } else {
                 new_variable "global", answer();
             }
+            update_palette_max_width;
         }
     }
 }
@@ -908,6 +913,7 @@ nowarp proc ui_new_list msg="" {
             } else {
                 new_list "global", answer();
             }
+            update_palette_max_width;
         }
     }
 }
@@ -2660,4 +2666,22 @@ proc delete_unused_messages {
     INSERTION_SORT(broadcasts);
 
     load_sprite(selected_sprite);
+}
+
+proc update_palette_max_width {
+    if LAG_MODE == false {
+        stop_this_script;
+    }
+
+    local idx = 1;
+    until idx == PALETTE_END {
+        if b_width(idx) > 221 { # -205 (start x), 16 (max palette x) = 221
+            lag_mode_override = true; # override lazy redrawing
+            stop_this_script;
+        }
+        idx += BLOCK_LENGTH;
+    }
+
+    lag_mode_override = false;
+    redraw;
 }

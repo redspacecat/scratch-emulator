@@ -167,6 +167,7 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
         handle_palette_vars;
         handle_palette_lists;
         update_palette_broadcasts;
+        update_palette_max_width;
         # update property of target block
         b_input2_text(("sensing_of" in blocks)) = sprites[1].name;
         update_block_dimensions ("sensing_of" in blocks);
