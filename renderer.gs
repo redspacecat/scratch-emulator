@@ -22,9 +22,38 @@ list colors;
 list costume_widths;
 list costume_heights;
 
-onflag {
+on "init_renderer" {
     measure_costumes;
-    load_theme;
+    load_theme "light", "normal";
+}
+
+var current_editor_theme = "";
+var current_editor_colors = "";
+
+onkey "l" {
+    if current_editor_theme == "light" {
+        load_theme "dark", current_editor_colors;
+    } else {
+        if current_editor_colors == "dark" {
+            load_theme "light", "normal";
+        } else {
+            load_theme "light", current_editor_colors;
+        }
+    }
+}
+
+onkey "c" {
+    if current_editor_colors == "normal" {
+        load_theme current_editor_theme, "high contrast";
+    } elif current_editor_colors == "high contrast" {
+        if current_editor_theme == "dark" {
+            load_theme current_editor_theme, "dark";
+        } else {
+            load_theme current_editor_theme, "normal";
+        }
+    } else {
+        load_theme current_editor_theme, "normal";
+    }
 }
 
 on "render_editor" {

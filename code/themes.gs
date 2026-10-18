@@ -25,7 +25,7 @@ enum UIColors {
 }
 
 # main, secondary, dropdown, dropdown selected
-list colors_light_main = [
+list colors_light_normal = [
     "#4c97ff", "#3373cc", "#4280d7", "#3373cc",
     "#9966ff", "#774dcb", "#855cd6", "#774dcb",
     "#cf63cf", "#bd42bd", "#c94fc9", "#bd42bd",
@@ -55,7 +55,7 @@ list colors_light_high_contrast = [
     "#d6d6d6", "#d6d6d6", "#d6d6d6", "#d6d6d6",
 ];
 
-list colors_dark_main = [
+list colors_dark_normal = [
     "#4c97ff", "#3373cc", "#4280d7", "#3373cc",
     "#9966ff", "#774dcb", "#855cd6", "#774dcb",
     "#cf63cf", "#bd42bd", "#c94fc9", "#bd42bd",
@@ -220,14 +220,33 @@ list ui_colors_dark_dark = [
     "#404040", # sprite box background
 ];
 
-proc load_theme {
-    # load theme
-    # COPY(colors_light_main, colors);
-    # COPY(ui_colors_light_normal, ui_colors);
-    # COPY(colors_high_contrast, colors);
-    # COPY(ui_colors_light_high_contrast, ui_colors);
-    # COPY(colors_dark_high_contrast, colors);
-    # COPY(ui_colors_dark_high_contrast, ui_colors);
-    COPY(colors_dark_dark, colors);
-    COPY(ui_colors_dark_dark, ui_colors);
+proc load_theme editor_theme, block_colors {
+    # editor theme: light, dark
+    # block colors: normal, high contrast, dark (in dark theme)
+    current_editor_theme = $editor_theme;
+    current_editor_colors = $block_colors;
+
+    if $editor_theme == "light" {
+        if $block_colors == "normal" {
+            COPY(colors_light_normal, colors);
+            COPY(ui_colors_light_normal, ui_colors);
+        }
+        if $block_colors == "high contrast" {
+            COPY(colors_light_high_contrast, colors);
+            COPY(ui_colors_light_high_contrast, ui_colors);
+        }
+    } else {
+        if $block_colors == "normal" {
+            COPY(colors_dark_normal, colors);
+            COPY(ui_colors_dark_normal, ui_colors);
+        }
+        if $block_colors == "high contrast" {
+            COPY(colors_dark_high_contrast, colors);
+            COPY(ui_colors_dark_high_contrast, ui_colors);
+        }
+        if $block_colors == "dark" {
+            COPY(colors_dark_dark, colors);
+            COPY(ui_colors_dark_dark, ui_colors);
+        }
+    }
 }

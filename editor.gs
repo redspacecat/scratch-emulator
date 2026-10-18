@@ -127,6 +127,9 @@ onflag {
     if RUNNING {
         RUNNING = false;
 
+        if first_time {
+            broadcast_and_wait "init_renderer";
+        }
         broadcast "start_workspace";
     } else {
         broadcast_and_wait "handle_run_project";
