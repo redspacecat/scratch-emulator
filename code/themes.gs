@@ -22,6 +22,7 @@ enum UIColors {
     InputBackground=19,
     InputText=20,
     SpriteBackground=21,
+    DropdownCheckMark=22,
 }
 
 # main, secondary, dropdown, dropdown selected
@@ -86,17 +87,17 @@ list colors_dark_high_contrast = [
 ];
 
 list colors_dark_dark = [
-    "#0f1e33", "#4c97ff", "#4c4c4c", "#4c97ff",
-    "#1e1433", "#9966ff", "#4c4c4c", "#9966ff",
-    "#291329", "#cf63cf", "#4c4c4c", "#cf63cf",
-    "#332600", "#ffbf00", "#4c4c4c", "#ffbf00",
-    "#332600", "#ffab19", "#4c4c4c", "#ffab19",
-    "#12232a", "#5cb1d6", "#4c4c4c", "#5cb1d6",
-    "#112611", "#59c059", "#4c4c4c", "#59c059",
-    "#331c05", "#ff8c1a", "#4c4c4c", "#ff8c1a",
-    "#331405", "#ff661a", "#4c4c4c", "#ff661a",
-    "#331419", "#ff6680", "#4c4c4c", "#ff6680",
-    "#03251c", "#0fbd8c", "#4c4c4c", "#0fbd8c",
+    "#0f1e33", "#4c97ff", "#4c4c4c", "#254e89",
+    "#1e1433", "#9966ff", "#4c4c4c", "#4e3384",
+    "#291329", "#cf63cf", "#4c4c4c", "#602e60",
+    "#332600", "#ffbf00", "#4c4c4c", "#664d03",
+    "#332600", "#ffab19", "#4c4c4c", "#5c3e09",
+    "#12232a", "#5cb1d6", "#4c4c4c", "#294f5f",
+    "#112611", "#59c059", "#4c4c4c", "#255725",
+    "#331c05", "#ff8c1a", "#4c4c4c", "#723f0b",
+    "#331405", "#ff661a", "#4c4c4c", "#6d3315",
+    "#331419", "#ff6680", "#4c4c4c", "#60252f",
+    "#03251c", "#0fbd8c", "#4c4c4c", "#085b44",
     "#404040", "#404040", "#4c4c4c", "#404040",
 ];
 
@@ -122,6 +123,7 @@ list ui_colors_light_normal = [
     "#ffffff", # input background
     "#000000", # input text
     "#c6cdd6", # sprite box background
+    "#000000", # dropdown check mark
 ];
 
 list ui_colors_light_high_contrast = [
@@ -146,6 +148,7 @@ list ui_colors_light_high_contrast = [
     "#ffffff", # input background
     "#000000", # input text
     "#c6cdd6", # sprite box background
+    "#000000", # dropdown check mark
 ];
 
 list ui_colors_dark_normal = [
@@ -154,7 +157,7 @@ list ui_colors_dark_normal = [
     "#666666", # palette scrollbar
     "#666666", # dropdown scrollbar
     "#ffffff", # block text
-    "#1e1e1e", # background color
+    "#202020", # background color
     "#484848", # dot color
     "#ffffff", # main ui text color
     "#ffffff", # alternate ui text color
@@ -170,6 +173,7 @@ list ui_colors_dark_normal = [
     "#ffffff", # input background
     "#000000", # input text
     "#404040", # sprite box background
+    "#000000", # dropdown check mark
 ];
 
 list ui_colors_dark_high_contrast = [
@@ -178,7 +182,7 @@ list ui_colors_dark_high_contrast = [
     "#666666", # palette scrollbar
     "#666666", # dropdown scrollbar
     "#000000", # block text
-    "#1e1e1e", # background color
+    "#202020", # background color
     "#484848", # dot color
     "#ffffff", # main ui text color
     "#ffffff", # alternate ui text color
@@ -194,6 +198,7 @@ list ui_colors_dark_high_contrast = [
     "#ffffff", # input background
     "#000000", # input text
     "#404040", # sprite box background
+    "#000000", # dropdown check mark
 ];
 
 list ui_colors_dark_dark = [
@@ -202,7 +207,7 @@ list ui_colors_dark_dark = [
     "#666666", # palette scrollbar
     "#666666", # dropdown scrollbar
     "#b7bcc2", # block text
-    "#1e1e1e", # background color
+    "#202020", # background color
     "#484848", # dot color
     "#ffffff", # main ui text color
     "#ffffff", # alternate ui text color
@@ -216,8 +221,9 @@ list ui_colors_dark_dark = [
     "#3d3d3d", # nav button selected
     "#ffffff", # input highlight border
     "#4c4c4c", # input background
-    "#ffffff", # input text
+    "#e5e5e5", # input text
     "#404040", # sprite box background
+    "#ffffff", # dropdown check mark
 ];
 
 proc load_theme editor_theme, block_colors {
@@ -249,4 +255,6 @@ proc load_theme editor_theme, block_colors {
             COPY(ui_colors_dark_dark, ui_colors);
         }
     }
+
+    redraw; # update the project with the new theme
 }

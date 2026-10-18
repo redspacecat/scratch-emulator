@@ -115,3 +115,6 @@ list global_vars;
 list global_lists;
 
 list save_code_output;
+
+var current_editor_theme = "";
+var current_editor_colors = "";

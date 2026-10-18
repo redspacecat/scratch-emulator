@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2" height="2">
+  <defs>
+    <style>
+      rect {
+        fill: yellow;
+        color-scheme: light dark;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        rect {
+          fill: green;
+        }
+      }
+    </style>
+  </defs>
+  <rect width="2" height="2" />
+</svg>

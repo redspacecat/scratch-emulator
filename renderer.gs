@@ -1,5 +1,3 @@
-hide;
-
 %include std/math
 %include std/list
 %include code/PTE_font
@@ -14,7 +12,8 @@ costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
 "assets/images/greenflag.svg" as "@g",
 "assets/images/pen-icon.svg" as "@p",
-"assets/images/delete-icon.png";
+"assets/images/delete-icon.png",
+"assets/images/light-dark-detector.svg";
 
 list ui_colors;
 list colors;
@@ -24,11 +23,25 @@ list costume_heights;
 
 on "init_renderer" {
     measure_costumes;
-    load_theme "light", "normal";
+    get_color_theme;
+    load_theme current_editor_theme, "normal";
 }
 
-var current_editor_theme = "";
-var current_editor_colors = "";
+nowarp proc get_color_theme {
+    current_editor_theme = "";
+    switch_costume "light-dark-detector";
+    show;
+    clone;
+    wait_until(current_editor_theme > "");
+    hide;
+}
+
+onclone {
+    # check if the clone is touching the a certain color in the costume
+    # this color changes depending on whether the device is in light or dark mode
+    current_editor_theme = if (touching_color("#008000")) "dark" else "light";
+    delete_this_clone;
+}
 
 onkey "l" {
     if current_editor_theme == "light" {
@@ -212,9 +225,9 @@ proc render_dropdown {
             local i = 1;
             repeat length dropdown_data {
                 local y = dy - i * 20 + 7 - dscroll;
-                if y < dy - 3 and y > dy - dheight + 3 {
+                if y < dy - 8 and y > dy - dheight + 3 {
                     if dropdown_data[i] == get_block_input(d, "editor"."dropdown_input", b_input_text) {
-                        set_pen_color "#000000";
+                        set_pen_color ui_c(DropdownCheckMark);
                         set_pen_size 1;
                         goto dx + 11, y + 6;
                         pen_down;
@@ -379,7 +392,7 @@ proc render_palette_sidebar {
         set_pen_transparency 30;
     }
     pen_down;
-    set_pen_size 35;
+    set_pen_size 34;
     change_y -360;
     pen_up;
 
