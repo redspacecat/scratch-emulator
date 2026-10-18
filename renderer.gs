@@ -1,9 +1,11 @@
 hide;
 
+%include std/math
+%include std/list
 %include code/PTE_font
 %include code/PTE_costumes
 %include code/helpful_utils
-%include std/math
+%include code/themes
 
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
@@ -14,26 +16,15 @@ costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/pen-icon.svg" as "@p",
 "assets/images/delete-icon.png";
 
-list colors = [
-    "#4c97ff", "#3373cc", "#4280d7",
-    "#9966ff", "#774dcb", "#855cd6",
-    "#cf63cf", "#bd42bd", "#c94fc9",
-    "#ffbf00", "#cc9900", "#e6ac00",
-    "#ffab19", "#cf8b17", "#ec9c13",
-    "#5cb1d6", "#2e8eb8", "#3c9ec7",
-    "#59c059", "#389438", "#389438",
-    "#ff8c1a", "#db6e00", "#db6e00",
-    "#ff661a", "#e64d00", "#e64d00",
-    "#ff6680", "#ff3355", "#ff3355",
-    "#0fbd8c", "#0b8e69", "#0da57a",
-    "#d6d6d6", "#d6d6d6", "#d6d6d6",
-];
+list ui_colors;
+list colors;
 
 list costume_widths;
 list costume_heights;
 
 onflag {
     measure_costumes;
+    load_theme;
 }
 
 on "render_editor" {
@@ -94,11 +85,11 @@ proc render_blocks {
         goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X - 1, 180;
         if LAG_MODE {
             pen_down;
-            set_pen_color "#edf8fb";
+            set_pen_color ui_c(Main);
             set_pen_size 205 + PALETTE_MAX_X;
         } else {
             pen_down;
-            set_pen_color "#e5f4f8";
+            set_pen_color ui_c(MainTransparent);
             set_pen_transparency 30;
             set_pen_size 205 + PALETTE_MAX_X;
         }
@@ -112,7 +103,7 @@ proc render_blocks {
         }
 
         set_pen_size 4;
-        set_pen_color "#bebebe";
+        set_pen_color ui_c(PaletteScrollbar);
         goto PALETTE_MAX_X - 4 - PALETTE_SCROLL_X, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
         pen_down;
         change_y -30;
@@ -183,7 +174,7 @@ proc render_dropdown {
             set_pen_color colors[b_category(d)];
             fill_rect dx + 5, dx + dwidth - 3, dy - dheight + 4, dy - 4;
             if dhovered > -1 {
-                set_pen_color colors[b_category(d) + 1];
+                set_pen_color colors[b_category(d) + 2];
                 local y = dy - dhovered * 20 - dscroll;
                 fill_rect dx + 2, dx + dwidth - 2, MAX(dy - dheight, y - 20), MIN(dy - 3, y - 3);
             }
@@ -202,7 +193,7 @@ proc render_dropdown {
                         goto dx + 4, y + 1;
                         pen_up;
                     }
-                    set_pen_color "#ffffff";
+                    set_pen_color ui_c(BlockText);
                     plain_text round(dx + 17), round(y), 1, dropdown_data[i], "l", true; 
                 }
                 i++;
@@ -210,7 +201,7 @@ proc render_dropdown {
 
             # scrollbar
             if length dropdown_data > 7 {
-                set_pen_color "#bebebe";
+                set_pen_color ui_c(DropdownScrollbar);
                 set_pen_size 4;
                 local total_height = length dropdown_data * 20;
                 local track_height = dheight - 5;
@@ -252,16 +243,20 @@ proc render_dropdown {
     }
 }
 
+proc render_background {
+    set_pen_size 480;
+    goto 0, 180;
+    set_pen_color ui_c(Background);
+    pen_down;
+    change_y -360;
+    pen_up;
+}
+
 proc render_dots {
     if REDRAW {
-        set_pen_size 240;
-        goto 120, 180;
-        set_pen_color "#ffffff";
-        pen_down;
-        change_y -360;
-        pen_up;
+        render_background;
 
-        set_pen_color "#dddddd";
+        set_pen_color ui_c(Dot);
         set_pen_size 1;
         goto -240 - SCROLL_X % 20, -180 - SCROLL_Y % 20;
         repeat 19 {
@@ -277,7 +272,7 @@ proc render_dots {
 }
 
 proc render_palette_text {
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     local i = 1;
     repeat length block_palette_text / 3 {
         plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l", true;
@@ -286,62 +281,62 @@ proc render_palette_text {
 
     # new variable button
     goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
-    set_pen_color "#606060";
+    set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 68;
     pen_up;
     goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
     if "editor"."new_variable_btn_hovered" {
-        set_pen_color "#ececec";
+        set_pen_color ui_c(ButtonColorHovered);
     } else {
-        set_pen_color "#ffffff";
+        set_pen_color ui_c(ButtonColor);
     }
     set_pen_size 16;
     pen_down;
     change_x 68;
     pen_up;
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     plain_text -200 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 20, 1, "Make a Variable", "l", true;
 
     # new list button
     goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
-    set_pen_color "#606060";
+    set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 47;
     pen_up;
     goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
     if "editor"."new_list_btn_hovered" {
-        set_pen_color "#ececec";
+        set_pen_color ui_c(ButtonColorHovered);
     } else {
-        set_pen_color "#ffffff";
+        set_pen_color ui_c(ButtonColor);
     }
     set_pen_size 16;
     pen_down;
     change_x 47;
     pen_up;
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     plain_text -200 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 20, 1, "Make a List", "l", true;
 
     # remove unused broadcasts button
     goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
-    set_pen_color "#606060";
+    set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 125;
     pen_up;
     goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
     if "editor"."clean_messages_btn_hovered" {
-        set_pen_color "#ececec";
+        set_pen_color ui_c(ButtonColorHovered);
     } else {
-        set_pen_color "#ffffff";
+        set_pen_color ui_c(ButtonColor);
     }
     set_pen_size 16;
     pen_down;
     change_x 125;
     pen_up;
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     plain_text -200 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 129, 1, "Removed Unused Messages", "l", true;
 }
 
@@ -349,9 +344,9 @@ proc render_palette_sidebar {
     set_pen_size 0;
     goto -223, 180;
     if LAG_MODE {
-        set_pen_color "#edf8fb";
+        set_pen_color ui_c(Main);
     } else {
-        set_pen_color "#e5f4f8";
+        set_pen_color ui_c(MainTransparent);
         set_pen_transparency 30;
     }
     pen_down;
@@ -363,11 +358,11 @@ proc render_palette_sidebar {
     i = 1;
     repeat 9 {
         draw_category i;
-        i += 3;
+        i += 4;
         change_y -30;
     }
 
-    draw_category i + 3;
+    draw_category i + 4;
 }
 
 proc draw_category i {
@@ -407,15 +402,17 @@ proc measure_costumes {
 
 proc render_costumes {
     # costumes
+    
+    render_background;
 
-    set_pen_color "#edf8fb"; # background
+    set_pen_color ui_c(Main); # background
     set_pen_size 270;
     goto -240, -3;
     pen_down;
     change_x 480;
     pen_up;
 
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     plain_text 0, 145, 1, "Costumes", "c", true;
 
     local x = -233;
@@ -426,12 +423,12 @@ proc render_costumes {
         if sprites["editor"."selected_sprite"].costume == i {
             draw_sprite_box x, y, width;
 
-            set_pen_color "#ffffff";
+            set_pen_color ui_c(AltText);
             plain_text x + 33, y - 58, 1, costume_names[i], "c", true;
         } else {
-            set_pen_color if ("editor"."highlighted_costume" == i) "#855cd6" else "#c6cdd6";
+            set_pen_color if ("editor"."highlighted_costume" == i) ui_c(CostumeDark) else ui_c(SpriteBackground);
             draw_square x + 3, y - 3, 59, 59, 14;
-            set_pen_color if ("editor"."highlighted_costume" == i) "#ffffff" else "#edf8fb";
+            set_pen_color if ("editor"."highlighted_costume" == i) ui_c(Background) else ui_c(Main);
             draw_square x + 4, y - 4, 57, 57, 13;
 
             set_pen_size 45;
@@ -439,7 +436,7 @@ proc render_costumes {
             pen_down;
             pen_up;
 
-            set_pen_color "#000000";
+            set_pen_color ui_c(MainText);
             plain_text x + 33, y - 58, 1, costume_names[i], "c", true;
         }
 
@@ -462,7 +459,9 @@ proc render_costumes {
 proc render_sounds {
     # sounds
 
-    set_pen_color "#000000";
+    render_background;
+
+    set_pen_color ui_c(MainText);
     plain_text 0, 145, 1, "Sounds", "c", true;
     local i = 1;
     local x = -50;
@@ -481,9 +480,9 @@ proc render_sprite_sidebar {
         set_pen_size 0;
         goto 203 + SPRITES_SCROLL_X, 180;
         if LAG_MODE {
-            set_pen_color "#edf8fb";
+            set_pen_color ui_c(Main);
         } else {
-            set_pen_color "#e5f4f8";
+            set_pen_color ui_c(MainTransparent);
             set_pen_transparency 30;
         }
         pen_down;
@@ -492,7 +491,7 @@ proc render_sprite_sidebar {
         pen_up;
 
         # text
-        set_pen_color "#000000";
+        set_pen_color ui_c(MainText);
         plain_text 203 + SPRITES_SCROLL_X, 165 - SPRITES_SCROLL_Y, 1, "Sprites", "c", true;
 
         # sprites
@@ -506,11 +505,11 @@ proc render_sprite_sidebar {
 
                 if length sprites > 1 {
                     goto x + 57, y - 6;
-                    set_pen_color "#c6bdef";
+                    set_pen_color ui_c(CostumeLight);
                     set_pen_size 23;
                     pen_down;
                     pen_up;
-                    set_pen_color "#855cd6";
+                    set_pen_color ui_c(CostumeDark);
                     set_pen_size 20;
                     pen_down;
                     pen_up;
@@ -521,7 +520,7 @@ proc render_sprite_sidebar {
                     switch_costume "large";
                 }
 
-                set_pen_color "#ffffff";
+                set_pen_color ui_c(AltText);
                 plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c", true;
                 if "editor"."sprite_name_underline" == i {
                     local text_width = width_of_text(sprites[i].name, 1);
@@ -533,9 +532,9 @@ proc render_sprite_sidebar {
                     pen_up;
                 }
             } else {
-                set_pen_color if ("editor"."highlighted_sprite" == i) "#855cd6" else "#c6cdd6";
+                set_pen_color if ("editor"."highlighted_sprite" == i) ui_c(CostumeDark) else ui_c(SpriteBackground);
                 draw_square x + 3, y - 3, 59, 59, 14;
-                set_pen_color if ("editor"."highlighted_sprite" == i) "#ffffff" else "#edf8fb";
+                set_pen_color if ("editor"."highlighted_sprite" == i) ui_c(Background) else ui_c(Main);
                 draw_square x + 4, y - 4, 57, 57, 13;
 
                 set_pen_size 45;
@@ -543,7 +542,7 @@ proc render_sprite_sidebar {
                 pen_down;
                 pen_up;
 
-                set_pen_color "#000000";
+                set_pen_color ui_c(MainText);
                 plain_text 203 + SPRITES_SCROLL_X, y - 58, 1, sprites[i].name, "c", true;
             }
 
@@ -560,12 +559,12 @@ proc render_sprite_sidebar {
 
         # new sprite button
         goto 176 + SPRITES_SCROLL_X, -174;
-        set_pen_color "#cbd7db";
+        set_pen_color ui_c(NewSpriteButton);
         set_pen_size 20;
         pen_down;
         change_x 100;
         pen_up;
-        set_pen_color "#000000";
+        set_pen_color ui_c(MainText);
         plain_text 203 + SPRITES_SCROLL_X, -176, 1, "Make a Sprite", "c", true;
         
     }
@@ -574,11 +573,11 @@ proc render_sprite_sidebar {
 }
 
 proc draw_sprite_box x, y, size {
-    set_pen_color "#c6bdef";
+    set_pen_color ui_c(CostumeLight);
     draw_square $x, $y, 65, 65, 20;
-    set_pen_color "#855cd6";
+    set_pen_color ui_c(CostumeDark);
     draw_square $x + 3, $y - 3, 59, 59, 14;
-    set_pen_color "#ffffff";
+    set_pen_color ui_c(Background);
     draw_square $x + 4, $y - 4, 57, 57, 13;
 
     set_pen_size 45;
@@ -586,14 +585,14 @@ proc draw_sprite_box x, y, size {
     pen_down;
     pen_up;
 
-    set_pen_color "#855cd6";
+    set_pen_color ui_c(CostumeDark);
     set_pen_size 14;
     goto $x + 4 + 13 / 2, $y - 4 - 57 + 13 / 2;
     pen_down;
     change_x 57 - 13;
     pen_up;
 
-    set_pen_color "#855cd6";
+    set_pen_color ui_c(CostumeDark);
     set_pen_size 4;
     goto $x + 5, $y - 4 - 57 + 12;
     pen_down;
@@ -605,23 +604,23 @@ proc draw_sprite_box x, y, size {
 
 proc render_menubar { # bar at top of screen
     # background line
-    set_pen_color "#edf8fb";
-    set_pen_size 16;
-    goto -250, 172;
+    set_pen_color ui_c(Main);
+    set_pen_size 17;
+    goto -250, 173;
     pen_down;
     change_x 500;
     pen_up;
 
     # hovered button
-    set_pen_color "#dee9ec";
+    set_pen_color ui_c(NavButtonHovered);
     if "editor"."hovered_menu_button" > "" {
         fill_rect menu_buttons["editor"."hovered_menu_button"] - 7, menu_buttons["editor"."hovered_menu_button"] + menu_buttons["editor"."hovered_menu_button" + 2] + 7, 164, 180;
     }
-    set_pen_color "#cbd7db";
+    set_pen_color ui_c(NavButtonSelected);
     fill_rect menu_buttons[selected_workspace] - 7, menu_buttons[selected_workspace] + menu_buttons[selected_workspace + 2] + 7, 164, 180;
 
     # text
-    set_pen_color "#000000";
+    set_pen_color ui_c(MainText);
     local i = 1;
     repeat length menu_buttons / 3 {
         plain_text menu_buttons[i], 168, 1, menu_buttons[i + 1], "l", true;
@@ -754,7 +753,8 @@ proc render_one_block blockIdx {
                 colors[b_category(i) + 1],
                 is_highlighted: h_i.block == $blockIdx and h_i.input == 1,
                 dropdown_shape: b_input1_dropdown_shape(i),
-                dropdown_color: colors[b_category(i) + 2];
+                dropdown_color: colors[b_category(i) + 2],
+                dropdown_highlight_color: colors[b_category(i) + 3];
         }
     } else {
         draw_block
@@ -801,7 +801,8 @@ proc render_one_block blockIdx {
                     colors[b_category(i) + 1],
                     is_highlighted: h_i.block == $blockIdx and h_i.input == inputNum,
                     dropdown_shape: blocks[offset + b_input_dropdown_shape],
-                    dropdown_color: colors[b_category(i) + 2];
+                    dropdown_color: colors[b_category(i) + 2],
+                    dropdown_highlight_color: colors[b_category(i) + 3];
             }
             counter += INPUT_LENGTH; # = number of properties in Input
             inputNum++;
@@ -858,13 +859,6 @@ proc plain_text x, y, size, text, align, case_sensitive {
 }
 
 proc draw_block color, width, height, x, y, shape, end_style, start_style, border_color, is_highlighted {
-    # set_pen_color $color;
-    # set_pen_size $height;
-    # goto $x + $height / 2, $y - $height / 2;
-    # pen_down;
-    # goto $x + $width - $height / 2, $y - $height / 2;
-    # pen_up;
-    # stop_this_script;
     if $shape == "stack" {
         set_pen_color $color;
         set_pen_size 4;
@@ -966,7 +960,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
     }
     elif $shape == "reporter" {
         if $is_highlighted {
-            set_pen_color "#ffffff";
+            set_pen_color ui_c(InputHighlight);
             pen_size = $height + 6;
             set_pen_size 0; # this has to be done to avoid a second pen stroke adding a few extra pixels
             goto $x + pen_size / 2 - 3, $y - pen_size / 2 + 3;
@@ -1014,7 +1008,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         pen_up;
 
         if $is_highlighted {
-            set_pen_color "#ffffff";
+            set_pen_color ui_c(InputHighlight);
             set_pen_size 2;
             goto $x + seg_amount, $y - $height - 1;
             pen_down;
@@ -1227,11 +1221,11 @@ proc render_c_block x, y, width, height, slot_count, prong_1_height, prong_2_hei
 }
 
 proc render_text_label x, y, text {
-    set_pen_color "#ffffff";
+    set_pen_color ui_c(BlockText);
     print $x, ($y) - 7, 1, $text, case_sensitive: true;
 }
 
-proc render_input block_shape, type, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color {
+proc render_input block_shape, type, x, y, width, height, text, shape, color, is_highlighted, dropdown_shape, dropdown_color, dropdown_highlight_color {
     if $shape == "reporter" {
         if $is_highlighted {
             # if dropdown shape is nothing or round, then we want to highlight if NOT editing an input (highlight_lightly)
@@ -1239,7 +1233,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
             # we also highlight it if dropdown shape is nothing and it's highlighted lightly,
             # since that's just editing a regular text input
             if ($dropdown_shape != "square" and not "editor"."highlight_lightly") or ($dropdown_shape == "" and "editor"."highlight_lightly") {
-                set_pen_color "#ffffff";
+                set_pen_color ui_c(InputHighlight);
                 if "editor"."highlight_lightly" {
                     set_pen_transparency 50;
                 }
@@ -1253,7 +1247,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
 
                 set_pen_transparency 0;
             } elif $dropdown_shape == "square" {
-                set_pen_color $color;
+                set_pen_color $dropdown_highlight_color;
                 if $block_shape == "reporter" or $block_shape == "boolean" {
                     fill_rect $x + 1, $x + $width - 2, $y - $height, $y - 1, 1;
                 } else {
@@ -1272,15 +1266,19 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
             pen_up;
 
             if $dropdown_shape > "" {
-                set_pen_color $dropdown_color;
+                if $is_highlighted {
+                    set_pen_color $dropdown_highlight_color;
+                } else {
+                    set_pen_color $dropdown_color;
+                }
             } else {
                 if $type == b_input_type_color {
                     set_pen_color $text;
                 } else {
-                    set_pen_color "#ffffff";
+                    set_pen_color ui_c(InputBackground);
                 }
             }
-            if (not $is_highlighted and $dropdown_shape == "round") or $dropdown_shape == "" {
+            # if (not $is_highlighted and $dropdown_shape == "round") or $dropdown_shape == "" {
                 pen_size = $height;
                 set_pen_size 0;
                 goto $x + pen_size / 2, $y - pen_size / 2;
@@ -1288,7 +1286,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
                 set_pen_size pen_size;
                 set_x ($x + pen_size / 2) + ($width - pen_size);
                 pen_up;
-            }
+            # }
         } else {
             local move_amount = 2 / 1.366; # amount to turn per spet
 
@@ -1355,7 +1353,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
 
         if $dropdown_shape > "" {
             pen_size = $height;
-            set_pen_color "#ffffff";
+            set_pen_color ui_c(BlockText);
 
             # dropdown arrow
             goto $x + $width - pen_size / 2, round($y - pen_size / 2);
@@ -1371,7 +1369,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
             pen_down;
             pen_up;
         } else {
-            set_pen_color "#000000";
+            set_pen_color ui_c(InputText);
         }
         if $type != b_input_type_color { # don't display text for color inputs
             local text_x = $x + ($width) / 2;
@@ -1389,7 +1387,7 @@ proc render_input block_shape, type, x, y, width, height, text, shape, color, is
         fill_rect_hq $x + seg_amount, $x + $width - seg_amount, $y - $height, $y, 2;
         tri_fill $x + $width - seg_amount, $y - $height, $x + $width, $y - seg_amount, $x + $width - seg_amount, $y, 0.5;
         if $is_highlighted {
-            set_pen_color "#ffffff";
+            set_pen_color ui_c(InputHighlight);
             local seg_amount = $height / 2;
             set_pen_size 2;
             goto $x + seg_amount, $y - $height - 1;

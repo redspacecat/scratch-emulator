@@ -17,17 +17,17 @@ struct Input {
 
 enum Category {
     Motion=1,
-    Looks=4,
-    Sound=7,
-    Events=10,
-    Control=13,
-    Sensing=16,
-    Operators=19,
-    Variables=22,
-    Lists=25,
-    CustomBlocks=28,
-    Extensions=31,
-    Preview=34
+    Looks=5,
+    Sound=9,
+    Events=13,
+    Control=17,
+    Sensing=21,
+    Operators=25,
+    Variables=29,
+    Lists=33,
+    CustomBlocks=37,
+    Extensions=41,
+    Preview=45
 }
 
 enum Workspace {
