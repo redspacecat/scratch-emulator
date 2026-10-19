@@ -23,6 +23,9 @@ enum UIColors {
     InputText=20,
     SpriteBackground=21,
     DropdownCheckMark=22,
+    CodeButtonBorder=23,
+    CodeButtonFill=24,
+    CodeButtonText=25,
 }
 
 # main, secondary, dropdown, dropdown selected
@@ -124,6 +127,9 @@ list ui_colors_light_normal = [
     "#000000", # input text
     "#c6cdd6", # sprite box background
     "#000000", # dropdown check mark
+    "#d9d9d9", # code button border
+    "#ffffff", # code button fill
+    "#0c1628", # code button text
 ];
 
 list ui_colors_light_high_contrast = [
@@ -149,6 +155,9 @@ list ui_colors_light_high_contrast = [
     "#000000", # input text
     "#c6cdd6", # sprite box background
     "#000000", # dropdown check mark
+    "#d9d9d9", # code button border
+    "#ffffff", # code button fill
+    "#0c1628", # code button text
 ];
 
 list ui_colors_dark_normal = [
@@ -174,6 +183,9 @@ list ui_colors_dark_normal = [
     "#000000", # input text
     "#404040", # sprite box background
     "#000000", # dropdown check mark
+    "#3b3b3b", # code button border
+    "#000000", # code button fill
+    "#7e7967", # code button text
 ];
 
 list ui_colors_dark_high_contrast = [
@@ -199,6 +211,9 @@ list ui_colors_dark_high_contrast = [
     "#000000", # input text
     "#404040", # sprite box background
     "#000000", # dropdown check mark
+    "#3b3b3b", # code button border
+    "#000000", # code button fill
+    "#7e7967", # code button text
 ];
 
 list ui_colors_dark_dark = [
@@ -224,6 +239,9 @@ list ui_colors_dark_dark = [
     "#e5e5e5", # input text
     "#404040", # sprite box background
     "#ffffff", # dropdown check mark
+    "#3b3b3b", # code button border
+    "#000000", # code button fill
+    "#7e7967", # code button text
 ];
 
 proc load_theme editor_theme, block_colors {

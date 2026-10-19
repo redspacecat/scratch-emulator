@@ -590,6 +590,10 @@ nowarp proc handle_input {
             target_palette_y = category_y[clicked_category];
             target_palette_y_time = 20;
         }
+    } elif SPRITES_SHOWN == false and point_in_circle(Point {x: mouse_x(), y: mouse_y()}, Point {x: 220, y: -160}, 10) { # equals sign button
+        # reset code canvas
+        SCROLL_X = 0;
+        SCROLL_Y = 0;
     } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
             log "palette coords";

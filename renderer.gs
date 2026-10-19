@@ -83,6 +83,7 @@ on "render_editor" {
         render_blocks;
         render_palette_sidebar;
         render_dragged_blocks;
+        render_other_ui;
     } elif selected_workspace == Workspace.Costumes {
         if REDRAW {
             render_costumes;
@@ -1576,4 +1577,39 @@ proc fill_rect x1, x2, y1, y2, blah=0 {
 
 proc print x, y, size, text, align="", case_sensitive=false {
     plain_text round($x), round($y), $size, $text, $align, $case_sensitive;
+}
+
+proc render_other_ui {
+    if not SPRITES_SHOWN {
+        # render reset zoom button
+
+        # outer border
+        set_pen_color ui_c(CodeButtonBorder);
+        set_pen_size 20;
+        goto 220, -160;
+        pen_down;
+        pen_up;
+
+        # fill
+        set_pen_color ui_c(CodeButtonFill);
+        set_pen_size 17;
+        pen_down;
+        pen_up;
+
+        # lines of equals sign
+        set_pen_color ui_c(CodeButtonText);
+        set_pen_size 0;
+        goto 217, -159;
+        pen_down;
+        set_pen_size 1;
+        change_x 5;
+        pen_up;
+
+        set_pen_size 0;
+        goto 217, -163;
+        pen_down;
+        set_pen_size 1;
+        change_x 5;
+        pen_up;
+    }
 }
