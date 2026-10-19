@@ -14,7 +14,8 @@ list category_map = [
     "operator", Category.Operators,
     "data", Category.Variables,
     "datalist", Category.Lists,
-    "pen", Category.Extensions
+    "pen", Category.Extensions,
+    "music", Category.Extensions,
 ];
 
 proc parse_block_palette {

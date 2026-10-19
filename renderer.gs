@@ -12,6 +12,7 @@ costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
 "assets/images/greenflag.svg" as "@g",
 "assets/images/pen-icon.svg" as "@p",
+"assets/images/music-icon.svg" as "@m",
 "assets/images/delete-icon.png",
 "assets/images/light-dark-detector.svg";
 

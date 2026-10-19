@@ -113,8 +113,13 @@ var selected_workspace;
 
 list global_vars;
 list global_lists;
+var var_tempo;
 
 list save_code_output;
 
 var current_editor_theme = "";
 var current_editor_colors = "";
+
+# data for the music extension
+list drums "assets/data/drums.txt";
+list instruments "assets/data/instruments.txt";

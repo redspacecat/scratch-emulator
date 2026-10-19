@@ -157,3 +157,9 @@ color
 saturation
 brightness
 transparency
+
+drums
+$drums$
+
+instruments
+$instruments$

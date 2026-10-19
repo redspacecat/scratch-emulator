@@ -1,0 +1,21 @@
+(1) Piano
+(2) Electric Piano
+(3) Organ
+(4) Guitar
+(5) Electric Guitar
+(6) Bass
+(7) Pizzicato
+(8) Cello
+(9) Trombone
+(10) Clarinet
+(11) Saxophone
+(12) Flute
+(13) Wooden Flute
+(14) Bassoon
+(15) Choir
+(16) Vibraphone
+(17) Music Box
+(18) Steel Drum
+(19) Marimba
+(20) Synth Lead
+(21) Synth Pad

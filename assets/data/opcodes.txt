@@ -143,3 +143,10 @@ pen_isPenDown
 pen_penSize
 pen_printText
 pen_textWidth
+music_playDrumForBeats
+music_restForBeats
+music_playNoteForBeats
+music_setInstrument
+music_setTempo
+music_changeTempo
+music_getTempo

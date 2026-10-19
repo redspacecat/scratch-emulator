@@ -25,6 +25,7 @@ sounds "assets/sounds/*";
 %include code/exec/operators
 %include code/exec/data
 %include code/exec/pen
+%include code/exec/music
 
 set_x 0;
 set_y 0;
@@ -153,10 +154,13 @@ proc init_sprite {
     pen_up;
     set_pen_color "#0000ff";
     set_pen_size 1;
+    set_tempo 60;
+    set_instrument 1;
 
     var_pen_size = 1;
     var_pen_down = false;
     var_draggable = true;
+    var_tempo = 60;
 }
 
 on "init_runtime" {
@@ -302,8 +306,11 @@ proc init_runtime {
 
     soundI = 0;
     askI = 0;
+    drumI = 0;
+    restI = 0;
+    noteI = 0;
     delete tmp_args;
-    repeat 11 { # fill up with blank space so it can be replaced by arguments when needed
+    repeat 16 { # fill up with blank space so it can be replaced by arguments when needed
         add "" to tmp_args;
     }
     reset_timer;
@@ -331,6 +338,9 @@ proc stop_thread pos {
     # shift down later indexes appropriately to ensure thread unpausing still works
     if $pos < askI {askI -= 5;}
     if $pos < soundI {soundI -= 5;}
+    if $pos < drumI {drumI -= 5;}
+    if $pos < restI {restI -= 5;}
+    if $pos < noteI {noteI -= 5;}
 }
 
 proc pause_current_thread secs="" {
@@ -463,8 +473,10 @@ proc exec_cmd cmd {
                 exec_lists $cmd;
             } else {
                 # extensions and custom blocks
-                if $cmd <= Opcode.pen_textWidth {
+                if $cmd < Opcode.music_playDrumForBeats {
                     exec_pen $cmd;
+                } else {
+                    exec_music $cmd;
                 }
             }
         }

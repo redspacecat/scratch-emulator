@@ -143,5 +143,12 @@ enum Opcode {
     pen_isPenDown=142,
     pen_penSize=143,
     pen_printText=144,
-    pen_textWidth=145
+    pen_textWidth=145,
+    music_playDrumForBeats=146,
+    music_restForBeats=147,
+    music_playNoteForBeats=148,
+    music_setInstrument=149,
+    music_setTempo=150,
+    music_changeTempo=151,
+    music_getTempo=152
 }

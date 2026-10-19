@@ -1,0 +1,18 @@
+(1) Snare Drum
+(2) Bass Drum
+(3) Side Stick
+(4) Crash Cymbal
+(5) Open Hi-Hat
+(6) Closed Hi-Hat
+(7) Tambourine
+(8) Hand Clap
+(9) Claves
+(10) Wood Block
+(11) Cowbell
+(12) Triangle
+(13) Bongo
+(14) Conga
+(15) Cabasa
+(16) Guiro
+(17) Vibraslap
+(18) Cuica

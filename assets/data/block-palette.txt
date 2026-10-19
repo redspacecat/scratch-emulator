@@ -392,6 +392,10 @@ datalist_listcontainsitem,boolean
 
 
 
+text,Extensions
+
+
+
 text,Pen
 
 pen_clear,stack
@@ -424,3 +428,23 @@ pen_printText,stack
 @p     print,$apple,at x:,(0,y:,(0
 pen_textWidth,reporter
 @p     width of,$banana
+
+
+
+
+text,Music
+
+music_playDrumForBeats,stack
+@m     play drum,{drums|(1) Snare Drum,for,(0.25,beats
+music_restForBeats,stack
+@m     rest for,(0.25,beats
+music_playNoteForBeats,stack
+@m     play note,(60,for,(0.25,beats
+music_setInstrument,stack
+@m     set instrument to,{instruments|(1) Piano
+music_setTempo,stack
+@m     set tempo to,(60
+music_changeTempo,stack
+@m     change tempo by,(20
+music_getTempo,reporter
+@m     tempo

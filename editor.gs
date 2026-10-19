@@ -451,7 +451,7 @@ on "ui_handle_loop" {
             }
         }
 
-        if (not LAG_MODE) or lag_mode_override {
+        if (not LAG_MODE) or lag_mode_override or (PALETTE_SHOWN and PALETTE_SCROLL_Y < -4000){
             redraw;
         }
     }
@@ -1249,6 +1249,18 @@ proc handle_custom_dropdown t {
             add_dropdown_item "this script";
         }
         add_dropdown_item "other scripts in sprite";
+    } elif $t == "$drums$" {
+        local i = 1;
+        repeat length drums {
+            add_dropdown_item drums[i];
+            i++;
+        }
+    } elif $t == "$instruments$" {
+        local i = 1;
+        repeat length instruments {
+            add_dropdown_item instruments[i];
+            i++;
+        }
     }
 }
 
