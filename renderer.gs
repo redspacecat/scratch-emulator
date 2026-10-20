@@ -25,48 +25,52 @@ list costume_heights;
 on "init_renderer" {
     measure_costumes;
     get_color_theme;
-    load_theme current_editor_theme, "normal";
+    load_theme editor_theme, "normal";
+}
+
+on "update_theme" {
+    load_theme editor_theme, editor_colors;
 }
 
 nowarp proc get_color_theme {
-    current_editor_theme = "";
+    editor_theme = "";
     switch_costume "light-dark-detector";
     show;
     clone;
-    wait_until(current_editor_theme > "");
+    wait_until(editor_theme > "");
     hide;
 }
 
 onclone {
     # check if the clone is touching the a certain color in the costume
     # this color changes depending on whether the device is in light or dark mode
-    current_editor_theme = if (touching_color("#008000")) "dark" else "light";
+    editor_theme = if (touching_color("#008000")) "dark" else "light";
     delete_this_clone;
 }
 
 onkey "l" {
-    if current_editor_theme == "light" {
-        load_theme "dark", current_editor_colors;
+    if editor_theme == "light" {
+        load_theme "dark", editor_colors;
     } else {
-        if current_editor_colors == "dark" {
+        if editor_colors == "dark" {
             load_theme "light", "normal";
         } else {
-            load_theme "light", current_editor_colors;
+            load_theme "light", editor_colors;
         }
     }
 }
 
 onkey "c" {
-    if current_editor_colors == "normal" {
-        load_theme current_editor_theme, "high contrast";
-    } elif current_editor_colors == "high contrast" {
-        if current_editor_theme == "dark" {
-            load_theme current_editor_theme, "dark";
+    if editor_colors == "normal" {
+        load_theme editor_theme, "high contrast";
+    } elif editor_colors == "high contrast" {
+        if editor_theme == "dark" {
+            load_theme editor_theme, "dark";
         } else {
-            load_theme current_editor_theme, "normal";
+            load_theme editor_theme, "normal";
         }
     } else {
-        load_theme current_editor_theme, "normal";
+        load_theme editor_theme, "normal";
     }
 }
 

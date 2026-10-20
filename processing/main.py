@@ -36,9 +36,84 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
             "visible": False
         }
         project.project_data['monitors'].append(monitor_data)
-
+        
     add_list_monitor('save_code_output')
 
+    project.project_data['monitors'].append({
+        "id": "Editor_Theme_Switcher",
+        "mode": "slider",
+        "opcode": "data_variable",
+        "params": {
+            "VARIABLE": "Editor Theme Switcher"
+        },
+        "spriteName": None,
+        "value": 0,
+        "width": 0,
+        "height": 0,
+        "x": 150,
+        "y": 70,
+        "visible": False,
+        "sliderMin": 1,
+        "sliderMax": 2,
+        "isDiscrete": True
+    })
+
+    project.project_data['monitors'].append({
+        "id": "Editor_Block_Colors_Switcher",
+        "mode": "slider",
+        "opcode": "data_variable",
+        "params": {
+            "VARIABLE": "Editor Block Colors Switcher"
+        },
+        "spriteName": None,
+        "value": 0,
+        "width": 0,
+        "height": 0,
+        "x": 150,
+        "y": 117,
+        "visible": False,
+        "sliderMin": 1,
+        "sliderMax": 3,
+        "isDiscrete": True
+    })
+
+    project.project_data['monitors'].append({
+        "id": "Current_Editor_Theme",
+        "mode": "default",
+        "opcode": "data_variable",
+        "params": {
+            "VARIABLE": "Current Editor Theme"
+        },
+        "spriteName": None,
+        "value": 0,
+        "width": 0,
+        "height": 0,
+        "x": 150,
+        "y": 164,
+        "visible": False,
+        "sliderMin": 0,
+        "sliderMax": 100,
+        "isDiscrete": True
+    })
+
+    project.project_data['monitors'].append({
+        "id": "Current_Editor_Block_Colors",
+        "mode": "default",
+        "opcode": "data_variable",
+        "params": {
+            "VARIABLE": "Current Editor Block Colors"
+        },
+        "spriteName": None,
+        "value": 0,
+        "width": 0,
+        "height": 0,
+        "x": 150,
+        "y": 191,
+        "visible": False,
+        "sliderMin": 0,
+        "sliderMax": 100,
+        "isDiscrete": True
+    })
 
     # project.add_build_comment('Scratch Emulator\nCreated by redspacecat', "blank")
 

@@ -117,9 +117,15 @@ var var_tempo;
 
 list save_code_output;
 
-var current_editor_theme = "";
-var current_editor_colors = "";
+var editor_theme = "";
+var editor_colors = "";
 
 # data for the music extension
 list drums "assets/data/drums.txt";
 list instruments "assets/data/instruments.txt";
+
+# settings
+var Current_Editor_Theme;
+var Current_Editor_Block_Colors;
+var Editor_Theme_Switcher;
+var Editor_Block_Colors_Switcher;

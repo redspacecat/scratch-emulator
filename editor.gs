@@ -92,6 +92,7 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         add_menu_button "Save";
         add_menu_button "Load";
         add_menu_button "Run";
+        add_menu_button "Settings", 20;
 
     }
     # selected_workspace = Workspace.Code;
@@ -502,6 +503,17 @@ proc get_sprite_hovered_text x, y { # checks if the sprite's name in the sprite 
     }
 }
 
+list light_themes = [
+    "light",
+    "dark"
+];
+
+list color_themes = [
+    "normal",
+    "high contrast",
+    "dark"
+];
+
 nowarp proc handle_input {
     wait_until(mouse_down());
     if hovered_menu_button > 0 and hovered_menu_button < 8 and mouse_down() {
@@ -535,6 +547,34 @@ nowarp proc handle_input {
             stop_this_script;
         } elif hovered_menu_button == 19 { # run
             broadcast_and_wait "handle_run_project";
+        } elif hovered_menu_button == 22 { # settings
+            show Current_Editor_Theme;
+            show Current_Editor_Block_Colors;
+            show Editor_Theme_Switcher;
+            show Editor_Block_Colors_Switcher;
+
+            Editor_Theme_Switcher = editor_theme in light_themes;
+            Editor_Block_Colors_Switcher = editor_colors in color_themes;
+            until mouse_down() {
+                Current_Editor_Theme = light_themes[Editor_Theme_Switcher];
+                Current_Editor_Block_Colors = color_themes[Editor_Block_Colors_Switcher];
+
+                if (Current_Editor_Theme != editor_theme) or (Current_Editor_Block_Colors != editor_colors) {
+                    editor_theme = Current_Editor_Theme;
+                    editor_colors = Current_Editor_Block_Colors;
+                    broadcast_and_wait "update_theme";
+                }
+            }
+
+            if Current_Editor_Theme == "light" and Current_Editor_Block_Colors == "dark" {
+                editor_colors = "normal";
+                broadcast_and_wait "update_theme";
+            }
+
+            hide Current_Editor_Theme;
+            hide Current_Editor_Block_Colors;
+            hide Editor_Theme_Switcher;
+            hide Editor_Block_Colors_Switcher;
         }
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {

@@ -247,8 +247,8 @@ list ui_colors_dark_dark = [
 proc load_theme editor_theme, block_colors {
     # editor theme: light, dark
     # block colors: normal, high contrast, dark (in dark theme)
-    current_editor_theme = $editor_theme;
-    current_editor_colors = $block_colors;
+    editor_theme = $editor_theme;
+    editor_colors = $block_colors;
 
     if $editor_theme == "light" {
         if $block_colors == "normal" {
