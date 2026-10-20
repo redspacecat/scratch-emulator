@@ -1,5 +1,6 @@
 %include code/PTE_font
 %include code/PTE_costumes_safe
+%include code/helpful_utils
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
 sounds "assets/sounds/*";
@@ -309,8 +310,9 @@ proc init_runtime {
     drumI = 0;
     restI = 0;
     noteI = 0;
+    exportI = 0;
     delete tmp_args;
-    repeat 16 { # fill up with blank space so it can be replaced by arguments when needed
+    repeat 17 { # fill up with blank space so it can be replaced by arguments when needed
         add "" to tmp_args;
     }
     reset_timer;
@@ -341,6 +343,7 @@ proc stop_thread pos {
     if $pos < drumI {drumI -= 5;}
     if $pos < restI {restI -= 5;}
     if $pos < noteI {noteI -= 5;}
+    if $pos < exportI {exportI -= 5;}
 }
 
 proc pause_current_thread secs="" {

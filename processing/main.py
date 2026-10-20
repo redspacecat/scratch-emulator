@@ -21,7 +21,7 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
 
     # Add the monitors
 
-    def add_list_monitor(name: str):
+    def add_list_monitor(name: str, width, height, x, y):
         monitor_data = {
             "id": name,
             "mode": "list",
@@ -29,15 +29,16 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
             "params": {"LIST": name},
             "spriteName": None,
             "value": [],
-            "width": 460,
-            "height": 117,
-            "x": 10,
-            "y": 122,
+            "width": width,
+            "height": height,
+            "x": x,
+            "y": y,
             "visible": False
         }
         project.project_data['monitors'].append(monitor_data)
         
-    add_list_monitor('save_code_output')
+    add_list_monitor('save_code_output', 460, 117, 10, 122)
+    add_list_monitor('Copyable_Text', 460, 90, 10, 130)
 
     project.project_data['monitors'].append({
         "id": "Editor_Theme_Switcher",

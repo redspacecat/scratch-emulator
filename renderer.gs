@@ -49,6 +49,10 @@ onclone {
 }
 
 onkey "l" {
+    if RUNNING {
+        stop_this_script;
+    }
+
     if editor_theme == "light" {
         load_theme "dark", editor_colors;
     } else {
@@ -61,6 +65,10 @@ onkey "l" {
 }
 
 onkey "c" {
+    if RUNNING {
+        stop_this_script;
+    }
+    
     if editor_colors == "normal" {
         load_theme editor_theme, "high contrast";
     } elif editor_colors == "high contrast" {

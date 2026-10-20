@@ -79,6 +79,7 @@ sensing_touchinganysprite
 sensing_touchingcolor
 sensing_coloristouchingcolor
 sensing_distanceto
+sensing_showcopyabletext
 sensing_askandwait
 sensing_answer
 sensing_keypressed

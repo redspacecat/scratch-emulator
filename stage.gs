@@ -20,12 +20,6 @@ struct PreviewBlock {
 var InputRank highlighted_input;
 var PreviewBlock h_c_placement;
 
-onclick {
-    wait_until(not mouse_down());
-    broadcast "stage_click";
-}
-
-
 # keeps a list of dragged block idxs so they can be avoided
 # for placement into and so they can be layered on top
 list dragged_blocks;
@@ -129,3 +123,17 @@ var Current_Editor_Theme;
 var Current_Editor_Block_Colors;
 var Editor_Theme_Switcher;
 var Editor_Block_Colors_Switcher;
+
+list Copyable_Text = [
+    "This project wants you to copy the text below. Click outside this list to close.",
+    ""
+];
+
+onflag {
+    hide Current_Editor_Theme;
+    hide Current_Editor_Block_Colors;
+    hide Editor_Theme_Switcher;
+    hide Editor_Block_Colors_Switcher;
+    hide Copyable_Text;
+    hide save_code_output;
+}

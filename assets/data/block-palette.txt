@@ -218,6 +218,8 @@ sensing_distanceto,reporter
 distance to,{distanceTargets|mouse-pointer
 
 
+sensing_showcopyabletext,stack
+show copyable text,$save code
 sensing_askandwait,stack
 ask,$What's your name?,and wait
 sensing_answer,reporter

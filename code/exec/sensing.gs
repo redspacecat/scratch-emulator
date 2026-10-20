@@ -17,7 +17,7 @@ proc exec_sensing cmd {
                 if $cmd < Opcode.sensing_distanceto { # color is touching color
                     pop 2;
                     push color_is_touching_color(args[1], args[2]);
-                } else { # distance to
+                } elif $cmd < Opcode.sensing_showcopyabletext { # distance to
                     pop 1;
                     target = special_targets(1);
                     if target[1] == "_" {
@@ -26,6 +26,15 @@ proc exec_sensing cmd {
                         x = s_info((target in sprites.name), s_info_x);
                         y = s_info((target in sprites.name), s_info_y);
                         push DIST(x_position(), y_position(), x, y);
+                    }
+                } else { # show copyable text
+                    pop 1;
+                    if exportI == 0 {
+                        exportI = current_thread;
+                        tmp_args[17] = args[1];
+                        add_async_action "export";
+                        broadcast "exec_export";
+                        pause_current_thread;
                     }
                 }
             }
@@ -133,5 +142,18 @@ on "exec_ask" {
         ask tmp_args[11];
         unpause_thread askI;
         askI = 0;
+    }
+}
+
+on "exec_export" {
+    check_async_action "export";
+    if action_status {
+        Copyable_Text[2] = tmp_args[17];
+        show Copyable_Text;
+        wait_until(not(mouse_down()));
+        wait_until(mouse_down());
+        hide Copyable_Text;
+        unpause_thread exportI;
+        exportI = 0;
     }
 }
