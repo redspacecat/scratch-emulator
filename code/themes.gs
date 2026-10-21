@@ -54,7 +54,7 @@ list colors_light_high_contrast = [
     "#7ece7e", "#389438", "#daf1da", "#daf1da",
     "#ffa54c", "#db6e00", "#ffe5cc", "#ffe5cc",
     "#ff9966", "#e64d00", "#ffddcc", "#ffddcc",
-    "#ff6680", "#ff3355", "#ff3355", "#ff3355",
+    "#ff99aa", "#ff3355", "#ff3355", "#ff3355",
     "#13ecaf", "#0b8e69", "#78f0ce", "#a3f0da",
     "#d6d6d6", "#d6d6d6", "#d6d6d6", "#d6d6d6",
 ];
@@ -84,7 +84,7 @@ list colors_dark_high_contrast = [
     "#7ece7e", "#389438", "#daf1da", "#daf1da",
     "#ffa54c", "#db6e00", "#ffe5cc", "#ffe5cc",
     "#ff9966", "#e64d00", "#ffddcc", "#ffddcc",
-    "#ff6680", "#ff3355", "#ff3355", "#ff3355",
+    "#ff99aa", "#ff3355", "#ff3355", "#ff3355",
     "#13ecaf", "#0b8e69", "#78f0ce", "#a3f0da",
     "#404040", "#404040", "#404040", "#404040",
 ];

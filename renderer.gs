@@ -412,13 +412,11 @@ proc render_palette_sidebar {
 
     goto -223, 147;
     i = 1;
-    repeat 9 {
+    repeat 11 {
         draw_category i;
         i += 4;
         change_y -30;
     }
-
-    draw_category i + 4;
 }
 
 proc draw_category i {

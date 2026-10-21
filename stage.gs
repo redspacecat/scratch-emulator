@@ -129,6 +129,8 @@ list Copyable_Text = [
     ""
 ];
 
+list custom_blocks; # definition, warp, parsed data
+
 onflag {
     hide Current_Editor_Theme;
     hide Current_Editor_Block_Colors;

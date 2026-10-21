@@ -8,6 +8,7 @@
 %include code/block_palette_parser
 %include code/save_and_load_sprites
 %include code/compiler
+%include code/custom_blocks
 
 hide;
 
@@ -67,6 +68,7 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         delete blocks;
         delete global_vars;
         delete global_lists;
+        delete custom_blocks;
 
         delete sprites;
         broadcast_and_wait "init_new_project";
@@ -185,7 +187,6 @@ on "start_editor" {
         if dt > 3 {
             dt = 3;
         }
-        log dt;
     }
 }
 
@@ -1426,6 +1427,7 @@ proc handle_palette_vars {
     palette_y_max += y_change;
     category_y[9] += y_change;
     category_y[10] += y_change;
+    category_y[11] += y_change;
     # shift palette text labels down
     local i = 32; # start at the y position of the next text label
     until i > length block_palette_text {
@@ -1524,6 +1526,7 @@ proc handle_palette_lists {
 
     palette_y_max += y_change;
     category_y[10] += y_change;
+    category_y[11] += y_change;
     # shift palette text labels down
     local i = 41; # start at the y position of the next text label
     until i > length block_palette_text {
@@ -1988,7 +1991,8 @@ proc add_block
         Input input2=Input {},
         Input input3=Input {},
         nesting_level=0,
-        insert_position="" {
+        insert_position="",
+        use_parsed=false {
         
     add $opcode to blocks;
     add $shape to blocks;
@@ -2012,39 +2016,53 @@ proc add_block
     add $slot_1_nested_block to blocks;
     add $slot_2_nested_block to blocks;
 
-    add $label1.text to blocks; add $label1.x to blocks;
-    add $label2.text to blocks; add $label2.x to blocks;
-    add $label3.text to blocks; add $label3.x to blocks;
+    if $use_parsed {
+        # use preexisting block data
+        local i = 1;
+        repeat length parsed_labels {
+            add parsed_labels[i] to blocks;
+            i++;
+        }
+        local i = 1;
+        repeat length parsed_inputs {
+            add parsed_inputs[i] to blocks;
+            i++;
+        }
+    } else {
+        add $label1.text to blocks; add $label1.x to blocks;
+        add $label2.text to blocks; add $label2.x to blocks;
+        add $label3.text to blocks; add $label3.x to blocks;
 
-    add $input1.shape to blocks;
-    add $input1.type to blocks;
-    add $input1.dropdown_shape to blocks;
-    add $input1.dropdown_list to blocks;
-    add $input1.x to blocks;
-    add $input1.width to blocks;
-    add $input1.height to blocks;
-    add $input1.text to blocks;
-    add $input1.nested_block to blocks;
+        add $input1.shape to blocks;
+        add $input1.type to blocks;
+        add $input1.dropdown_shape to blocks;
+        add $input1.dropdown_list to blocks;
+        add $input1.x to blocks;
+        add $input1.width to blocks;
+        add $input1.height to blocks;
+        add $input1.text to blocks;
+        add $input1.nested_block to blocks;
 
-    add $input2.shape to blocks;
-    add $input2.type to blocks;
-    add $input2.dropdown_shape to blocks;
-    add $input2.dropdown_list to blocks;
-    add $input2.x to blocks;
-    add $input2.width to blocks;
-    add $input2.height to blocks;
-    add $input2.text to blocks;
-    add $input2.nested_block to blocks;
+        add $input2.shape to blocks;
+        add $input2.type to blocks;
+        add $input2.dropdown_shape to blocks;
+        add $input2.dropdown_list to blocks;
+        add $input2.x to blocks;
+        add $input2.width to blocks;
+        add $input2.height to blocks;
+        add $input2.text to blocks;
+        add $input2.nested_block to blocks;
 
-    add $input3.shape to blocks;
-    add $input3.type to blocks;
-    add $input3.dropdown_shape to blocks;
-    add $input3.dropdown_list to blocks;
-    add $input3.x to blocks;
-    add $input3.width to blocks;
-    add $input3.height to blocks;
-    add $input3.text to blocks;
-    add $input3.nested_block to blocks;
+        add $input3.shape to blocks;
+        add $input3.type to blocks;
+        add $input3.dropdown_shape to blocks;
+        add $input3.dropdown_list to blocks;
+        add $input3.x to blocks;
+        add $input3.width to blocks;
+        add $input3.height to blocks;
+        add $input3.text to blocks;
+        add $input3.nested_block to blocks;
+    }
 
     local blockIdx = last_block_idx;
     if $insert_position > "" {
