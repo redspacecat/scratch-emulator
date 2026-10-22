@@ -74,6 +74,7 @@ proc save {
         append sprites[spriteNum].blocks;
         append sprites[spriteNum].vars;
         append sprites[spriteNum].lists;
+        append sprites[spriteNum].custom_blocks;
         spriteNum++;
     }
 }
@@ -156,6 +157,8 @@ proc load str {
         new_sprite.vars = token;
         parse_token delimiter, $str;
         new_sprite.lists = token;
+        parse_token delimiter, $str;
+        new_sprite.custom_blocks = token;
         add new_sprite to sprites;
     }
 

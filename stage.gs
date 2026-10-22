@@ -75,6 +75,7 @@ struct Sprite {
     blocks="",
     vars="",
     lists="",
+    custom_blocks="",
     scroll_x=0,
     scroll_y=0
 }

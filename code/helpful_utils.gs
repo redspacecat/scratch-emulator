@@ -4,7 +4,7 @@
 %define wait_until(x) until x {}
 %define while(x) until not x
 
-%define BLOCK_LENGTH 54
+%define BLOCK_LENGTH 55
 %define TEXT_LABEL_LENGTH 2
 %define INPUT_LENGTH 9
 

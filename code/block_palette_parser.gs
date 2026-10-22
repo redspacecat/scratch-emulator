@@ -14,6 +14,7 @@ list category_map = [
     "operator", Category.Operators,
     "data", Category.Variables,
     "datalist", Category.Lists,
+    "procedures", Category.CustomBlocks,
     "pen", Category.Extensions,
     "music", Category.Extensions,
 ];
@@ -205,6 +206,8 @@ proc parse_palette_block x_offset=0 {
         add c_block_min_slot_height to blocks;
         add "" to blocks;
         add "" to blocks;
+        add "" to blocks;
+
         local i = 1;
         repeat length parsed_labels {
             add parsed_labels[i] to blocks;

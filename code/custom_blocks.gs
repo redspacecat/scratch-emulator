@@ -66,6 +66,7 @@ proc new_custom_block_from_def def {
 
 proc update_custom_blocks {
     local start_idx = ("datalist_listcontainsitem" in blocks) + BLOCK_LENGTH;
+    local start_idx_compare = ("pen_clear" in blocks);
 
     # remove all custom blocks in palette
     until blocks[start_idx] == "pen_clear" {
@@ -76,6 +77,7 @@ proc update_custom_blocks {
     local start_y = y;
 
     local blockI = 1;
+    local blockID = 1;
     local pos = start_idx;
     repeat length custom_blocks / 20 {
         # parse_from_definition custom_blocks[blockI];
@@ -119,6 +121,8 @@ proc update_custom_blocks {
             add "" to parsed_inputs;
         }
 
+        log blockID;
+
         add_block
             opcode: "procedures_call",
             shape: "stack",
@@ -128,15 +132,17 @@ proc update_custom_blocks {
             width: 100,
             height: 21,
             insert_position: pos,
+            cblock: blockID, # can't use "custom_block" because of id overlap with scratch
             use_parsed: true;
         update_block_dimensions pos;
 
         pos += BLOCK_LENGTH;
         y -= 28;
         blockI += 20;
+        blockID++;
     }
 
-    idx_change = ("pen_clear" in blocks) - start_idx;
+    idx_change = ("pen_clear" in blocks) - start_idx_compare;
     PALETTE_END += idx_change;
     local y_change = y - compare_y;
 
@@ -152,6 +158,30 @@ proc update_custom_blocks {
     move_blocks_in_palette_down ("pen_clear" in blocks), y_change;
     # shift block indexes down
     shift_block_indexes_down PALETTE_END, PALETTE_END - idx_change - 1, idx_change;
+}
+
+func palette_format_from_custom_block_def(num) {
+    local i = ($num - 1) * 20 + 1 + 2; # block data offset
+    local output_str = "";
+    delete parsed_tokens;
+    start = true;
+    until custom_blocks[i] == "" {
+        if start == false { # don't add comma to begining of string
+            output_str &= ",";
+        }
+        if custom_blocks[i] == "input" { # first element is format
+            if custom_blocks[i + 1] == "reporter" { # reporter or boolean
+                output_str &= "$" & custom_blocks[i + 2];
+            } else {
+                output_str &= "<"; # no text in boolean inputs
+            }
+        } else {
+            output_str &= custom_blocks[i + 2];
+        }
+        start = false;
+        i += 3;
+    }
+    return output_str;
 }
 
 # Remove leading and trailing whitespace (from std library)

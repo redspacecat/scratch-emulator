@@ -1991,9 +1991,12 @@ proc add_block
         Input input2=Input {},
         Input input3=Input {},
         nesting_level=0,
+        cblock="",
         insert_position="",
         use_parsed=false {
         
+    log $cblock;
+
     add $opcode to blocks;
     add $shape to blocks;
     add $category to blocks;
@@ -2015,6 +2018,7 @@ proc add_block
     add $slot_2_height to blocks;
     add $slot_1_nested_block to blocks;
     add $slot_2_nested_block to blocks;
+    add $cblock to blocks;
 
     if $use_parsed {
         # use preexisting block data

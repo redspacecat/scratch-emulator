@@ -75,6 +75,15 @@ proc save_current_sprite target="" {
     }
     sprites[if ($target > "") $target else selected_sprite].lists = save_code;
 
+    # custom blocks
+    save_code = "";
+    local i = 1;
+    until i > length custom_blocks {
+        save_code &= escape(custom_blocks[i], ",") & ",";
+        i++;
+    }
+    sprites[if ($target > "") $target else selected_sprite].custom_blocks = save_code;
+
     log "saving took " & round((days_since_2000() - start) * 86400000) & " ms";
 }
 
@@ -108,6 +117,7 @@ proc save_block idx {
     save_bval_if $idx, b_idx_parent;
     save_bval_if $idx, b_idx_next;
     save_bval $idx, b_idx_nesting_level;
+    save_bval_esc $idx, b_idx_custom_block;
 }
 
 proc save_bval_if bIdx, key {
@@ -149,10 +159,18 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
     delete dragged_blocks;
     delete local_vars;
     delete local_lists;
+    delete custom_blocks;
 
     # remove old blocks
     until length blocks == PALETTE_END - 1 {
         delete blocks[length blocks];
+    }
+
+    # load custom blocks
+    j = 1;
+    until j > length sprites[$sprite].custom_blocks {
+        parse_token ",", sprites[$sprite].custom_blocks;
+        add token to custom_blocks;
     }
 
     if $do_palette_updates {
@@ -176,6 +194,7 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
         b_input2_text(("sensing_of" in blocks)) = sprites[1].name;
         update_block_dimensions ("sensing_of" in blocks);
     }
+    update_custom_blocks;
     
     # load code
     local bl = sprites[$sprite].blocks;
@@ -197,12 +216,25 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
 
     local i = 1;
     until i > length tokens {
-        # find the palette data for the opcode of the block we're loading
-        # look up index in palette_lookup list
-        local line_n = palette_lookup[(tokens[i] in palette_lookup) + 1];
-        # get palette data
-        local l = block_palette[line_n];
-        local l2 = block_palette[line_n + 1];
+        if tokens[i] == "procedures_call" {
+            log "parsing a custom block";
+            # if we have a custom block, we set the palette lookup data to be
+            # a fake value to load the data
+            c_block = tokens[i + 15]; # 15 is custom_block offset in stored blockd data string
+            log "custom block " & c_block;
+            local l = "procedures_call,stack";
+            # format the definition into palette data format so we can load it as if it's
+            # from the palette
+            local l2 = palette_format_from_custom_block_def(c_block); # custom block idx inputted
+            log "palette data line " & l2;
+        } else {
+            # find the palette data for the opcode of the block we're loading
+            # look up index in palette_lookup list
+            local line_n = palette_lookup[(tokens[i] in palette_lookup) + 1];
+            # get palette data
+            local l = block_palette[line_n];
+            local l2 = block_palette[line_n + 1];
+        }
 
         delete toks_1;
         j = 1;
@@ -252,8 +284,9 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
         load_bval idx, b_idx_parent, i, 12;
         load_bval idx, b_idx_next, i, 13;
         load_bval idx, b_idx_nesting_level, i, 14, false;
+        load_bval idx, b_idx_custom_block, i, 15, false;
 
-        i += 15;
+        i += 16;
     }
 
     log "loading took " & round((days_since_2000() - start) * 86400000) & " ms";

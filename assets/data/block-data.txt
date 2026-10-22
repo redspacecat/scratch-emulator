@@ -19,3 +19,4 @@ slot_1_height
 slot_2_height
 slot_1_nested_block
 slot_2_nested_block
+custom_block
