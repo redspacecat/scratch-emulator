@@ -93,9 +93,12 @@ proc save_block idx {
     save_bval $idx, b_idx_y;
 
     # arguments
-    if b_opcode($idx) == "data_variable" or b_opcode($idx) == "datalist_listcontents" {
+    if b_opcode($idx) == "data_variable" or b_opcode($idx) == "datalist_listcontents"
+    or b_opcode($idx) == "procedures_arg_reporter" or b_opcode($idx) == "procedures_arg_boolean" {
         # for a variable or list, we put in the text label as input text to store it,
         # since the block doesn't have inputs
+        # for custom block arguments, we need to store the input text somewhere,
+        # as normally only the input text is stored, so we store it in the input like variables
         save_bval_esc $idx, b_idx_label1_text;
         save_code &= ","; # no nested block
     } else {
@@ -216,17 +219,23 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
 
     local i = 1;
     until i > length tokens {
-        if tokens[i] == "procedures_call" {
+        if tokens[i] == "procedures_call" or tokens[i] == "procedures_prototype" or tokens[i] == "procedures_arg_reporter" or tokens[i] == "procedures_arg_boolean" {
             log "parsing a custom block";
             # if we have a custom block, we set the palette lookup data to be
             # a fake value to load the data
-            c_block = tokens[i + 15]; # 15 is custom_block offset in stored blockd data string
+            c_block = tokens[i + 15]; # 15 is custom_block offset in stored block data string
             log "custom block " & c_block;
-            local l = "procedures_call,stack";
-            # format the definition into palette data format so we can load it as if it's
-            # from the palette
-            local l2 = palette_format_from_custom_block_def(c_block); # custom block idx inputted
-            log "palette data line " & l2;
+            if tokens[i] == "procedures_arg_reporter" or tokens[i] == "procedures_arg_boolean" {
+                local l = tokens[i] & "," & (if (tokens[i] == "procedures_arg_reporter") "reporter" else "boolean");
+                local l2 = "placeholder";
+                log "palette data line " & l2;
+            } else {
+                local l = tokens[i] & ",stack";
+                # format the definition into palette data format so we can load it as if it's
+                # from the palette
+                local l2 = palette_format_from_custom_block_def(c_block); # custom block idx inputted
+                log "palette data line " & l2;
+            }
         } else {
             # find the palette data for the opcode of the block we're loading
             # look up index in palette_lookup list
@@ -257,7 +266,8 @@ proc load_sprite sprite, do_size_updates=true, do_palette_updates=true {
         load_bval idx, b_idx_x, i, 1, false;
         load_bval idx, b_idx_y, i, 2, false;
 
-        if tokens[i] == "data_variable" or tokens[i] == "datalist_listcontents" {
+        if tokens[i] == "data_variable" or tokens[i] == "datalist_listcontents"
+        or tokens[i] == "procedures_arg_reporter" or tokens[i] == "procedures_arg_boolean" {
             b_label1_text(idx) = tokens[i + 3];
         } else {
             b_input1_text(idx) = tokens[i + 3];

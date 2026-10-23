@@ -1995,8 +1995,6 @@ proc add_block
         insert_position="",
         use_parsed=false {
         
-    log $cblock;
-
     add $opcode to blocks;
     add $shape to blocks;
     add $category to blocks;

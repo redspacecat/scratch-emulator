@@ -52,6 +52,7 @@ onkey "t" {
     ask "custom block definition?";
     new_custom_block_from_def answer();
     update_custom_blocks;
+    update_palette_max_width;
 }
 
 proc new_custom_block_from_def def {
@@ -59,8 +60,95 @@ proc new_custom_block_from_def def {
     add false to custom_blocks;
     parse_from_definition $def;
     EXTEND(parsed_tokens, custom_blocks);
-    until length(custom_blocks) % 20 == 0 {
+    until length(custom_blocks) % 21 == 0 {
         add "" to custom_blocks;
+    }
+    create_define_block length custom_blocks / 21; # latest custom block id
+}
+
+proc create_define_block id {
+    add_block
+        opcode: "procedures_definition",
+        shape: "stack",
+        category: Category.CustomBlocks,
+        x: SCROLL_X - 100,
+        y: SCROLL_Y + 100,
+        width: 100,
+        height: 21,
+        cblock: $id,
+        start_style: "hat",
+        label1: TextLabel {x: 0, text: "define"},
+        input1: Input {x: 10, shape: "reporter", text: "", height: 12};
+    def_id = last_block_idx;
+    update_block_dimensions def_id;
+
+    delete parsed_inputs;
+    delete parsed_labels;
+
+    local i = 1;
+    repeat length parsed_tokens / 3 {
+        local t = parsed_tokens[i];
+        if t == "input" {
+            # input
+            add parsed_tokens[i + 1] to parsed_inputs; # block shape
+            add if (parsed_tokens[i + 1] == "reporter") b_input_type_text else "" to parsed_inputs;
+            add "" to parsed_inputs;
+            add "" to parsed_inputs;
+            add i * 21 to parsed_inputs;
+            add "" to parsed_inputs;
+            add 12 to parsed_inputs;
+            add parsed_tokens[i + 2] to parsed_inputs; # text
+            add "" to parsed_inputs;
+        } else {
+            # text label
+            add parsed_tokens[i + 2] to parsed_labels;
+            add i * 21 to parsed_labels;
+        }
+        i += 3;
+    }
+
+    until length parsed_labels == TEXT_LABEL_LENGTH * 3 {
+        add "" to parsed_labels;
+    }
+    until length parsed_inputs == INPUT_LENGTH * 3 {
+        add "" to parsed_inputs;
+    }
+
+
+    add_block
+        opcode: "procedures_prototype",
+        shape: "stack",
+        category: Category.CustomBlocks,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 21,
+        cblock: $id, # can't use "custom_block" because of id overlap with scratch
+        use_parsed: true;
+    proto_idx = last_block_idx;
+    update_block_dimensions proto_idx;
+    put_block_in_block proto_idx, def_id, 1; # connect prototype block to define block
+
+    # add prototype argument blocks
+    local i = 1;
+    local inputNum = 1;
+    repeat length parsed_inputs / INPUT_LENGTH {
+        if parsed_inputs[i] > "" {
+            add_block
+                opcode: "procedures_arg_" & parsed_inputs[i + b_input_shape], # shape
+                shape: parsed_inputs[i + b_input_shape],
+                category: Category.CustomBlocks,
+                x: 0,
+                y: 0,
+                width: 100,
+                height: 16,
+                label1: TextLabel {x: 0, text: parsed_inputs[i + b_input_text]},
+                cblock: $id; # can't use "custom_block" because of id overlap with scratch
+            update_block_dimensions last_block_idx;
+            put_block_in_block last_block_idx, proto_idx, inputNum; # connect prototype block to define block
+        }
+        i += INPUT_LENGTH;
+        inputNum++;
     }
 }
 
@@ -79,11 +167,11 @@ proc update_custom_blocks {
     local blockI = 1;
     local blockID = 1;
     local pos = start_idx;
-    repeat length custom_blocks / 20 {
+    repeat length custom_blocks / 21 {
         # parse_from_definition custom_blocks[blockI];
         local i = blockI + 2; # block data offset
         delete parsed_tokens;
-        until custom_blocks[i] == "" {
+        until custom_blocks[i] == "" or length parsed_tokens >= 18 {
             add custom_blocks[i] to parsed_tokens;
             add custom_blocks[i + 1] to parsed_tokens;
             add custom_blocks[i + 2] to parsed_tokens;
@@ -101,7 +189,7 @@ proc update_custom_blocks {
                 add if (parsed_tokens[i + 1] == "reporter") b_input_type_text else "" to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
-                add i * 20 to parsed_inputs;
+                add i * 21 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add "" to parsed_inputs;
@@ -109,7 +197,7 @@ proc update_custom_blocks {
             } else {
                 # text label
                 add parsed_tokens[i + 2] to parsed_labels;
-                add i * 20 to parsed_labels;
+                add i * 21 to parsed_labels;
             }
             i += 3;
         }
@@ -138,7 +226,7 @@ proc update_custom_blocks {
 
         pos += BLOCK_LENGTH;
         y -= 28;
-        blockI += 20;
+        blockI += 21;
         blockID++;
     }
 
@@ -161,9 +249,8 @@ proc update_custom_blocks {
 }
 
 func palette_format_from_custom_block_def(num) {
-    local i = ($num - 1) * 20 + 1 + 2; # block data offset
+    local i = ($num - 1) * 21 + 1 + 2; # block data offset
     local output_str = "";
-    delete parsed_tokens;
     start = true;
     until custom_blocks[i] == "" {
         if start == false { # don't add comma to begining of string

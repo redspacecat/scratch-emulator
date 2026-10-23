@@ -396,6 +396,8 @@ datalist_listcontainsitem,boolean
 
 text,Custom Blocks
 
+procedures_definition,stack
+define,(
 
 
 text,Extensions

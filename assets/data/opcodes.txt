@@ -131,6 +131,11 @@ datalist_lengthoflist
 datalist_listcontainsitem
 datalist_showlist
 datalist_hidelist
+procedures_call
+procedures_definition
+procedures_prototype
+procedures_arg_reporter
+procedures_arg_boolean
 pen_clear
 pen_stamp
 pen_penDown
