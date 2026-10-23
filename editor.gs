@@ -772,12 +772,22 @@ nowarp proc handle_input {
                 }
             } else {
                 # dragging block
-                if over_palette and hovered_block < PALETTE_END {
+                hovered_opcode = b_opcode(hovered_block);
+                do_duplication = false;
+                if hovered_opcode == "procedures_prototype" {
+                    # if a definition prototype, set the dragged block to the parent to move it instead
+                    dragged_block = b_parent(hovered_block);
+                } elif (over_palette and hovered_block < PALETTE_END) {
+                    do_duplication = true;
+                } elif (hovered_opcode == "procedures_arg_reporter" or hovered_opcode == "procedures_arg_boolean") and b_opcode(b_parent(hovered_block)) == "procedures_prototype" {
+                    do_duplication = true;
+                } else {
+                    dragged_block = hovered_block;
+                }
+                if do_duplication {
                     dragged_block = duplicate_block(hovered_block);
                     scroll_x_offset = SCROLL_X;
                     scroll_y_offset = SCROLL_Y;
-                } else {
-                    dragged_block = hovered_block;
                 }
                 drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
                 drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
@@ -1022,7 +1032,7 @@ proc handle_drag no_recurse=false {
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
             if PALETTE_SHOWN == false or (PALETTE_SHOWN == true and mouse_x() >= PALETTE_MAX_X) {
-                if i not in dragged_blocks and i != h_c_placement.preview_idx { # avoid blocks we're currently holding and the preview placement block
+                if i not in dragged_blocks and i != h_c_placement.preview_idx and b_opcode(i) != "procedures_prototype" { # avoid blocks we're currently holding and the preview placement block, as well as the definition prototype
                     if t_shape == "stack" or t_shape == "c" {
                         # stack block, try to find valid places to connect it
                         local target_height = b_height(i);
@@ -2521,6 +2531,10 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
                 local input_height = b_height(nested_block) + 4; # = top and bottom padding
                 if bshape == "stack" or bshape == "c" {
                     input_height += 2;
+                }
+                if shape == "stack" {
+                    input_height += 8;
+                    input_width += 2;
                 }
                 if (input_height > block_total_height) { # expand the parent block's height if necessary
                     block_total_height = input_height;

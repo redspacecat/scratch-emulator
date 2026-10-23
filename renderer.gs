@@ -812,7 +812,7 @@ proc render_one_block blockIdx {
         }
     } else {
         draw_block
-            colors[b_category(i)],
+            colors[b_category(i) + (3 * (b_opcode(i) == "procedures_prototype"))], # use a different main block color for rendering the prototype
             b_width(i),
             b_height(i),
             b_x(i) - scroll_x_offset,
