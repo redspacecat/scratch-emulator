@@ -7,6 +7,7 @@
 %define BLOCK_LENGTH 55
 %define TEXT_LABEL_LENGTH 2
 %define INPUT_LENGTH 9
+%define CUSTOM_BLOCK_LENGTH 21
 
 %define c_block_prong_height 15
 %define c_block_min_slot_height 12

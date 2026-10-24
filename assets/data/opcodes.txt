@@ -6,6 +6,9 @@ end
 is_broadcast_receive_done
 get_broadcast_receiver_count
 get_broadcast_id
+proc_return_jump_pop
+proc_init_call
+proc_arg
 motion_movesteps
 motion_turnright
 motion_turnleft

@@ -60,10 +60,10 @@ proc new_custom_block_from_def def {
     add false to custom_blocks;
     parse_from_definition $def;
     EXTEND(parsed_tokens, custom_blocks);
-    until length(custom_blocks) % 21 == 0 {
+    until length(custom_blocks) % CUSTOM_BLOCK_LENGTH == 0 {
         add "" to custom_blocks;
     }
-    create_define_block length custom_blocks / 21; # latest custom block id
+    create_define_block length custom_blocks / CUSTOM_BLOCK_LENGTH; # latest custom block id
 }
 
 proc create_define_block id {
@@ -167,7 +167,7 @@ proc update_custom_blocks {
     local blockI = 1;
     local blockID = 1;
     local pos = start_idx;
-    repeat length custom_blocks / 21 {
+    repeat length custom_blocks / CUSTOM_BLOCK_LENGTH {
         # parse_from_definition custom_blocks[blockI];
         local i = blockI + 2; # block data offset
         delete parsed_tokens;
@@ -189,7 +189,7 @@ proc update_custom_blocks {
                 add if (parsed_tokens[i + 1] == "reporter") b_input_type_text else "" to parsed_inputs;
                 add "" to parsed_inputs;
                 add "" to parsed_inputs;
-                add i * 21 to parsed_inputs;
+                add i * 20 to parsed_inputs;
                 add "" to parsed_inputs;
                 add 12 to parsed_inputs;
                 add "" to parsed_inputs;
@@ -197,7 +197,7 @@ proc update_custom_blocks {
             } else {
                 # text label
                 add parsed_tokens[i + 2] to parsed_labels;
-                add i * 21 to parsed_labels;
+                add i * 20 to parsed_labels;
             }
             i += 3;
         }
@@ -226,7 +226,7 @@ proc update_custom_blocks {
 
         pos += BLOCK_LENGTH;
         y -= 28;
-        blockI += 21;
+        blockI += CUSTOM_BLOCK_LENGTH;
         blockID++;
     }
 
@@ -249,7 +249,7 @@ proc update_custom_blocks {
 }
 
 func palette_format_from_custom_block_def(num) {
-    local i = ($num - 1) * 21 + 1 + 2; # block data offset
+    local i = ($num - 1) * CUSTOM_BLOCK_LENGTH + 1 + 2; # block data offset
     local output_str = "";
     start = true;
     until custom_blocks[i] == "" {
