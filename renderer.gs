@@ -925,7 +925,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         pen_down;
         goto $x + $width - 2, $y - $height + 2;
         pen_up;
-        if $start_style != "hat" {
+        if $start_style == "normal" or $start_style == "" {
             fill_rect $x + 2, $x + 7, $y - $height, $y, 1;
             fill_rect $x + 19, $x + $width - 2, $y - $height + 1, $y, 1;
 
@@ -936,7 +936,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             goto $x + 5, $y - 2;
             pen_down;
             pen_up;
-        } else {
+        } elif $start_style == "hat" {
             fill_rect $x + 2, $x + $width - 2, $y - $height, $y, 1;
             goto $x + 5, $y + 1;
             set_pen_size 10;
@@ -948,6 +948,36 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             }
             goto $x + 10, $y + 3;
             pen_up;
+        } elif $start_style == "proc" {
+            goto $x + 10, $y;
+            set_pen_size 0;
+            pen_down;
+            set_pen_size 20;
+            set_pen_color $border_color;
+            set_x $x + $width - 9;
+            pen_up;
+
+            goto $x + 10, $y;
+            set_pen_size 0;
+            pen_down;
+            set_pen_size 18;
+            set_pen_color $color;
+            set_x $x + $width - 9;
+            pen_up;
+
+            goto $x + 2, $y - 2;
+            set_pen_size 2;
+            pen_down;
+            change_y -4;
+            pen_up;
+
+            goto $x + $width - 1, $y - 2;
+            set_pen_size 2;
+            pen_down;
+            change_y -4;
+            pen_up;
+
+            fill_rect $x + 2, $x + $width - 2, $y - $height, $y, 1;
         }
         if $end_style != "cap" {
             tri_fill $x + 8, $y - $height, $x + 11, $y - $height - 2, $x + 19, $y - $height, 0.5;
@@ -955,32 +985,39 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         }
         set_pen_size 1;
         set_pen_color $border_color;
-        if $start_style != "hat" {
-            goto $x + 3, $y;
+        if $start_style == "proc" {
+            goto $x + $width, $y;
             pen_down;
-            goto $x + 7, $y;
-            goto $x + 10, $y - 3;
-            goto $x + 16, $y - 3;
-            goto $x + 19, $y;
         } else {
-            goto $x, $y;
-            pen_down;
-            change_y 3;
-            point_in_direction 58;
-            repeat 9 {
-                move 7;
-                turn_right 8.5;
+            if $start_style == "hat" {
+                goto $x, $y;
+                pen_down;
+                change_y 3;
+                point_in_direction 58;
+                repeat 9 {
+                    move 7;
+                    turn_right 8.5;
+                }
+                goto x_position() + 1, $y;
+            } else {
+                goto $x + 3, $y;
+                pen_down;
+                goto $x + 7, $y;
+                goto $x + 10, $y - 3;
+                goto $x + 16, $y - 3;
+                goto $x + 19, $y;
             }
-            goto x_position() + 1, $y;
+
+            # turn corner
+            goto $x + $width - 2, $y;
+            point_in_direction 90;
+            local move_amount = 2 / 1.366;
+            repeat 2 {
+                turn_right 30;
+                move move_amount;
+            }
         }
-        goto $x + $width - 2, $y;
-        point_in_direction 90;
-        local move_amount = 2 / 1.366;
-        repeat 2 {
-            turn_right 30;
-            move move_amount;
-        }
-        # goto $x + $width, $y - 2;
+
         goto $x + $width, $y - $height + 2;
         point_in_direction 180;
         repeat 2 {
@@ -999,7 +1036,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             turn_right 30;
             move move_amount;
         }
-        if $start_style != "hat" {
+        if $start_style == "normal" or $start_style == "" {
             goto $x, $y - 2;
             point_in_direction 0;
             repeat 2 {

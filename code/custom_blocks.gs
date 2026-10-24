@@ -76,7 +76,7 @@ proc create_define_block id {
         width: 100,
         height: 21,
         cblock: $id,
-        start_style: "hat",
+        start_style: "proc",
         label1: TextLabel {x: 0, text: "define"},
         input1: Input {x: 10, shape: "reporter", text: "", height: 12};
     def_id = last_block_idx;

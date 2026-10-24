@@ -97,11 +97,13 @@ proc parse_palette_block x_offset=0 {
         } else {
             local end_style = "normal";
         }
-        if "when" in opcode or opcode == "control_start_as_clone" or opcode == "procedures_definition" {
+        if "when" in opcode or opcode == "control_start_as_clone" {
             local start_style = "hat";
             if start_style == "hat" {
                 by -= block_hat_height;
             }
+        } elif opcode == "procedures_definition" {
+            local start_style = "proc";
         } else {
             local start_style = "normal";
         }

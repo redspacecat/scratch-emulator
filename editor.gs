@@ -1039,7 +1039,7 @@ proc handle_drag no_recurse=false {
                         if point_in_rect(Point {x: t_x, y: t_y}, Rect {x1: b_x(i) - 20, y1: b_y(i) - target_height - 20, x2: b_x(i) + 20, y2: b_y(i) + 40}) {
                             local s = b_shape(i);
                             if s == "stack" or s == "c" {
-                                if b_start_style(dragged_block) != "hat" {
+                                if b_start_style(dragged_block) != "hat" and b_start_style(dragged_block) != "proc" {
                                     # prevent cap blocks being put in the middle of a stack
                                     # allow if the next is the preview block, since it's the block
                                     # we're planning to place anyway. causes flickering between choices otherwise
@@ -1065,7 +1065,7 @@ proc handle_drag no_recurse=false {
                                 #     } to tmp_input_ranking;
                                 # }
                             }
-                            if b_shape(i) == "c" and b_start_style(dragged_block) != "hat" { # don't allow hat blocks where they shouldn't go
+                            if b_shape(i) == "c" and b_start_style(dragged_block) != "hat" and b_start_style(dragged_block) != "proc" { # don't allow hat blocks where they shouldn't go
                                 # prevent cap blocks being put in the middle of a stack
                                 if (b_end_style(dragged_stack_end) == "cap" and (b_slot_1_nested_block(i) == "" or b_slot_1_nested_block(i) == h_c_placement.preview_idx)) or b_end_style(dragged_stack_end) != "cap" {
                                     add InputRank {
@@ -1901,7 +1901,8 @@ func check_hovered_block(Point p, i, ignoreIdx) {
             ((point_in_rect($p, Rect {x1: x, y1: y - 1, x2: x + 55, y2: y + 4}) or
             point_in_tri($p, Tri {x1: x, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3}) or 
             point_in_tri($p, Tri {x1: x + 60, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3})
-            ) and b_start_style($i) == "hat") {
+            ) and b_start_style($i) == "hat") or
+            (point_in_rect($p, Rect {x1: x, y1: y, x2: x + width, y2: y + 10}) and b_start_style($i) == "proc") {
                 return $i;
             }
         } elif shape == "c" {
