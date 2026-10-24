@@ -17,7 +17,7 @@ PATH_TARGET_PROJECT = temp_path
 with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as project:
     project.order_sprites(['blank', 'editor', 'renderer', 'compiler', 'runner', 'save & load'])
     project.remove_field_text()
-    project.move_turbowarp_comment()
+    project.move_turbowarp_comment(100, 0)
 
     # Add the monitors
 
@@ -115,6 +115,11 @@ with post_processing.ScratchProject(PATH_SOURCE_PROJECT, PATH_TARGET_PROJECT) as
         "sliderMax": 100,
         "isDiscrete": True
     })
+
+    project.project_data["targets"][0]["comments"].pop("notes", None) # big comment that's a bit annoying
+    project.project_data["targets"][0]["comments"]["twconfig"]["text"] = """Configuration for https://turbowarp.org/
+You can move, resize, and minimize this comment, but don't edit it by hand. This comment can be deleted to remove the stored settings.
+{"hq":true} // _twconfig_"""
 
     # project.add_build_comment('Scratch Emulator\nCreated by redspacecat', "blank")
 
