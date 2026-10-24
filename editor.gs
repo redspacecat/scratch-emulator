@@ -401,6 +401,7 @@ on "ui_handle_loop" {
             new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[23] - 26, x2: -205 + 82, y2: block_palette_text[23] - 8});
             new_list_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[32] - 26, x2: -205 + 62, y2: block_palette_text[32] - 8});
             clean_messages_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[14] + 122, x2: -205 + 130, y2: block_palette_text[14] + 140});
+            make_block_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[41] - 26, x2: -205 + 70, y2: block_palette_text[41] - 8});
         }
 
         if selected_workspace == Workspace.Costumes {
@@ -848,6 +849,9 @@ nowarp proc handle_input {
                 if clean_messages_btn_hovered {
                     delete_unused_messages;
                 }
+                if make_block_btn_hovered {
+                    create_new_custom_block;
+                }
             } elif not SPRITES_SHOWN {
                 # if not moving a block or clicking on a button, drag the code area
                 mx = mouse_x();
@@ -1032,7 +1036,8 @@ proc handle_drag no_recurse=false {
     repeat length blocks / BLOCK_LENGTH {
         if blocks[i] > "" {
             if PALETTE_SHOWN == false or (PALETTE_SHOWN == true and mouse_x() >= PALETTE_MAX_X) {
-                if i not in dragged_blocks and i != h_c_placement.preview_idx and b_opcode(i) != "procedures_prototype" { # avoid blocks we're currently holding and the preview placement block, as well as the definition prototype
+                # avoid blocks we're currently holding and the preview placement block, as well as the definition prototype
+                if i not in dragged_blocks and i != h_c_placement.preview_idx and b_opcode(i) != "procedures_prototype" {
                     if t_shape == "stack" or t_shape == "c" {
                         # stack block, try to find valid places to connect it
                         local target_height = b_height(i);
@@ -1093,7 +1098,7 @@ proc handle_drag no_recurse=false {
                         local inputNum = 1;
                         repeat 3 {
                             local offset = i + b_inputs + counter;
-                            if blocks[offset + b_input_shape] > "" {
+                            if blocks[offset + b_input_shape] > "" and b_opcode(i) != "procedures_definition" { # no replacing prototype block in definition
                                 if is_input_valid(b_shape(dragged_block), blocks[offset + b_input_shape], blocks[offset + b_input_dropdown_shape]) {
                                     if abs(t_x - blocks[offset + b_input_x]) < 40 and abs(t_y - (b_y(i) - target_height / 2)) < 40 {
                                         add InputRank {
@@ -1902,7 +1907,7 @@ func check_hovered_block(Point p, i, ignoreIdx) {
             point_in_tri($p, Tri {x1: x, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3}) or 
             point_in_tri($p, Tri {x1: x + 60, y1: y + 4, x2: x + 30, y2: y + 16, x3: x + 30, y3: y + 3})
             ) and b_start_style($i) == "hat") or
-            (point_in_rect($p, Rect {x1: x, y1: y, x2: x + width, y2: y + 10}) and b_start_style($i) == "proc") {
+            (point_in_rect($p, Rect {x1: x, y1: y, x2: x + width, y2: y + 4}) and b_start_style($i) == "proc") {
                 return $i;
             }
         } elif shape == "c" {

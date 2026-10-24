@@ -48,8 +48,8 @@ proc parse_from_definition def {
     show parsed_tokens;
 }
 
-onkey "t" {
-    ask "custom block definition?";
+nowarp proc create_new_custom_block {
+    ask "Enter new block definition. Use () for reporter inputs and <> for boolean inputs. Text inside becomes input name, and surrounding text becomes text labels. Max 3 inputs.";
     new_custom_block_from_def answer();
     update_custom_blocks;
     update_palette_max_width;
@@ -160,7 +160,7 @@ proc update_custom_blocks {
     until blocks[start_idx] == "pen_clear" {
         delete blocks[start_idx];
     }
-    local y = b_y(("datalist_listcontainsitem" in blocks)) - 50;
+    local y = b_y(("datalist_listcontainsitem" in blocks)) - 75;
     local compare_y = b_y(("pen_clear" in blocks)) + 45;
     local start_y = y;
 

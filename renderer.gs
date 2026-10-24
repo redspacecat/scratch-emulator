@@ -394,6 +394,26 @@ proc render_palette_text {
     pen_up;
     set_pen_color ui_c(MainText);
     plain_text -200 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 129, 1, "Removed Unused Messages", "l", true;
+
+    # new block button
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
+    set_pen_color ui_c(ButtonBorder);
+    set_pen_size 18;
+    pen_down;
+    change_x 54;
+    pen_up;
+    goto -197 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
+    if "editor"."make_block_btn_hovered" {
+        set_pen_color ui_c(ButtonColorHovered);
+    } else {
+        set_pen_color ui_c(ButtonColor);
+    }
+    set_pen_size 16;
+    pen_down;
+    change_x 54;
+    pen_up;
+    set_pen_color ui_c(MainText);
+    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 20, 1, "Make a Block", "l", true;
 }
 
 proc render_palette_sidebar {
@@ -916,7 +936,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
     if $shape == "stack" {
         set_pen_color $color;
         set_pen_size 4;
-        goto $x + 2, $y - 2 + (3 * ($start_style == "hat"));
+        goto $x + 2, $y - 2 + (3 * ($start_style == "hat")) - (5 * ($start_style == "proc"));
         pen_down;
         goto $x + 2, $y - $height + 3;
         pen_up;
@@ -949,35 +969,35 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             goto $x + 10, $y + 3;
             pen_up;
         } elif $start_style == "proc" {
-            goto $x + 10, $y;
+            goto $x + 8, $y - 4;
             set_pen_size 0;
             pen_down;
-            set_pen_size 20;
+            set_pen_size 16;
             set_pen_color $border_color;
-            set_x $x + $width - 9;
+            set_x $x + $width - 7;
             pen_up;
 
-            goto $x + 10, $y;
+            goto $x + 8, $y - 4;
             set_pen_size 0;
             pen_down;
-            set_pen_size 18;
+            set_pen_size 14;
             set_pen_color $color;
-            set_x $x + $width - 9;
+            set_x $x + $width - 7;
             pen_up;
 
             goto $x + 2, $y - 2;
             set_pen_size 2;
             pen_down;
-            change_y -4;
+            change_y -8;
             pen_up;
 
             goto $x + $width - 1, $y - 2;
             set_pen_size 2;
             pen_down;
-            change_y -4;
+            change_y -8;
             pen_up;
 
-            fill_rect $x + 2, $x + $width - 2, $y - $height, $y, 1;
+            fill_rect $x + 2, $x + $width - 2, $y - $height, $y - 3, 1;
         }
         if $end_style != "cap" {
             tri_fill $x + 8, $y - $height, $x + 11, $y - $height - 2, $x + 19, $y - $height, 0.5;
@@ -986,7 +1006,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
         set_pen_size 1;
         set_pen_color $border_color;
         if $start_style == "proc" {
-            goto $x + $width, $y;
+            goto $x + $width, $y - 5;
             pen_down;
         } else {
             if $start_style == "hat" {
@@ -1045,7 +1065,7 @@ proc draw_block color, width, height, x, y, shape, end_style, start_style, borde
             }
             goto $x + 3, $y;
         } else {
-            goto $x, $y;
+            goto $x, $y - (5 * ($start_style == "proc"));
         }
         pen_up;
     }
