@@ -1252,33 +1252,20 @@ proc open_dropdown {
     dropdown_width = MAX(90, max_text_width + 40);
 }
 
+%define copy_list(list_name) local i = 1; repeat length list_name { add_dropdown_item list_name[i]; i++; }
+%define copy_list(list_name, struct_name) local i = 1; repeat length list_name { add_dropdown_item list_name[i].struct_name; i++; }
+
 list tmp_all; # for temporarily combining local and global variables and lists
 
 proc handle_custom_dropdown t {
     if $t == "$sprites$" {
-        local i = 1;
-        repeat length sprites {
-            add_dropdown_item sprites[i].name;
-            i++;
-        }
+        copy_list(sprites, name);
     } elif $t == "$costumes$" {
-        local i = 1;
-        repeat length costume_names {
-            add_dropdown_item costume_names[i];
-            i++;
-        }
+        copy_list(costume_names);
     } elif $t == "$sounds$" {
-        local i = 1;
-        repeat length sound_names {
-            add_dropdown_item sound_names[i];
-            i++;
-        }
+        copy_list(sound_names);
     } elif $t == "$messages$" {
-        local i = 1;
-        repeat length broadcasts {
-            add_dropdown_item broadcasts[i];
-            i++;
-        }
+        copy_list(broadcasts);
     } elif $t == "$variables$" or $t == "$lists$" {
         delete tmp_all;
         if $t == "$variables$" {
@@ -1289,12 +1276,7 @@ proc handle_custom_dropdown t {
             EXTEND(global_lists, tmp_all);
         }
         INSERTION_SORT(tmp_all);
-
-        local i = 1;
-        repeat length tmp_all {
-            add_dropdown_item tmp_all[i];
-            i++;
-        }
+        copy_list(tmp_all);
 
         if $t == "$variables$" {
             add_dropdown_item "Rename variable";
@@ -1310,17 +1292,9 @@ proc handle_custom_dropdown t {
         }
         add_dropdown_item "other scripts in sprite";
     } elif $t == "$drums$" {
-        local i = 1;
-        repeat length drums {
-            add_dropdown_item drums[i];
-            i++;
-        }
+        copy_list(drums);
     } elif $t == "$instruments$" {
-        local i = 1;
-        repeat length instruments {
-            add_dropdown_item instruments[i];
-            i++;
-        }
+        copy_list(instruments);
     }
 }
 
