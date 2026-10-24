@@ -47,17 +47,15 @@ proc exec_music cmd {
                 # set tempo
                 pop 1;
                 set_tempo args[1];
-                var_tempo = args[1];
             }
         } else {
             if $cmd < Opcode.music_getTempo {
                 # change tempo
                 pop 1;
                 change_tempo args[1];
-                var_tempo += args[1];
             } else {
                 # get tempo
-                push var_tempo;
+                push tempo();
             }
         }
     }

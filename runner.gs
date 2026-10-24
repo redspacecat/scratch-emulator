@@ -161,7 +161,6 @@ proc init_sprite {
     var_pen_size = 1;
     var_pen_down = false;
     var_draggable = true;
-    var_tempo = 60;
 }
 
 on "init_runtime" {
