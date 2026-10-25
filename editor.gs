@@ -33,6 +33,7 @@ enum Padding {
     end_other=5, # end padding for ending on other inputs
     text_padding=4, # padding around text in inputs
     boolean_edge=8, # padding around edges of boolean blocks
+    stack_input=20, # padding for inputs at the beginning of stack blocks, in custom blocks
 }
 
 struct Point {
@@ -2555,15 +2556,23 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
             }
 
             if (current_x == start_x) {
-                if (bshape == shape) {
-                    current_x += if (bshape == "boolean") Padding.boolean_edge_same else Padding.reporter_edge_same;
-                } elif (bshape == "boolean") { # add more padding to boolean blocks
-                    current_x += Padding.boolean_edge;
+                if bshape == "stack" and (shape == "reporter" or shape == "boolean") {
+                    current_x += Padding.stack_input; # offset input past block connection bump
                 } else {
-                    current_x += Padding.start;
+                    if (bshape == shape) {
+                        current_x += if (bshape == "boolean") Padding.boolean_edge_same else Padding.reporter_edge_same;
+                    } elif (bshape == "boolean") { # add more padding to boolean blocks
+                        current_x += Padding.boolean_edge;
+                    } else {
+                        current_x += Padding.start;
+                    }
                 }
             } else {
-                current_x += Padding.base;
+                if bshape == "stack" and (shape == "reporter" or shape == "boolean") and current_x - start_x < 20 {
+                    current_x += (start_x + Padding.stack_input) - current_x; # offset input past block connection bump, even if there's already a text label earlier
+                } else {
+                    current_x += Padding.base;
+                }
             }
             set_block_input blockIdx, inputNum, b_input_x, current_x;
             current_x += input_width;
@@ -2590,8 +2599,13 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     local total_width = current_x - start_x;
     if bshape == "c" {
         total_width = MAX(c_block_min_width, total_width);
+    } elif bshape == "reporter" {
+        b_width(blockIdx) = MAX(16, total_width); # min reporter width
+    } elif bshape == "boolean" {
+        b_width(blockIdx) = MAX(20, total_width); # min boolean width
+    } else {
+        b_width(blockIdx) = MAX(30, total_width); # stack blocks
     }
-    b_width(blockIdx) = MAX(16, total_width);
 
     if bshape == "c" {
         b_prong_1_height(blockIdx) = block_total_height;

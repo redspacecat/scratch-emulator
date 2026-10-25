@@ -251,7 +251,7 @@ func palette_format_from_custom_block_def(num) {
     local output_str = "";
     start = true;
     until custom_blocks[i] == "" {
-        if start == false { # don't add comma to begining of string
+        if start == false { # don't add comma to beginning of string
             output_str &= ",";
         }
         if custom_blocks[i] == "input" { # first element is format
