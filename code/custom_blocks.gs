@@ -288,3 +288,33 @@ func strip(text) {
     }
     return strbuf;
 }
+
+func can_delete_custom_block(id) {
+    local i = PALETTE_END;
+    until i > length blocks {
+        if b_opcode(i) == "procedures_call" and b_custom_block(i) == $id { # custom block is in use, can't delete it
+            return false;
+        }
+        i += BLOCK_LENGTH;
+    }
+    return true;
+}
+
+proc delete_custom_block custom_block_id {
+    # remove custom block data
+    repeat CUSTOM_BLOCK_LENGTH {
+        delete custom_blocks[($custom_block_id - 1) * CUSTOM_BLOCK_LENGTH + 1]; # index of custom block data
+    }
+
+    # shift down custom block id references in blocks
+    local i = PALETTE_END;
+    until i > length blocks {
+        if b_custom_block(i) > $custom_block_id { # custom block needs to be shifted down
+            b_custom_block(i)--;
+        }
+        i += BLOCK_LENGTH;
+    }
+
+    # update palette
+    update_custom_blocks;
+}

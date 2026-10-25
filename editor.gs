@@ -105,7 +105,6 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
     target_palette_y_time = 0;
     target_sprites_x = 0;
     target_sprites_x_time = 0;
-    no_category_switch = 0;
     
     dropdown = 0;
 
@@ -390,9 +389,6 @@ on "ui_handle_loop" {
                 if target_palette_x_time == 0 and target_palette_x == 0 {
                     PALETTE_SCROLL_X = 0;
                 }
-            }
-            if no_category_switch > 0 {
-                no_category_switch--;
             }
 
             new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[23] - 26, x2: -205 + 82, y2: block_palette_text[23] - 8});
@@ -789,6 +785,8 @@ nowarp proc handle_input {
                 }
                 drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
                 drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
+                drag_start_x = b_x(dragged_block);
+                drag_start_y = b_y(dragged_block);
                 disconnect_block dragged_block;
                 dragged_script_idx = get_script_root(dragged_block); # stores the dragged block's root script idx
                 dragged_stack_end = get_stack_bottom(dragged_block);
@@ -798,8 +796,20 @@ nowarp proc handle_input {
                     redraw;
                 }
                 if mouse_x() < PALETTE_MAX_X and ((target_palette_x == 0 and PALETTE_SHOWN) or (target_palette_x_time > 5)) {
-                    delete_block_stack dragged_block;
-                    no_category_switch = 2;
+                    if b_opcode(dragged_block) == "procedures_definition" {
+                        c_block = b_custom_block(dragged_block);
+                        # if trying to delete a custom block, we need to make sure all instances of the block are removed first
+                        if not can_delete_custom_block(c_block) {
+                            ask "To delete a block definition, first remove all uses of the block";
+                            # move definition stack back to original position
+                            move_block_position dragged_block, drag_start_x - b_x(dragged_block), drag_start_y - b_y(dragged_block);
+                        } else {
+                            delete_block_stack dragged_block;
+                            delete_custom_block c_block;
+                        }
+                    } else {
+                        delete_block_stack dragged_block;
+                    }
                 } else {
                     if highlighted_input.block > "" {
                         if get_block_input(highlighted_input.block, highlighted_input.input, b_input_nested_block) > "" {
