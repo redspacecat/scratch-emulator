@@ -688,10 +688,10 @@ proc render_menubar { # bar at top of screen
     # hovered button
     set_pen_color ui_c(NavButtonHovered);
     if "editor"."hovered_menu_button" > "" {
-        fill_rect menu_buttons["editor"."hovered_menu_button"] - 7, menu_buttons["editor"."hovered_menu_button"] + menu_buttons["editor"."hovered_menu_button" + 2] + 7, 164, 180;
+        fill_rect menu_buttons["editor"."hovered_menu_button"] - 7, menu_buttons["editor"."hovered_menu_button"] + menu_buttons["editor"."hovered_menu_button" + 2] + 7, 164, 181;
     }
     set_pen_color ui_c(NavButtonSelected);
-    fill_rect menu_buttons[selected_workspace] - 7, menu_buttons[selected_workspace] + menu_buttons[selected_workspace + 2] + 7, 164, 180;
+    fill_rect menu_buttons[selected_workspace] - 7, menu_buttons[selected_workspace] + menu_buttons[selected_workspace + 2] + 7, 164, 181;
 
     # text
     set_pen_color ui_c(MainText);

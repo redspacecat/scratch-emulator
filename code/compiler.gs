@@ -359,7 +359,6 @@ proc compile_add_functions {
         i += CUSTOM_BLOCK_LENGTH; # custom block length
         func_num++;
     }
-    show functions;
 }
 
 proc compile_replace_proc_placeholders {

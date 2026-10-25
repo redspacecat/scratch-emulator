@@ -44,8 +44,6 @@ proc parse_from_definition def {
         add "" to parsed_tokens;
         add s to parsed_tokens;
     }
-
-    show parsed_tokens;
 }
 
 nowarp proc create_new_custom_block {
