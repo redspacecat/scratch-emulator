@@ -37,5 +37,26 @@ proc exec_extras cmd {
         push message_receiver_count[args[1] in message_names];
     } elif $cmd == Opcode.get_broadcast_id {
         push CURRENT_BROADCAST_ID;
+    } elif $cmd == Opcode.proc_return_jump_pop { # return jump pop
+        pop_call 1; # get return position
+        tmp_return_pos = args[1];
+
+        pop 1; # get number of args to remove
+        pop_call args[1]; # remove args from stack
+
+        # jump to return position
+        p = tmp_return_pos - 1;
+    } elif $cmd == Opcode.proc_init_call { # proc init call
+        pop 2;
+        tmp_return_pos = args[2];
+        pop args[1]; # pop off custom block args from arg count amount
+        until length args == 0 { # push args in reverse order so stack top - 1 = arg 1
+            push_call args[length args];
+            delete args[length args];
+        }
+        push_call tmp_return_pos;
+    } elif $cmd == Opcode.proc_arg { # proc arg
+        pop 1;
+        push call_stack[1 + args[1]]; # args are from the top of the stack
     }
 }

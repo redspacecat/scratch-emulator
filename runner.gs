@@ -39,6 +39,8 @@ list Var runtime_local_vars;
 list r_local_lists;
 list threads;
 list received_messages;
+list call_stack; # for custom blocks, holds args and return positions
+list call_stack_data; # holds call stacks for different threads
 
 list target_arg_lookup = [
     "random position", "_random_",
@@ -115,6 +117,23 @@ proc pop_one {
 
 proc push item {
     insert $item at stack[1];
+}
+
+proc pop_call arg_count {
+    delete args;
+    repeat $arg_count {
+        pop_one_call;
+        insert popped_val at args[1];
+    }
+}
+
+proc pop_one_call {
+    popped_val = call_stack[1];
+    delete call_stack[1];
+}
+
+proc push_call item {
+    insert $item at call_stack[1];
 }
 
 proc pop_tmp_args arg_count {
@@ -263,7 +282,7 @@ proc check_messages { # check for received broadcasts
                         log "stopping existing thread... " + messages[i + 2];
                         stop_thread j;
                     } else {
-                        j += 5;
+                        j += 6;
                     }
                 }
                 # start new messages
@@ -319,6 +338,21 @@ proc init_runtime {
     LAST_SCREEN_REFRESH = days_since_2000();
 
     delete received_messages;
+
+    if $tw_is_turbowarp {
+        max_threads = 50;
+        total_call_stack_length = 500000;
+    } else {
+        max_threads = 32;
+        total_call_stack_length = 200000;
+    }
+    
+    delete call_stack;
+    delete call_stack_data;
+    repeat total_call_stack_length {
+        add "" to call_stack_data;
+    }
+    call_stack_length = length call_stack_data // max_threads;
 }
 
 proc start_thread pos, message_name="", message_id="" {
@@ -327,22 +361,23 @@ proc start_thread pos, message_name="", message_id="" {
     add "" to threads;
     add $message_name to threads;
     add $message_id to threads;
+    add 0 to threads; # saved call stack length
 }
 
 proc stop_thread pos {
     if threads[$pos + 4] > "" {
         received_messages_exec_count[threads[$pos + 4]] += 1;
     }
-    repeat 5 {
+    repeat 6 {
         delete threads[$pos];
     }
     # shift down later indexes appropriately to ensure thread unpausing still works
-    if $pos < askI {askI -= 5;}
-    if $pos < soundI {soundI -= 5;}
-    if $pos < drumI {drumI -= 5;}
-    if $pos < restI {restI -= 5;}
-    if $pos < noteI {noteI -= 5;}
-    if $pos < exportI {exportI -= 5;}
+    if $pos < askI {askI -= 6;}
+    if $pos < soundI {soundI -= 6;}
+    if $pos < drumI {drumI -= 6;}
+    if $pos < restI {restI -= 6;}
+    if $pos < noteI {noteI -= 6;}
+    if $pos < exportI {exportI -= 6;}
 }
 
 proc pause_current_thread secs="" {
@@ -367,7 +402,7 @@ proc exec_threads {
     }
 
     threadI = 1;
-    repeat length threads / 5 {
+    repeat length threads / 6 {
         exec_one_thread threadI;
         if threadI == 0 {
             stop_this_script;
@@ -377,6 +412,7 @@ proc exec_threads {
 
 proc exec_one_thread threadPos {
     delete stack;
+    delete call_stack;
     current_thread = $threadPos;
 
     if threads[current_thread + 1] == "wait" { # yield if waiting on a command to complete
@@ -385,8 +421,17 @@ proc exec_one_thread threadPos {
             threads[current_thread + 1] = "";
             threads[current_thread + 2] = "";
         } else {
-            threadI += 5; # make sure to run other threads too
+            threadI += 6; # make sure to run other threads too
             stop_this_script;
+        }
+    }
+
+    if threads[current_thread + 5] > 0 { # custom block call stack length
+        # if there is a call stack, copy it over
+        i = (current_thread - 1) * call_stack_length + 1;
+        repeat threads[current_thread + 5] {
+            add call_stack_data[i] to call_stack;
+            i++;
         }
     }
 
@@ -403,8 +448,18 @@ proc exec_one_thread threadPos {
         p++;
     }
     if yield > "" {
-        # log "storing yield position " & yield;
         threads[current_thread] = yield; # update the stored position of the thread to come back to next frame
+
+        if length call_stack > 0 {
+            # if there is a call stack, store it for next frame
+            threads[current_thread + 5] = length call_stack;
+            i = (current_thread - 1) * call_stack_length + 1;
+            repeat threads[current_thread + 5] {
+                call_stack_data[i] = call_stack[1];
+                delete call_stack[1];
+                i++;
+            }
+        }
     }
     if stop {
         if stop_level == "script" {
@@ -416,7 +471,7 @@ proc exec_one_thread threadPos {
             broadcast "stop_program";
         }
     } else {
-        threadI += 5;
+        threadI += 6;
     }
 }
 
@@ -428,11 +483,11 @@ proc stop_all_threads {
 
 proc stop_other_threads {
     # to stop all other threads, we need to delete all threads before this thread and all threads after
-    repeat (threadI - 1) / 5{ # stops all threads before our current thread
+    repeat (threadI - 1) / 6 { # stops all threads before our current thread
         stop_thread 1;
     }
 
-    until length threads / 5 == 1 { # stops all threads after our current thread
+    until length threads / 6 == 1 { # stops all threads after our current thread
         stop_thread 2;
     }
     threadI = 0; # stop running threads and yield to next frame
