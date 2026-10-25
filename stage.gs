@@ -102,7 +102,6 @@ list AsyncAction async_actions;
 list Var runtime_global_vars;
 list r_global_lists;
 list sprite_info;
-var program_inactivity;
 
 var selected_workspace;
 

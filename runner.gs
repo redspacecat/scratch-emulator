@@ -82,8 +82,6 @@ proc init {
     repeat length sprites * 3 {
         add "" to sprite_info;
     }
-
-    program_inactivity = 0;
 }
 
 on "create_sprites" {
@@ -195,7 +193,6 @@ on "run" {
         show;
         forever {
             LAST_SCREEN_REFRESH = days_since_2000();
-            program_inactivity++; # increase program inactivity counter
             move 0;
         }
     }
@@ -397,10 +394,6 @@ proc unpause_thread idx {
 }
 
 proc exec_threads {
-    if length threads > 0 {
-        program_inactivity = 0;
-    }
-
     threadI = 1;
     repeat length threads / 6 {
         exec_one_thread threadI;

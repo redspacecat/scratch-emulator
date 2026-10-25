@@ -148,12 +148,9 @@ on "handle_run_project" {
     broadcast_and_wait "create_sprites";
     broadcast_and_wait "init_runtime";
     broadcast "run";
+}
 
-    # wait until the program has been inactive for a period of time
-    # once it has we can assume it's done and return to the editor
-    wait_until(program_inactivity > 30);
-
-    broadcast_and_wait "stop_program";
+on "stop_program" {
     broadcast_and_wait "terminate_program";
     RUNNING = false;
 
