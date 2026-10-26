@@ -6,7 +6,7 @@ hide;
 
 var delimiter = "‖";
 var start_char = "§";
-var new_project_data = "§my variable,‖‖message1,‖Sprite1‖1‖;‖‖‖";
+var new_project_data = "§my variable,‖‖message1,‖Sprite1‖1‖;‖‖‖‖§";
 
 onflag {
     hide save_code_output;
@@ -26,7 +26,7 @@ on "save" {
 
 on "load" {
     ask "Loading a project will OVERWRITE the current project. Enter a save code to continue. (enter nothing to cancel)";
-    if answer() > "" and answer()[1] == start_char and answer()[length answer()] == delimiter {
+    if answer() > "" and start_char in answer() {
         broadcast_and_wait "stop_workspace";
         load answer();
         broadcast "load_finished";
@@ -44,7 +44,7 @@ on "new_project" {
 }
 
 proc save {
-    save_code = start_char;
+    save_code = "[code]" & start_char;
 
     i = 1;
     repeat length global_vars {
@@ -77,6 +77,8 @@ proc save {
         append sprites[spriteNum].custom_blocks;
         spriteNum++;
     }
+
+    save_code &= start_char & "[/code]";
 }
 
 proc append str {
@@ -122,7 +124,11 @@ proc load str {
     delete broadcasts;
     delete sprites;
 
-    j = 2;
+    j = 1;
+    until $str[j] == start_char {
+        j++;
+    }
+    j++;
 
     # global variables
     until $str[j] == delimiter {
@@ -145,7 +151,7 @@ proc load str {
     }
     j++;
 
-    until j > length $str {
+    until $str[j] == start_char {
         local Sprite new_sprite = Sprite {};
         parse_token delimiter, $str;
         new_sprite.name = token;

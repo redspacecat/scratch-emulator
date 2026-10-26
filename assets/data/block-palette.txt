@@ -111,9 +111,9 @@ size
 text,Sound
 
 sound_playuntildone,stack
-play sound,{sounds|,until done
+play sound,{sounds|Boing,until done
 sound_play,stack
-start sound,{sounds|
+start sound,{sounds|Boing
 sound_stopallsounds,stack
 stop all sounds
 
@@ -197,7 +197,7 @@ stop,[stops|all
 control_start_as_clone,stack
 when I start as a clone
 control_create_clone_of,stack
-create clone of,{cloneOptions|myself
+create clone of,[cloneOptions|myself
 control_delete_this_clone,stack
 delete this clone
 
