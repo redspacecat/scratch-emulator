@@ -2600,12 +2600,13 @@ proc update_block_dimensions blockIdx, should_move_c_inputs=true, update_preview
     if bshape == "c" {
         total_width = MAX(c_block_min_width, total_width);
     } elif bshape == "reporter" {
-        b_width(blockIdx) = MAX(16, total_width); # min reporter width
+        total_width = MAX(16, total_width); # min reporter width
     } elif bshape == "boolean" {
-        b_width(blockIdx) = MAX(20, total_width); # min boolean width
-    } else {
-        b_width(blockIdx) = MAX(30, total_width); # stack blocks
+        total_width = MAX(20, total_width); # min boolean width
+    } elif bshape == "stack" {
+        total_width = MAX(30, total_width); # stack blocks
     }
+    b_width(blockIdx) = total_width;
 
     if bshape == "c" {
         b_prong_1_height(blockIdx) = block_total_height;

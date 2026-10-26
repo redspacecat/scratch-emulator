@@ -8,14 +8,19 @@ proc parse_from_definition def {
     local i = 1;
     local token = "";
     local paren_nesting = 0;
+    local label_count = 0;
+    local input_count = 0;
     until i > length $def {
         if $def[i] == "(" or $def[i] == "<" {
             if paren_nesting == 0 {
                 s = strip(token);
                 if s > "" {
-                    add "label" to parsed_tokens;
-                    add "" to parsed_tokens;
-                    add s to parsed_tokens;
+                    if label_count < 3 {
+                        add "label" to parsed_tokens;
+                        add "" to parsed_tokens;
+                        add s to parsed_tokens;
+                        label_count++;
+                    }
                 }
                 token = "";
                 input_type = if ($def[i] == "(") "reporter" else "boolean";
@@ -26,9 +31,12 @@ proc parse_from_definition def {
             if paren_nesting == 0 {
                 s = strip(token);
                 if s > "" {
-                    add "input" to parsed_tokens;
-                    add input_type to parsed_tokens;
-                    add s to parsed_tokens;
+                    if input_count < 3 {
+                        add "input" to parsed_tokens;
+                        add input_type to parsed_tokens;
+                        add s to parsed_tokens;
+                        input_count++;
+                    }
                 }
                 token = "";
             }
@@ -47,10 +55,12 @@ proc parse_from_definition def {
 }
 
 nowarp proc create_new_custom_block {
-    ask "Enter new block definition. Use () for reporter inputs and <> for boolean inputs. Text inside becomes input name, and surrounding text becomes text labels. Max 3 inputs.";
-    new_custom_block_from_def answer();
-    update_custom_blocks;
-    update_palette_max_width;
+    ask "Enter new block definition. Use (round brackets) for reporter inputs and <triangular brackets> for boolean inputs. Text inside brackets becomes input name, and surrounding text becomes text labels. Max 3 inputs and 3 text labels. Example of a valid block definition: `move player (amount) do thing: <do?>`";
+    if answer() > "" {
+        new_custom_block_from_def answer();
+        update_custom_blocks;
+        update_palette_max_width;
+    }
 }
 
 proc new_custom_block_from_def def {
