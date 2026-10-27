@@ -57,15 +57,17 @@ proc parse_from_definition def {
 nowarp proc create_new_custom_block {
     ask "Enter new block definition. Use (round brackets) for reporter inputs and <triangular brackets> for boolean inputs. Text inside brackets becomes input name, and surrounding text becomes text labels. Max 3 inputs and 3 text labels. Example of a valid block definition: `move player (amount) do thing: <do?>`";
     if answer() > "" {
-        new_custom_block_from_def answer();
+        def = answer();
+        ask "Should this custom block run without screen refresh? (y/n)";
+        new_custom_block_from_def def, "y" in answer();
         update_custom_blocks;
         update_palette_max_width;
     }
 }
 
-proc new_custom_block_from_def def {
+proc new_custom_block_from_def def, warp {
     add $def to custom_blocks;
-    add false to custom_blocks;
+    add $warp to custom_blocks;
     parse_from_definition $def;
     EXTEND(parsed_tokens, custom_blocks);
     until length(custom_blocks) % CUSTOM_BLOCK_LENGTH == 0 {

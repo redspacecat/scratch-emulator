@@ -84,7 +84,11 @@ proc compile {
 proc compile_root root, c_block="" {
     current_func = $c_block; # the function currently being compiled
     if $root > "" {
-        compile_script $root;
+        if current_func > "" and get_func_val(spriteNum, current_func, c_func_warp) == "true" {
+            compile_script $root, warp: true;
+        } else {
+            compile_script $root;
+        }
     }
     if current_func > "" {
         # add code to pop args and return
@@ -186,6 +190,10 @@ proc compile_block idx, warp=false {
         } elif b_opcode($idx) == "control_warp" {
             compile_inner_script b_slot_1_nested_block($idx), true; # make the code inside run without screen refresh
         }
+    } elif b_opcode($idx) == "control_stop" and b_input1_text($idx) == "this script" and current_func > "" {
+        # when stop this script is used in a custom block, we need to end the function
+        # instead of stopping the entire thread, to make execution only break out of the custom block
+        handle_func_end;
     } else {
         compile_input 1, $idx;
         compile_input 2, $idx;
@@ -194,7 +202,7 @@ proc compile_block idx, warp=false {
         if b_opcode($idx) == "procedures_call" {
             # calling a procedure
             # move args from regular stack to call stack and add return pos
-            log "LOG arg count " & get_func_val(spriteNum, b_custom_block($idx), c_func_arg_count);
+            log "arg count " & get_func_val(spriteNum, b_custom_block($idx), c_func_arg_count);
             add_text get_func_val(spriteNum, b_custom_block($idx), c_func_arg_count); # arg count to move
             add_text length code + 5; # return position, after call
             add_cmd "proc_init_call";
@@ -374,10 +382,10 @@ proc compile_replace_proc_placeholders {
 }
 
 proc func_get_idx sprite_num, func_id {
-    log "FUNC GET IDX ---";
+    log "function - get idx";
     log $sprite_num;
     log $func_id;
-    log "------";
+    log "";
     local i = 1;
     repeat length functions / 10 {
         if functions[i] == $sprite_num and functions[i + c_func_func_num] == $func_id {
