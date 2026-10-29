@@ -17,6 +17,9 @@ hide;
 %define variable_category_end "data_changevariableby"
 %define list_category_end "datalist_listcontainsitem"
 
+%define duplicate_key_pressed key_pressed("d")
+%define single_block_key_pressed key_pressed("s")
+
 list local_vars;
 list local_lists;
 
@@ -247,7 +250,7 @@ proc set_lag_mode state {
     update_palette_max_width;
 }
 
-onkey "s" {
+onkey "l" {
     if RUNNING {
         stop_this_script;
     }
@@ -778,6 +781,21 @@ nowarp proc handle_input {
                     do_duplication = true;
                 } else {
                     dragged_block = hovered_block;
+                    
+                    if hovered_opcode != "procedures_definition" { # no duplicating custom block definitions
+                        if hovered_block >= PALETTE_END and duplicate_key_pressed {
+                            # duplicate dragged block stack
+                            dragged_block = duplicate_block_stack(hovered_block, single_block_key_pressed);
+                        } else {
+                            # pick single block
+                            # not active for not as it needs more testing
+                            # if single_block_key_pressed {
+                            #     pick_block_idx = hovered_block;
+                            #     dragged_block = duplicate_block_stack(hovered_block, true);
+                            #     delete_block pick_block_idx;
+                            # }
+                        }
+                    }
                 }
                 if do_duplication {
                     dragged_block = duplicate_block(hovered_block);
@@ -1599,6 +1617,78 @@ func duplicate_block(idx) {
     return last_block_idx;
 }
 
+list duplicated_blocks;
+
+func duplicate_block_stack(idx, single_block=false) {
+    # we need to recursively copy all blocks over, while keeping track of their
+    # old index and storing it, along with their new index
+    # then we can go over all newly duplicated blocks and update
+    # their index references to the new values
+    delete duplicated_blocks;
+    duplicate_start = length blocks + 1;
+    duplicate_stack_copy_children $idx, $single_block;
+    # disconnect_block duplicate_start;
+    # breakpoint;
+    b_parent(duplicate_start) = "";
+    b_previous(duplicate_start) = "";
+    if $single_block {
+        b_next(duplicate_start) = "";
+    }
+    add duplicate_start to roots;
+
+    log "start " & duplicate_start;
+    i = 1;
+    repeat length duplicated_blocks / 2 {
+        old_idx = duplicated_blocks[i];
+        new_idx = duplicated_blocks[i + 1];
+        log "updating " & old_idx;
+        update_duplicated_val new_idx, b_idx_previous;
+        update_duplicated_val new_idx, b_idx_parent;
+        update_duplicated_val new_idx, b_idx_next;
+        update_duplicated_val new_idx, b_idx_input1_nested_block;
+        update_duplicated_val new_idx, b_idx_input2_nested_block;
+        update_duplicated_val new_idx, b_idx_input3_nested_block;
+        update_duplicated_val new_idx, b_idx_slot_1_nested_block;
+        update_duplicated_val new_idx, b_idx_slot_2_nested_block;
+        i += 2;
+    }
+    update_stack_parents duplicate_start, ""; # make it so any blocks in that stack have a parent of nothing now
+    return duplicate_start; # first duplicated block's new idx
+}
+
+proc update_duplicated_val idx, key {
+    v = blocks[$idx + $key];
+    log "update - " & v;
+    if v > "" and v < duplicate_start and (v in duplicated_blocks) {
+        # replace old idx value with new one
+        log "replacing value " & blocks[$idx + $key] & " with " & duplicated_blocks[(v in duplicated_blocks) + 1];
+        blocks[$idx + $key] = duplicated_blocks[(v in duplicated_blocks) + 1];
+    }
+}
+
+proc duplicate_stack_copy_children idx, only_one=false {
+    # copies over this block and all children
+    if $idx > "" {
+        i = $idx;
+        repeat BLOCK_LENGTH {
+            add blocks[i] to blocks;
+            i++;
+        }
+
+        add $idx to duplicated_blocks; # old idx
+        add last_block_idx to duplicated_blocks; # new idx
+
+        if $only_one == false {
+            duplicate_stack_copy_children b_next($idx);
+        }
+        duplicate_stack_copy_children b_input1_nested_block($idx);
+        duplicate_stack_copy_children b_input2_nested_block($idx);
+        duplicate_stack_copy_children b_input3_nested_block($idx);
+        duplicate_stack_copy_children b_slot_1_nested_block($idx);
+        duplicate_stack_copy_children b_slot_2_nested_block($idx);
+    }
+}
+
 # update c prong end style
 proc update_c_end_styles idx {
     log "updating c end styles " & $idx;
@@ -1658,7 +1748,7 @@ proc delete_block idx, remove_items=false {
 
     # move block AFTER updating the size, which happens after removing all nested blocks in inputs
     # this makes sure that the height being changed is the actual correct height
-    if b_next($idx) > "" {
+    if (b_next($idx) not in roots) and b_next($idx) > "" { # if in the middle of a stack
         move_block_position b_next($idx), 0, b_height($idx);
     }
 
