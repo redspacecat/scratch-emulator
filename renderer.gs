@@ -48,7 +48,7 @@ onclone {
     delete_this_clone;
 }
 
-onkey "l" {
+onkey "t" {
     if RUNNING {
         stop_this_script;
     }

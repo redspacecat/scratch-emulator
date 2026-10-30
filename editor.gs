@@ -692,7 +692,7 @@ nowarp proc handle_input {
 
                             bx = b_x(dropdown) - scroll_x_offset;
                             by = b_y(dropdown) - scroll_y_offset;
-                            dropdown_height = MIN(160, length dropdown_data * 20);
+                            dropdown_height = MIN(140, length dropdown_data * 20);
                             if by - b_height(dropdown) - 10 - dropdown_height < -175 { # goes off bottom of screen
                                 dropdown_direction = 1; # 1 is up
                                 dropdown_y = by + 12 + dropdown_height;

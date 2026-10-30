@@ -95,9 +95,9 @@ hide
 
 
 looks_gotofrontback,stack
-go to,[layers|front,layer
+go to,[layersGo|front,layer
 looks_goforwardbackwardlayers,stack
-go,[layers|forward,(1,layers
+go,[layersMove|forward,(1,layers
 looks_costumenumbername,reporter
 costume,[numberName|number
 looks_backdropnumbername,reporter

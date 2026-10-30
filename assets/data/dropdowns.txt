@@ -28,9 +28,13 @@ mosaic
 brightness
 ghost
 
-layers
+layersGo
 front
 back
+
+layersMove
+forward
+backward
 
 numberName
 number
