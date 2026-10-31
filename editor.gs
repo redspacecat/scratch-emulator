@@ -179,10 +179,6 @@ on "start_editor" {
     broadcast "input_loop";
     broadcast "ui_handle_loop";
 
-    if not $tw_is_turbowarp {
-        broadcast "lag_mode_checker";
-    }
-
     forever {
         count_fps;
         dt = 10 / fps;
@@ -202,24 +198,6 @@ on "menu_bar" {
     forever {
         check_menu_buttons;
     }
-}
-
-list past_fps;
-on "lag_mode_checker" {
-    delete past_fps;
-    repeat 5 {
-        fps_count = 0;
-        start_timer = timer();
-        until timer() > start_timer + 1 {
-            fps_count++;
-        }
-        insert fps_count at past_fps[1];
-    }
-
-    check_past_fps;
-
-    wait 15;
-    broadcast "lag_mode_checker";
 }
 
 nowarp proc count_fps {
@@ -370,7 +348,7 @@ on "ui_handle_loop" {
                     target_palette_x_time = 10;
                 }
             }
-            if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 163) and PALETTE_SHOWN == true and target_palette_x_time == 0 {
+            if (mouse_x() > PALETTE_HIDE_X or mouse_y() > 163) and PALETTE_SHOWN == true and target_palette_x == 0 {
                 target_palette_x = 220;
 
                 if LAG_MODE {
