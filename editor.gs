@@ -772,6 +772,7 @@ nowarp proc handle_input {
                                     }
                                 }
                             }
+                            set_dropdown_hovered;
                             if dropdown_hovered > -1 {
                                 handle_dropdown_item_click b_category(hovered_block), dropdown_data[dropdown_hovered + 1];
                                 propagate_size_change hovered_block;
@@ -908,18 +909,26 @@ nowarp proc handle_input {
         } else {
             if PALETTE_SHOWN {
                 # new variable and list button click handling
-                wait_until(not(mouse_down()));
                 if new_variable_btn_hovered {
+                    wait_until(not(mouse_down()));
                     ui_new_variable;
-                }
-                if new_list_btn_hovered {
+                } elif new_list_btn_hovered {
+                    wait_until(not(mouse_down()));
                     ui_new_list;
-                }
-                if clean_messages_btn_hovered {
+                } elif clean_messages_btn_hovered {
+                    wait_until(not(mouse_down()));
                     delete_unused_messages;
-                }
-                if make_block_btn_hovered {
+                } elif make_block_btn_hovered {
+                    wait_until(not(mouse_down()));
                     create_new_custom_block;
+                } else {
+                    # if not doing any action on the palette, drag it
+                    my = mouse_y();
+                    until not mouse_down() {
+                        scroll_y -(mouse_y() - my);
+                        my = mouse_y();
+                        redraw;
+                    }
                 }
             } elif not SPRITES_SHOWN {
                 # if not moving a block or clicking on a button, drag the code area
