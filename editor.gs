@@ -1031,34 +1031,32 @@ proc update_palette_broadcasts {
 }
 
 nowarp proc ui_new_variable msg="" {
-    ask $msg & "New variable type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
-    type = answer();
-    if type == "local" or type == "l" or type == "global" or type == "g" {
-        ask "New variable name?";
-        if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
-            if type == "local" or type == "l" {
-                new_variable "local", answer();
-            } else {
-                new_variable "global", answer();
-            }
-            update_palette_max_width;
+    ask $msg & "New variable name?";
+    name = answer();
+    if name > "" and not (name in local_vars or name in global_vars) {
+        ask "New variable type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+        type = answer();
+        if type == "global" or type == "g" {
+            new_variable "global", name;
+        } else {
+            new_variable "local", name;
         }
+        update_palette_max_width;
     }
 }
 
 nowarp proc ui_new_list msg="" {
-    ask $msg & "New list type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
-    type = answer();
-    if type == "local" or type == "l" or type == "global" or type == "g" {
-        ask "New list name?";
-        if answer() > "" and not (answer() in local_lists or answer() in global_lists) {
-            if type == "local" or type == "l" {
-                new_list "local", answer();
-            } else {
-                new_list "global", answer();
-            }
-            update_palette_max_width;
+    ask $msg & "New list name?";
+    name = answer();
+    if name > "" and not (name in local_lists or name in global_lists) {
+        ask "New list type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+        type = answer();
+        if type == "global" or type == "g" {
+            new_list "global", name;
+        } else {
+            new_list "local", name;
         }
+        update_palette_max_width;
     }
 }
 

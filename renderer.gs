@@ -64,7 +64,7 @@ onkey "t" {
     }
 }
 
-onkey "c" {
+onkey "b" {
     if RUNNING {
         stop_this_script;
     }
