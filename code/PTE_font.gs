@@ -40,7 +40,6 @@ proc safe_plain_text x, y, size, text {
     current_x = x_position();
     current_y = y_position();
 
-    point_in_direction 90;
     local txt_i = 1;
     goto $x - 2, $y - 2;
     repeat length($text) {

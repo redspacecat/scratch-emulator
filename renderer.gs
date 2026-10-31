@@ -89,7 +89,6 @@ on "render_editor" {
 
     switch_costume "large";
 
-    start_time = days_since_2000();
     if selected_workspace == Workspace.Code {
         render_dots;
         render_blocks;
@@ -105,9 +104,9 @@ on "render_editor" {
             render_sounds;
         }
     }
+    render_demo_projects;
     render_menubar;
     render_sprite_sidebar;
-    # log "rendering took " & round((days_since_2000() - start_time) * 86400000) & " ms";
 
     REDRAW = false;
 }
@@ -295,6 +294,64 @@ proc render_dropdown {
             pen_down;
             change_x 8;
             pen_up;
+        }
+    }
+}
+
+proc render_demo_projects {
+        if REDRAW {
+        if "editor"."demo_projects_open" > 0 {
+            local dscroll = 0;
+            local dhovered = "editor"."demo_projects_hovered";
+
+            # borders around menu
+            set_pen_color ui_c(NavButtonSelected);
+            goto d_x + 2, d_y - 2;
+            set_pen_size 16;
+            pen_down;
+            change_x d_width - 2;
+            change_y -(d_height - 2);
+            change_x -(d_width - 2);
+            change_y d_height - 2;
+            pen_up;
+
+            set_pen_color ui_c(Main);
+            fill_rect d_x + 2, d_x + d_width - 2, d_y - d_height + 2, d_y - 2;
+            if dhovered > -1 {
+                set_pen_color ui_c(NavButtonHovered);
+                local y = d_y - 20 - dhovered * 20 - dscroll;
+                fill_rect d_x + 2, d_x + d_width - 2, MAX(d_y - d_height, y - 20), MIN(d_y - 3, y - 3);
+            }
+
+            set_pen_color ui_c(MainText);
+            plain_text d_x + d_width / 2, d_y - 14, 1, "Demo Projects", "c", true;
+            plain_text d_x + d_width / 2, d_y - d_height + 7, 1, "Click on a demo project name to load it", "c", true;
+
+            # text
+            local i = 1;
+            local pos = 1;
+            repeat length demo_projects / 2 {
+                local y = d_y - 20 - i * 20 + 6 - dscroll;
+                if y < d_y - 8 and y > d_y - d_height + 3 {
+                    set_pen_color ui_c(MainText);
+                    plain_text round(d_x + 17), round(y), 1, demo_projects[pos], "l", true, false; 
+                }
+                i++;
+                pos += 2;
+            }
+
+            # # scrollbar, in case it's needed
+            # if length dropdown_data > 7 {
+            #     set_pen_color ui_c(DropdownScrollbar);
+            #     set_pen_size 4;
+            #     local total_height = length dropdown_data * 20;
+            #     local track_height = d_height - 5;
+            #     local scrollbar_height = track_height * (d_height / total_height);
+            #     goto d_x + d_width - 2, d_y - 2 - track_height * (-dscroll / total_height);
+            #     pen_down;
+            #     change_y -scrollbar_height;
+            #     pen_up;
+            # }
         }
     }
 }
@@ -884,7 +941,7 @@ proc render_one_block blockIdx {
     }
 }
 
-proc plain_text x, y, size, text, align, case_sensitive {
+proc plain_text x, y, size, text, align, case_sensitive, convert=true {
     set_pen_size $size;
     local x_offset = $x;
     local y_offset = $y;
@@ -904,14 +961,14 @@ proc plain_text x, y, size, text, align, case_sensitive {
             local font_char_index = pte_font_1[($text[txt_i] in char_lookup) + 7]; # use cached lookup, faster
         }
 
-        if ($text[txt_i] == "@") {
+        if ($text[txt_i] == "@") and $convert {
             switch_costume "@" & $text[txt_i + 1];
             change_x 12;
             change_y 3;
             set_size 60;
             stamp;
             set_size 100;
-        } elif $text[txt_i - 1] == "@" {
+        } elif $text[txt_i - 1] == "@" and $convert {
             x_offset += 3;
         } else {
             local font_i = 3 + font_char_index;
@@ -1642,8 +1699,8 @@ proc fill_rect x1, x2, y1, y2, blah=0 {
 }
 
 
-proc print x, y, size, text, align="", case_sensitive=false {
-    plain_text round($x), round($y), $size, $text, $align, $case_sensitive;
+proc print x, y, size, text, align="", case_sensitive=false, convert=true {
+    plain_text round($x), round($y), $size, $text, $align, $case_sensitive, $convert;
 }
 
 proc render_other_ui {

@@ -33,6 +33,12 @@ on "load" {
     }
 }
 
+on "load_demo_project" {
+    broadcast_and_wait "stop_workspace";
+    load demo_projects["editor"."clicked_demo_project"];
+    broadcast "load_finished";
+}
+
 on "init_new_project" {
     load new_project_data;
 }

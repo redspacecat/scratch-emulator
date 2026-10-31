@@ -94,11 +94,12 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         add_menu_button "Code";
         add_menu_button "Costumes";
         add_menu_button "Sounds";
-        add_menu_button "New", 20;
+        add_menu_button "New";
         add_menu_button "Save";
         add_menu_button "Load";
         add_menu_button "Run";
-        add_menu_button "Settings", 20;
+        add_menu_button "Settings";
+        add_menu_button "Demos";
 
     }
     # selected_workspace = Workspace.Code;
@@ -111,6 +112,7 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
     target_sprites_x_time = 0;
     
     dropdown = 0;
+    demo_projects_open = false;
 
     dragged_block = 0;
     dragged_script_idx = 0;
@@ -574,6 +576,35 @@ nowarp proc handle_input {
             hide Current_Editor_Block_Colors;
             hide Editor_Theme_Switcher;
             hide Editor_Block_Colors_Switcher;
+        } elif hovered_menu_button == 25 {
+            # open demos projects menu
+            demo_projects_open = true;
+
+            until mouse_down() {
+                set_demo_projects_hovered;
+                redraw;
+                if demo_projects_open == false {
+                    stop_this_script;
+                }
+            }
+            until not mouse_down() {
+                set_demo_projects_hovered;
+                redraw;
+                if demo_projects_open == false {
+                    stop_this_script;
+                }
+            }
+            
+            if demo_projects_hovered > -1 {
+                clicked_demo_project = (demo_projects_hovered - 1) * 2 + 4;
+                ask "Are you sure you want to load this demo project? The current project will be overwritten.";
+                if "y" in answer() {
+                    broadcast_and_wait "load_demo_project";
+                }
+            }
+
+            demo_projects_open = false;
+            redraw;
         }
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
@@ -675,6 +706,11 @@ nowarp proc handle_input {
                     }
                     handle_palette_vars;
                     handle_palette_lists;
+                } elif b_opcode(hovered_block) == "event_whenflagclicked" {
+                    ask "Would you like to run the project? (y/n)";
+                    if "y" in answer() {
+                        broadcast_and_wait "handle_run_project";
+                    }
                 } else {
                     # check input handling
                     hovered_input = find_hovered_input(mx, my, hovered_block);
@@ -705,11 +741,11 @@ nowarp proc handle_input {
                             dropdown_input_x = get_block_input(dropdown, dropdown_input, b_input_x) - scroll_x_offset + get_block_input(dropdown, dropdown_input, b_input_width) / 2; # center of dropdown input
                             dropdown_x = dropdown_input_x - dropdown_width / 2;
                             # keep dropdown within screen area
-                            if dropdown_x < -200 {
-                                dropdown_x = -200;
-                            }
                             if dropdown_x + dropdown_width > 235 {
                                 dropdown_x = 235 - dropdown_width;
+                            }
+                            if dropdown_x < -200 {
+                                dropdown_x = -200;
                             }
                             if dropdown_input_x < -192 {
                                 dropdown_input_x = -192;
@@ -725,15 +761,18 @@ nowarp proc handle_input {
                                     stop_this_script;
                                 }
                             }
-                            until not mouse_down() {
-                                set_dropdown_hovered;
-                                redraw;
-                                if dropdown == 0 {
-                                    stop_this_script;
+                            # if we clicked on a dropdown item, wait until mouse click is let up
+                            # if we clicked off the dropdown exit immediately
+                            if dropdown_hovered > -1 {
+                                until not mouse_down() {
+                                    set_dropdown_hovered;
+                                    redraw;
+                                    if dropdown == 0 {
+                                        stop_this_script;
+                                    }
                                 }
                             }
-                            if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: dropdown_x, y1: dropdown_y - dropdown_height + 1, x2: dropdown_x + dropdown_width, y2: dropdown_y}) {
-                                dropdown_hovered = floor((dropdown_y - mouse_y() - dropdown_scroll) / 20);
+                            if dropdown_hovered > -1 {
                                 handle_dropdown_item_click b_category(hovered_block), dropdown_data[dropdown_hovered + 1];
                                 propagate_size_change hovered_block;
                                 update_palette_max_width;
@@ -741,6 +780,10 @@ nowarp proc handle_input {
 
                             close_dropdown;
                             redraw;
+
+                            # call function again recursively so dropdown clicks onto another dropdown
+                            # that last less than one frame are still registered
+                            handle_input;
                         } else {
                             # edit block text
                             ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
@@ -1041,6 +1084,14 @@ proc set_dropdown_hovered {
     dropdown_offset += (0 - dropdown_offset) / 2.5;
 }
 
+proc set_demo_projects_hovered {
+    if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: d_x, y1: d_y - (length demo_projects / 2 + 1) * 20 + 1, x2: d_x + d_width, y2: d_y}) {
+        demo_projects_hovered = floor((d_y - 20 - mouse_y()) / 20);
+    } else {
+        demo_projects_hovered = -1;
+    }
+}
+
 proc handle_drag no_recurse=false {
     start_time = days_since_2000();
 
@@ -1330,7 +1381,6 @@ proc add_dropdown_item str {
     if w > max_text_width {
         max_text_width = w;
     }
-
 }
 
 proc close_dropdown {

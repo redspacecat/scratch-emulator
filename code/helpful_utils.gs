@@ -30,3 +30,8 @@
 %define last_block_idx length blocks - BLOCK_LENGTH + 1
 
 %define redraw REDRAW = true
+
+%define d_x -180
+%define d_y 100
+%define d_width 360
+%define d_height 200

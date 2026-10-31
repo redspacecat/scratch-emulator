@@ -139,3 +139,5 @@ onflag {
     hide Copyable_Text;
     hide save_code_output;
 }
+
+list demo_projects "assets/data/demo-projects.txt";
