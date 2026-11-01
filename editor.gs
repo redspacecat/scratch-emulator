@@ -88,6 +88,7 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
 
         switch_selected_sprite 1;
         auto_lag_mode_change = true;
+        no_clean_up_blocks_confirmation = false;
 
         delete menu_buttons;
         add_menu_button "Code";
@@ -2931,4 +2932,44 @@ proc update_palette_max_width {
 
     lag_mode_override = false;
     redraw;
+}
+
+struct Root {
+    idx,
+    y
+}
+
+list Root sorted_roots;
+
+proc clean_up_blocks {
+    delete sorted_roots;
+    local i = 1;
+    repeat length roots {
+        add Root {idx: roots[i], y: b_y(roots[i])} to sorted_roots;
+        i++;
+    }
+    INSERTION_SORT_BY_FIELD(Root, sorted_roots, .y);
+    REVERSE_TYPED(Root, sorted_roots);
+
+    local y = 150;
+    local i = 1;
+    repeat length sorted_roots {
+        move_block_position sorted_roots[i].idx, -180 - b_x(sorted_roots[i].idx), y - sorted_roots[i].y;
+        y -= measure_stack_height(sorted_roots[i].idx) + 35;
+        i++;
+    }
+}
+
+onkey "p" {
+    if no_clean_up_blocks_confirmation {
+        clean_up_blocks;
+    } else {
+        ask "Would you like you clean up blocks? (Putting them all in one column). You cannot undo this action. Enter: (y/n) OR to ALWAYS allow in the future, without confirmation, enter: \"always\"";
+        if answer() == "always" {
+            no_clean_up_blocks_confirmation = true;
+        }
+        if "y" in answer() {
+            clean_up_blocks;
+        }
+    }
 }

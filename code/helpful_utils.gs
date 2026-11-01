@@ -35,3 +35,14 @@
 %define d_y 100
 %define d_width 360
 %define d_height 200
+
+%define REVERSE_TYPED(TYPE, LIST)                                                     \  
+    local i = 1;                                                                     \  
+    local j = length(LIST);                                                          \  
+    repeat length(LIST) / 2 {                                                        \  
+        local TYPE x = LIST[i];                                                      \  
+        LIST[i] = LIST[j];                                                           \  
+        LIST[j] = x;                                                                 \  
+        i++;                                                                         \  
+        j--;                                                                         \  
+    }
