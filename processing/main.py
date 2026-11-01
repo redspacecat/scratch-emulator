@@ -7,7 +7,7 @@ import renamer
 fd, temp_path = tempfile.mkstemp(suffix=".sb3")
 os.close(fd)
 
-PROJECT_NAME = "Scratch Emulator.sb3"
+PROJECT_NAME = "Scratch 3 Emulator.sb3"
 renamer.process_renaming(PROJECT_NAME)
 
 ROOT_DIR = ''
