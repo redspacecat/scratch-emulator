@@ -75,7 +75,6 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         delete custom_blocks;
 
         delete sprites;
-        broadcast_and_wait "init_new_project";
 
         parse_block_palette;
         create_palette_lookup;
@@ -101,8 +100,10 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         add_menu_button "Settings";
         add_menu_button "Demos";
 
+        clicked_demo_project = 6;
+        broadcast_and_wait "do_load_demo_project";
+
     }
-    # selected_workspace = Workspace.Code;
 
     target_palette_x = 0;
     target_palette_y = 0;

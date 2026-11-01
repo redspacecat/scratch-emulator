@@ -35,8 +35,12 @@ on "load" {
 
 on "load_demo_project" {
     broadcast_and_wait "stop_workspace";
-    load demo_projects["editor"."clicked_demo_project"];
+    broadcast_and_wait "do_load_demo_project";
     broadcast "load_finished";
+}
+
+on "do_load_demo_project" {
+    load demo_projects["editor"."clicked_demo_project"];
 }
 
 on "init_new_project" {
