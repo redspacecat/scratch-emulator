@@ -90,27 +90,27 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
         auto_lag_mode_change = true;
         no_clean_up_blocks_confirmation = false;
 
-        delete menu_buttons;
-        add_menu_button "Code";
-        add_menu_button "Costumes";
-        add_menu_button "Sounds";
-        add_menu_button "New";
-        add_menu_button "Save";
-        add_menu_button "Load";
-        add_menu_button "Run";
-        add_menu_button "Settings";
-        add_menu_button "Demos";
-
         clicked_demo_project = 6;
         broadcast_and_wait "do_load_demo_project";
 
     }
 
+    delete menu_buttons;
+    add_menu_button "Code";
+    add_menu_button "Costumes";
+    add_menu_button "Sounds";
+    add_menu_button "New";
+    add_menu_button "Save";
+    add_menu_button "Load";
+    add_menu_button "Run";
+    add_menu_button "Settings";
+    add_menu_button "Demos";
+
     target_palette_x = 0;
     target_palette_y = 0;
     target_palette_x_time = 0;
     target_palette_y_time = 0;
-    target_sprites_x = 0;
+    target_sprites_x = stage_w_change;
     target_sprites_x_time = 0;
     
     dropdown = 0;
@@ -139,6 +139,8 @@ onflag {
 
         if first_time {
             broadcast_and_wait "init_renderer";
+        } else {
+            broadcast_and_wait "update_resolution";
         }
         broadcast "start_workspace";
     } else {
@@ -168,6 +170,7 @@ on "start_workspace" {
     stop_other_scripts;
     redraw;
     broadcast "menu_bar";
+    broadcast "resolution_check_loop";
     broadcast "start_editor";
 }
 
@@ -199,6 +202,21 @@ on "load_finished" {
 on "menu_bar" {
     forever {
         check_menu_buttons;
+    }
+}
+
+on "resolution_check_loop" { # loop to automatically update the resolution if it changed
+    if $tw_is_turbowarp {
+        forever {
+            wait 2;
+            broadcast_and_wait "update_resolution";
+            if "renderer"."resolution_changed" == "true" {
+                log "resolution changed, restarting workspace";
+                save_current_sprite;
+                stop_other_scripts;
+                broadcast "start_workspace";
+            }
+        }
     }
 }
 
@@ -377,10 +395,10 @@ on "ui_handle_loop" {
                 }
             }
 
-            new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[23] - 26, x2: -205 + 82, y2: block_palette_text[23] - 8});
-            new_list_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[32] - 26, x2: -205 + 62, y2: block_palette_text[32] - 8});
-            clean_messages_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[14] + 122, x2: -205 + 130, y2: block_palette_text[14] + 140});
-            make_block_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: -205, y1: block_palette_text[41] - 26, x2: -205 + 70, y2: block_palette_text[41] - 8});
+            new_variable_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: btn(-205), y1: block_palette_text[23] - 26, x2: btn(-205) + 82, y2: block_palette_text[23] - 8});
+            new_list_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: btn(-205), y1: block_palette_text[32] - 26, x2: btn(-205) + 62, y2: block_palette_text[32] - 8});
+            clean_messages_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: btn(-205), y1: block_palette_text[14] + 122, x2: btn(-205) + 130, y2: block_palette_text[14] + 140});
+            make_block_btn_hovered = point_in_rect(Point {x: mouse_x(), y: mouse_y() + PALETTE_SCROLL_Y}, Rect {x1: btn(-205), y1: block_palette_text[41] - 26, x2: btn(-205) + 70, y2: block_palette_text[41] - 8});
         }
 
         if selected_workspace == Workspace.Costumes {
@@ -393,10 +411,10 @@ on "ui_handle_loop" {
         }
 
         # sprite list
-        if mouse_x() > 235 and SPRITES_SHOWN == false and target_sprites_x_time == 0 {
+        if mouse_x() > 235 + stage_w_change and SPRITES_SHOWN == false and target_sprites_x_time == 0 {
             SPRITES_SHOWN = true;
-            SPRITES_SCROLL_X = 100;
-            target_sprites_x = 0;
+            SPRITES_SCROLL_X = 100 + stage_w_change;
+            target_sprites_x = stage_w_change;
             if LAG_MODE {
                 target_sprites_x_time = 1;
             } else {
@@ -404,7 +422,7 @@ on "ui_handle_loop" {
             }
         }
         if mouse_x() < SPRITES_MIN_X and SPRITES_SHOWN == true and target_sprites_x_time == 0 {
-            target_sprites_x = 80;
+            target_sprites_x = 80 + stage_w_change;
             if LAG_MODE {
                 target_sprites_x_time = 1;
             } else {
@@ -416,11 +434,11 @@ on "ui_handle_loop" {
             SPRITES_SCROLL_X += round((target_sprites_x - SPRITES_SCROLL_X) / 2.5);
             target_sprites_x_time--;
             redraw;
-            if target_sprites_x_time == 0 and target_sprites_x > 0 {
+            if target_sprites_x_time == 0 and target_sprites_x > stage_w_change {
                 SPRITES_SHOWN = false;
             }
-            if target_sprites_x_time == 0 and target_sprites_x == 0 {
-                SPRITES_SCROLL_X = 0;
+            if target_sprites_x_time == 0 and target_sprites_x == stage_w_change {
+                SPRITES_SCROLL_X = stage_w_change;
             }
         }
 
@@ -603,7 +621,7 @@ nowarp proc handle_input {
             log "clicked on sprite " & clicked_sprite;
             if point_in_circle( # delete button, check outside clicked_sprite > "" since button extends outside
                 Point {x: mouse_x() + SPRITES_SCROLL_X, y: mouse_y()},
-                Point {x: 170 + 57 + SPRITES_SCROLL_X, y: (155 - SPRITES_SCROLL_Y - (67 * (selected_sprite - 1))) - 6},
+                Point {x: 170 + 57 + SPRITES_SCROLL_X + stage_w_change, y: (155 - SPRITES_SCROLL_Y - (67 * (selected_sprite - 1))) - 6},
                 11) and length sprites > 1 {
                 ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
                 if "y" in answer() {
@@ -640,19 +658,19 @@ nowarp proc handle_input {
             target_palette_y = category_y[clicked_category];
             target_palette_y_time = 20;
         }
-    } elif SPRITES_SHOWN == false and point_in_circle(Point {x: mouse_x(), y: mouse_y()}, Point {x: 220, y: -160}, 10) { # equals sign button
+    } elif SPRITES_SHOWN == false and point_in_circle(Point {x: mouse_x(), y: mouse_y()}, Point {x: 220 + stage_w_change, y: -160}, 10) { # equals sign button
         # reset code canvas
         SCROLL_X = 0;
         SCROLL_Y = 0;
     } else {
         if mouse_x() < PALETTE_MAX_X and PALETTE_SHOWN {
             log "palette coords";
-            local scroll_x_offset = 0;
+            local scroll_x_offset = stage_w_change;
             local scroll_y_offset = PALETTE_SCROLL_Y;
             local over_palette = true;
         } else {
             log "regular coords";
-            local scroll_x_offset = SCROLL_X;
+            local scroll_x_offset = SCROLL_X + stage_w_change;
             local scroll_y_offset = SCROLL_Y;
             local over_palette = false;
         }
@@ -721,11 +739,11 @@ nowarp proc handle_input {
                             dropdown_input_x = get_block_input(dropdown, dropdown_input, b_input_x) - scroll_x_offset + get_block_input(dropdown, dropdown_input, b_input_width) / 2; # center of dropdown input
                             dropdown_x = dropdown_input_x - dropdown_width / 2;
                             # keep dropdown within screen area
-                            if dropdown_x + dropdown_width > 235 {
-                                dropdown_x = 235 - dropdown_width;
+                            if dropdown_x + dropdown_width > 235 + stage_w_change {
+                                dropdown_x = 235 + stage_w_change - dropdown_width;
                             }
-                            if dropdown_x < -200 {
-                                dropdown_x = -200;
+                            if dropdown_x < -200 - stage_w_change {
+                                dropdown_x = -200 - stage_w_change;
                             }
                             if dropdown_input_x < -192 {
                                 dropdown_input_x = -192;
@@ -825,6 +843,12 @@ nowarp proc handle_input {
                     dragged_block = duplicate_block(hovered_block);
                     scroll_x_offset = SCROLL_X;
                     scroll_y_offset = SCROLL_Y;
+                    if hovered_block < PALETTE_END {
+                        # when the stage width is different than normal, we offset the coordinate system,
+                        # so that when loading the project back into a smaller stage size, it's not shifted
+                        # offscreen. this means we need to offset blocks when dragging from the palette
+                        scroll_x_offset += stage_w_change;
+                    }
                 }
                 drag_offset_x = mx - (b_x(dragged_block) + scroll_x_offset);
                 drag_offset_y = my - (b_y(dragged_block) + scroll_y_offset);
@@ -2863,7 +2887,7 @@ proc add_menu_button text, extra_space=0 {
     if length menu_buttons > 0 {
         add menu_buttons[length menu_buttons - 2] + menu_buttons[length menu_buttons] + 14 + $extra_space to menu_buttons;
     } else {
-        add -240 + 7 + $extra_space to menu_buttons;
+        add -stage_h_w + 7 + $extra_space to menu_buttons;
     }
     add $text to menu_buttons;
     add width_of_text($text, 1) to menu_buttons;
@@ -2951,7 +2975,7 @@ proc clean_up_blocks {
     INSERTION_SORT_BY_FIELD(Root, sorted_roots, .y);
     REVERSE_TYPED(Root, sorted_roots);
 
-    local y = 150;
+    local y = 145;
     local i = 1;
     repeat length sorted_roots {
         move_block_position sorted_roots[i].idx, -180 - b_x(sorted_roots[i].idx), y - sorted_roots[i].y;

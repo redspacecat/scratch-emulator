@@ -46,3 +46,10 @@
         i++;                                                                         \  
         j--;                                                                         \  
     }
+
+%define stage_w stage_width
+%define stage_h stage_height
+%define stage_h_w half_stage_width
+%define stage_h_h half_stage_height
+
+%define btn(val) val - stage_w_change

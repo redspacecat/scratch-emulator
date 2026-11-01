@@ -14,7 +14,8 @@ costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/pen-icon.svg" as "@p",
 "assets/images/music-icon.svg" as "@m",
 "assets/images/delete-icon.png",
-"assets/images/light-dark-detector.svg";
+"assets/images/light-dark-detector.svg",
+"assets/images/small-dot.png";
 
 list ui_colors;
 list colors;
@@ -22,7 +23,12 @@ list colors;
 list costume_widths;
 list costume_heights;
 
+on "update_resolution" {
+    measure_resolution;
+}
+
 on "init_renderer" {
+    measure_resolution;
     measure_costumes;
     get_color_theme;
     load_theme editor_theme, "normal";
@@ -137,7 +143,7 @@ proc render_blocks {
 
     if PALETTE_SHOWN {
         set_pen_size 0;
-        goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X - 1, 180;
+        goto (-205 + PALETTE_MAX_X) / 2 - PALETTE_SCROLL_X - 1 - stage_w_change, 180;
         if LAG_MODE {
             pen_down;
             set_pen_color ui_c(Main);
@@ -159,7 +165,7 @@ proc render_blocks {
 
         set_pen_size 4;
         set_pen_color ui_c(PaletteScrollbar);
-        goto PALETTE_MAX_X - 4 - PALETTE_SCROLL_X, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
+        goto PALETTE_MAX_X - 4 - PALETTE_SCROLL_X - stage_w_change, 156 - (344 - 7 - 30) * (PALETTE_SCROLL_Y / "editor"."palette_y_max");
         pen_down;
         change_y -30;
         pen_up;
@@ -357,7 +363,7 @@ proc render_demo_projects {
 }
 
 proc render_background {
-    set_pen_size 480;
+    set_pen_size stage_w;
     goto 0, 180;
     set_pen_color ui_c(Background);
     pen_down;
@@ -371,7 +377,7 @@ proc render_dots {
 
         set_pen_color ui_c(Dot);
         set_pen_size 1;
-        goto -240 - SCROLL_X % 20, -180 - SCROLL_Y % 20;
+        goto -stage_h_h - SCROLL_X % 20, -180 - SCROLL_Y % 20;
         repeat 19 {
             repeat 25 {
                 pen_down;
@@ -379,7 +385,7 @@ proc render_dots {
                 change_x 20;
             }
             change_y 20;
-            set_x -240 - SCROLL_X % 20;
+            set_x -stage_h_w - SCROLL_X % 20;
         }
     }
 }
@@ -388,18 +394,18 @@ proc render_palette_text {
     set_pen_color ui_c(MainText);
     local i = 1;
     repeat length block_palette_text / 3 {
-        plain_text block_palette_text[i] - PALETTE_SCROLL_X, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l", true;
+        plain_text block_palette_text[i] - PALETTE_SCROLL_X - stage_w_change, block_palette_text[i+1] - PALETTE_SCROLL_Y, 1, block_palette_text[i+2], "l", true;
         i += 3;
     }
 
     # new variable button
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
     set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 68;
     pen_up;
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 17;
     if "editor"."new_variable_btn_hovered" {
         set_pen_color ui_c(ButtonColorHovered);
     } else {
@@ -410,16 +416,16 @@ proc render_palette_text {
     change_x 68;
     pen_up;
     set_pen_color ui_c(MainText);
-    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 20, 1, "Make a Variable", "l", true;
+    plain_text btn(-200) - PALETTE_SCROLL_X, block_palette_text[23] - PALETTE_SCROLL_Y - 20, 1, "Make a Variable", "l", true;
 
     # new list button
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
     set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 47;
     pen_up;
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 17;
     if "editor"."new_list_btn_hovered" {
         set_pen_color ui_c(ButtonColorHovered);
     } else {
@@ -430,16 +436,16 @@ proc render_palette_text {
     change_x 47;
     pen_up;
     set_pen_color ui_c(MainText);
-    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 20, 1, "Make a List", "l", true;
+    plain_text btn(-200) - PALETTE_SCROLL_X, block_palette_text[32] - PALETTE_SCROLL_Y - 20, 1, "Make a List", "l", true;
 
     # remove unused broadcasts button
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
     set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 125;
     pen_up;
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 132;
     if "editor"."clean_messages_btn_hovered" {
         set_pen_color ui_c(ButtonColorHovered);
     } else {
@@ -450,16 +456,16 @@ proc render_palette_text {
     change_x 125;
     pen_up;
     set_pen_color ui_c(MainText);
-    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 129, 1, "Removed Unused Messages", "l", true;
+    plain_text btn(-200) - PALETTE_SCROLL_X, block_palette_text[14] - PALETTE_SCROLL_Y + 129, 1, "Removed Unused Messages", "l", true;
 
     # new block button
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
     set_pen_color ui_c(ButtonBorder);
     set_pen_size 18;
     pen_down;
     change_x 54;
     pen_up;
-    goto -197 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
+    goto btn(-197) - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 17;
     if "editor"."make_block_btn_hovered" {
         set_pen_color ui_c(ButtonColorHovered);
     } else {
@@ -470,12 +476,12 @@ proc render_palette_text {
     change_x 54;
     pen_up;
     set_pen_color ui_c(MainText);
-    plain_text -200 - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 20, 1, "Make a Block", "l", true;
+    plain_text btn(-200) - PALETTE_SCROLL_X, block_palette_text[41] - PALETTE_SCROLL_Y - 20, 1, "Make a Block", "l", true;
 }
 
 proc render_palette_sidebar {
     set_pen_size 0;
-    goto -223, 180;
+    goto -223 - stage_w_change, 180;
     if LAG_MODE {
         set_pen_color ui_c(Main);
     } else {
@@ -487,7 +493,7 @@ proc render_palette_sidebar {
     change_y -360;
     pen_up;
 
-    goto -223, 147;
+    goto -223 - stage_w_change, 147;
     i = 1;
     repeat 11 {
         draw_category i;
@@ -516,17 +522,17 @@ proc measure_costumes {
     base_costume = costume_number() - 1;
     until costume_name() == "@r" {
         add costume_name() to costume_names;
-        goto -240, 0;
+        goto -stage_h_w, 0;
         until not touching_edge() {
             change_x 1;
         }
-        add (x_position() + 240) * 2 to costume_widths;
+        add (x_position() + stage_h_w) * 2 to costume_widths;
         # log costume_name() & " - " & costume_widths["last"];
         goto 0, -180;
         until not touching_edge() {
             change_y 1;
         }
-        add (y_position() + 180) * 2 to costume_heights;
+        add (y_position() + stage_h_h) * 2 to costume_heights;
         next_costume;
     }
 }
@@ -538,9 +544,9 @@ proc render_costumes {
 
     set_pen_color ui_c(Main); # background
     set_pen_size 270;
-    goto -240, -3;
+    goto -stage_h_w, -3;
     pen_down;
-    change_x 480;
+    change_x stage_w;
     pen_up;
 
     set_pen_color ui_c(MainText);
@@ -737,9 +743,9 @@ proc render_menubar { # bar at top of screen
     # background line
     set_pen_color ui_c(Main);
     set_pen_size 17;
-    goto -250, 173;
+    goto -stage_h_w, 173;
     pen_down;
-    change_x 500;
+    change_x stage_w;
     pen_up;
 
     # hovered button
@@ -759,7 +765,7 @@ proc render_menubar { # bar at top of screen
     }
 
     if not SPRITES_SHOWN {
-        plain_text 202, 168, 1, "Sprites -->", "c", true;
+        plain_text stage_h_w - 38, 168, 1, "Sprites -->", "c", true; # offset 38 pixels from the right edge
     }
 }
 
@@ -816,18 +822,18 @@ proc render_one_block blockIdx {
         if not PALETTE_SHOWN {
             stop_this_script;
         }
-        local scroll_x_offset = PALETTE_SCROLL_X;
+        local scroll_x_offset = PALETTE_SCROLL_X + stage_w_change;
         local scroll_y_offset = PALETTE_SCROLL_Y;
     } else {
-        local scroll_x_offset = SCROLL_X;
+        local scroll_x_offset = SCROLL_X + stage_w_change;
         local scroll_y_offset = SCROLL_Y;
     }
 
     # don't render offscreen blocks
-    if not ( b_x(i) - scroll_x_offset + b_width(i) > -240 and
-    b_x(i) - scroll_x_offset < 240 and
-    b_y(i) - scroll_y_offset > -180 and
-    b_y(i) - scroll_y_offset - b_height(i) < 180 + 3) { # keep block connectors visible
+    if not ( b_x(i) - scroll_x_offset + b_width(i) > -stage_h_w and
+    b_x(i) - scroll_x_offset < stage_h_w and
+    b_y(i) - scroll_y_offset > -stage_h_h and
+    b_y(i) - scroll_y_offset - b_height(i) < stage_h_h + 3) { # keep block connectors visible
         stop_this_script;
     }
 
@@ -1710,7 +1716,7 @@ proc render_other_ui {
         # outer border
         set_pen_color ui_c(CodeButtonBorder);
         set_pen_size 20;
-        goto 220, -160;
+        goto 220 + stage_w_change, -160;
         pen_down;
         pen_up;
 
@@ -1723,17 +1729,62 @@ proc render_other_ui {
         # lines of equals sign
         set_pen_color ui_c(CodeButtonText);
         set_pen_size 0;
-        goto 217, -159;
+        goto 217 + stage_w_change, -159;
         pen_down;
         set_pen_size 1;
         change_x 5;
         pen_up;
 
         set_pen_size 0;
-        goto 217, -163;
+        goto 217 + stage_w_change, -163;
         pen_down;
         set_pen_size 1;
         change_x 5;
         pen_up;
     }
+}
+
+proc measure_resolution {
+    old_stage_width = stage_w;
+    old_stage_height = stage_h;
+
+    switch_costume "small-dot";
+    set_size 100;
+    show;
+    stage_width = 0;
+    goto -9999, 0;
+    until not touching_edge() {
+        change_x 1;
+        stage_width++;
+    }
+    until touching_edge() {
+        change_x 1;
+        stage_width++;
+    }
+
+    stage_height = 0;
+    goto 0, -9999;
+    until not touching_edge() {
+        change_y 1;
+        stage_height++;
+    }
+    until touching_edge() {
+        change_y 1;
+        stage_height++;
+    }
+
+    half_stage_width = stage_width / 2;
+    half_stage_height = stage_height / 2;
+    hide;
+
+    stage_w_change = stage_h_w - 240;
+    stage_w_multiplier = stage_width / 480;
+
+    PALETTE_MIN_X = -205 - stage_w_change;
+    # PALETTE_MAX_X = 0 - stage_w_change;
+    PALETTE_HIDE_X = -100 - stage_w_change;
+    SPRITES_MAX_X = 240 + stage_w_change;
+    SPRITES_MIN_X = 165 + stage_w_change;
+
+    resolution_changed = not (stage_w == old_stage_width and stage_h == old_stage_height);
 }
