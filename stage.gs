@@ -148,3 +148,6 @@ var half_stage_width;
 var half_stage_height;
 var stage_w_change;
 var stage_w_multiplier;
+
+var ask_stopped;
+var ask_answer;

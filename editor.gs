@@ -20,6 +20,8 @@ hide;
 %define duplicate_key_pressed key_pressed("d")
 %define single_block_key_pressed key_pressed("s")
 
+%define ask_stop if ask_stopped { stop_this_script; }
+
 list local_vars;
 list local_lists;
 
@@ -534,7 +536,8 @@ nowarp proc handle_input {
     if hovered_menu_button > 0 {
         wait_until(not(mouse_down()));
         if hovered_menu_button == 10 { # new
-            ask "Are you sure you want to make a new project? The current project will be overwritten. (y/n)";
+            send_ask "Are you sure you want to make a new project? The current project will be overwritten. (y/n)";
+            ask_stop;
             if "y" in answer() {
                 broadcast_and_wait "new_project";
             }
@@ -595,20 +598,27 @@ nowarp proc handle_input {
             
             if demo_projects_hovered > -1 {
                 clicked_demo_project = (demo_projects_hovered - 1) * 2 + 4;
-                ask "Are you sure you want to load this demo project? The current project will be overwritten.";
-                if "y" in answer() {
-                    broadcast_and_wait "load_demo_project";
+                send_ask "Are you sure you want to load this demo project? The current project will be overwritten.";
+                if ask_stopped == true {
+                    demo_projects_open = false;
+                    redraw;
+                } else {
+                    if "y" in ask_answer {
+                        broadcast_and_wait "load_demo_project";
+                    }
                 }
             }
 
             demo_projects_open = false;
             redraw;
+            stop_this_script;
         }
     }
     if mouse_x() > SPRITES_MIN_X and SPRITES_SHOWN {
         wait_until(not mouse_down());
         if mouse_y() < -163 { # clicked on "new sprite" button
-            ask "New sprite name?";
+            send_ask "New sprite name?";
+            ask_stop;
             if answer() > "" {
                 add Sprite { name: answer(), costume: random(1, length costume_names)} to sprites;
                 switch_selected_sprite length sprites;
@@ -623,7 +633,8 @@ nowarp proc handle_input {
                 Point {x: mouse_x() + SPRITES_SCROLL_X, y: mouse_y()},
                 Point {x: 170 + 57 + SPRITES_SCROLL_X + stage_w_change, y: (155 - SPRITES_SCROLL_Y - (67 * (selected_sprite - 1))) - 6},
                 11) and length sprites > 1 {
-                ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
+                send_ask "Are you sure you want to delete the sprite \"" & sprites[selected_sprite].name & "\"? (y/n)";
+                ask_stop;
                 if "y" in answer() {
                     delete sprites[selected_sprite];
                     switch_selected_sprite 1, false; # don't save deleted sprite's blocks
@@ -631,7 +642,8 @@ nowarp proc handle_input {
             } elif clicked_sprite > "" {
                 if clicked_sprite == selected_sprite {
                     if sprite_name_underline > "" {
-                        ask "Enter new name for sprite \"" & sprites[selected_sprite].name & "\" (enter nothing to cancel)";
+                        send_ask "Enter new name for sprite \"" & sprites[selected_sprite].name & "\" (enter nothing to cancel)";
+                        ask_stop;
                         if answer() > "" {
                             sprites[selected_sprite].name = answer();
                         }
@@ -696,17 +708,17 @@ nowarp proc handle_input {
                     # handle variable and list actions
                     type = if (b_opcode(hovered_block) == "data_variable") "variable" else "list";
                     name = b_label1_text(hovered_block);
-                    ask "Do you want to rename or delete this " & type & "? (enter \"rename\" or \"delete\")";
-                    if answer() == "rename" {
+                    send_ask "Do you want to rename or delete this " & type & "? (enter \"rename\" or \"delete\")";
+                    if ask_answer == "rename" {
                         rename_data type, name;
-                    } elif answer() == "delete" {
+                    } elif ask_answer == "delete" {
                         delete_data type, name;
                     }
                     handle_palette_vars;
                     handle_palette_lists;
                 } elif b_opcode(hovered_block) == "event_whenflagclicked" {
-                    ask "Would you like to run the project? (y/n)";
-                    if "y" in answer() {
+                    send_ask "Would you like to run the project? (y/n)";
+                    if "y" in ask_answer {
                         broadcast_and_wait "handle_run_project";
                     }
                 } else {
@@ -785,24 +797,26 @@ nowarp proc handle_input {
                             handle_input;
                         } else {
                             # edit block text
-                            ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
-                            local something_inputted = false;
-                            if answer() == "" {
-                                ask "Do you want to set this input to an empty string? (y)";
-                                if "y" in answer() {
-                                    inputted_text = "";
+                            send_ask "Replace \"" & get_block_input(hovered_block, hovered_input, b_input_text) & "\" with?";
+                            if ask_stopped == false {
+                                local something_inputted = false;
+                                if ask_answer == "" {
+                                    send_ask "Do you want to set this input to an empty string? (y)";
+                                    if "y" in ask_answer {
+                                        inputted_text = "";
+                                        something_inputted = true;
+                                    }
+                                } else {
+                                    inputted_text = ask_answer;
                                     something_inputted = true;
                                 }
-                            } else {
-                                inputted_text = answer();
-                                something_inputted = true;
-                            }
-                            if something_inputted {
-                                if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
-                                    inputted_text = filter_only_numbers(inputted_text);
+                                if something_inputted {
+                                    if get_block_input(hovered_block, hovered_input, b_input_type) == b_input_type_number {
+                                        inputted_text = filter_only_numbers(inputted_text);
+                                    }
+                                    set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
+                                    propagate_size_change hovered_block;
                                 }
-                                set_block_input hovered_block, hovered_input, b_input_text, inputted_text;
-                                propagate_size_change hovered_block;
                             }
                             InputRank highlighted_input = InputRank {};
                             highlight_lightly = false;
@@ -867,7 +881,7 @@ nowarp proc handle_input {
                         c_block = b_custom_block(dragged_block);
                         # if trying to delete a custom block, we need to make sure all instances of the block are removed first
                         if not can_delete_custom_block(c_block) {
-                            ask "To delete a block definition, first remove all uses of the block";
+                            send_ask "To delete a block definition, first remove all uses of the block";
                             # move definition stack back to original position
                             move_block_position dragged_block, drag_start_x - b_x(dragged_block), drag_start_y - b_y(dragged_block);
                         } else {
@@ -950,8 +964,9 @@ nowarp proc handle_input {
     }
 }
 
-proc rename_data type, name {
-    ask "What do you want to rename this " & $type & " to? (current: \"" & $name & "\")";
+nowarp proc rename_data type, name {
+    send_ask "What do you want to rename this " & $type & " to? (current: \"" & $name & "\")";
+    ask_stop;
     if $type == "variable" {
         # rename variable
         if answer() > "" and not (answer() in local_vars or answer() in global_vars) {
@@ -964,7 +979,8 @@ proc rename_data type, name {
                 edit_data_item $type, "global", $name, answer();
             }
         } else {
-            ask "Invalid name (press enter to close)";
+            send_ask "Invalid name (press enter to close)";
+            ask_stop;
         }
     } else {
         # rename list
@@ -978,14 +994,16 @@ proc rename_data type, name {
                 edit_data_item $type, "global", $name, answer();
             }
         } else {
-            ask "Invalid name (press enter to close)";
+            send_ask "Invalid name (press enter to close)";
+            ask_stop;
         }
     }
     update_palette_max_width;
 }
 
-proc delete_data type, name {
-    ask "Are you sure you want to delete all instances of the \"" & $name & "\" " & $type & "? (y/n)";
+nowarp proc delete_data type, name {
+    send_ask "Are you sure you want to delete all instances of the \"" & $name & "\" " & $type & "? (y/n)";
+    ask_stop;
     if "y" in answer() {
         if $type == "variable" {
             # delete variable
@@ -1015,7 +1033,8 @@ proc delete_data type, name {
 nowarp proc handle_dropdown_item_click category, value {
     if $category == Category.Events {
         if $value == "New message" {
-            ask "New message name?";
+            send_ask "New message name?";
+            ask_stop;
             if answer() > "" and not (answer() in broadcasts or answer() in broadcasts) {
                 add answer() to broadcasts;
                 INSERTION_SORT(broadcasts);
@@ -1057,32 +1076,38 @@ proc update_palette_broadcasts {
 }
 
 nowarp proc ui_new_variable msg="" {
-    ask $msg & "New variable name?";
+    send_ask $msg & "New variable name?";
+    ask_stop;
     name = answer();
     if name > "" and not (name in local_vars or name in global_vars) {
-        ask "New variable type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
-        type = answer();
-        if type == "global" or type == "g" {
-            new_variable "global", name;
-        } else {
-            new_variable "local", name;
+        send_ask "New variable type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+        if ask_stopped == false {
+            type = answer();
+            if type == "global" or type == "g" {
+                new_variable "global", name;
+            } else {
+                new_variable "local", name;
+            }
+            update_palette_max_width;
         }
-        update_palette_max_width;
     }
 }
 
 nowarp proc ui_new_list msg="" {
-    ask $msg & "New list name?";
+    send_ask $msg & "New list name?";
+    ask_stop;
     name = answer();
     if name > "" and not (name in local_lists or name in global_lists) {
-        ask "New list type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
-        type = answer();
-        if type == "global" or type == "g" {
-            new_list "global", name;
-        } else {
-            new_list "local", name;
+        send_ask "New list type: (enter \"local\" for \"for this sprite only\" and \"global\" for \"for all sprites\")";
+        if ask_stopped == false {
+            type = answer();
+            if type == "global" or type == "g" {
+                new_list "global", name;
+            } else {
+                new_list "local", name;
+            }
+            update_palette_max_width;
         }
-        update_palette_max_width;
     }
 }
 
@@ -2988,12 +3013,29 @@ onkey "p" {
     if no_clean_up_blocks_confirmation {
         clean_up_blocks;
     } else {
-        ask "Would you like you clean up blocks? (Putting them all in one column). You cannot undo this action. Enter: (y/n) OR to ALWAYS allow in the future, without confirmation, enter: \"always\"";
+        send_ask "Would you like you clean up blocks? (Putting them all in one column). You cannot undo this action. Enter: (y/n) OR to ALWAYS allow in the future, without confirmation, enter: \"always\"";
+        ask_stop;
         if answer() == "always" {
             no_clean_up_blocks_confirmation = true;
         }
         if "y" in answer() {
             clean_up_blocks;
         }
+    }
+}
+
+nowarp proc send_ask prompt {
+    ask_prompt = $prompt;
+    ask_stopped = "";
+    broadcast "editor_ask_prompt_checker";
+    broadcast_and_wait "editor_ask_prompt";
+}
+
+on "editor_ask_prompt_checker" {
+    wait_until(ask_stopped > "" or not(mouse_down()));
+    wait_until(ask_stopped > "" or mouse_down());
+    if mouse_down() {
+        broadcast_and_wait "stop_ask";
+        stop_this_script;
     }
 }
