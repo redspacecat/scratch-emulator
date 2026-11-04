@@ -54,7 +54,7 @@ proc exec_motion cmd {
                     pop 1;
                     target = special_targets(1);
                     if target[1] == "_" {
-                        point_towards target[1];
+                        point_towards target;
                     } else {
                         x = s_info((target in sprites.name), s_info_x);
                         y = s_info((target in sprites.name), s_info_y);
