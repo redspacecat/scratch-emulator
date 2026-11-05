@@ -32,9 +32,9 @@
 %define redraw REDRAW = true
 
 %define d_x -180
-%define d_y 140
+%define d_y 150
 %define d_width 360
-%define d_height 280
+%define d_height 320
 
 %define REVERSE_TYPED(TYPE, LIST)                                                     \  
     local i = 1;                                                                     \  

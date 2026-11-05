@@ -270,13 +270,13 @@ proc check_messages { # check for received broadcasts
 
     local i = 1;
     repeat length messages / 3 {
-        if messages[i] not in received_messages {
-            if messages[i + 1] != timer() {
+        if messages[i + 1] != timer() {
+            if messages[i] not in received_messages {
                 # stop old messages
                 local j = 1;
                 until j > length threads {
                     if threads[j + 3] == messages[i + 2] { # if thread started from that message name
-                        log "stopping existing thread... " + messages[i + 2];
+                        # log "stopping existing thread... " & messages[i + 2];
                         stop_thread j;
                     } else {
                         j += 6;
@@ -284,7 +284,7 @@ proc check_messages { # check for received broadcasts
                 }
                 # start new messages
                 start_hats "event_whenbroadcastreceived", messages[i + 2], messages[i];
-                log "starting broadcast receiver... " & messages[i + 2];
+                # log "starting broadcast receiver... " & messages[i + 2];
                 add messages[i] to received_messages;
             }
         }
