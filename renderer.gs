@@ -7,6 +7,8 @@
 
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
+costumes "assets/images/costumes/other2/*";
+costumes "assets/images/large.svg" as "big";
 
 costumes "assets/images/rotate-right.svg" as "@r",
 "assets/images/rotate-left.svg" as "@l",
@@ -523,16 +525,21 @@ proc measure_costumes {
     until costume_name() == "@r" {
         add costume_name() to costume_names;
         goto -stage_h_w, 0;
-        until not touching_edge() {
+        until not touching_edge() or x_position() == 0 {
             change_x 1;
         }
-        add (x_position() + stage_h_w) * 2 to costume_widths;
-        # log costume_name() & " - " & costume_widths["last"];
-        goto 0, -180;
-        until not touching_edge() {
-            change_y 1;
+        if x_position() == 0 {
+            add stage_w to costume_widths;
+            add 0 to costume_heights;
+        } else {
+            add (x_position() + stage_h_w) * 2 to costume_widths;
+
+            goto 0, -180;
+            until not touching_edge() {
+                change_y 1;
+            }
+            add (y_position() + stage_h_h) * 2 to costume_heights;
         }
-        add (y_position() + stage_h_h) * 2 to costume_heights;
         next_costume;
     }
 }
@@ -550,11 +557,11 @@ proc render_costumes {
     pen_up;
 
     set_pen_color ui_c(MainText);
-    plain_text 0, 145, 1, "Costumes", "c", true;
+    # plain_text 0, 155, 1, "Costumes", "c", true;
 
     local x = -233;
     local i = 1;
-    local y = 130;
+    local y = 157;
     local width = 65;
     repeat length costume_names {
         if sprites["editor"."selected_sprite"].costume == i {
@@ -579,8 +586,9 @@ proc render_costumes {
 
         # render preview of sprite
         goto x + width / 2, y - 25;
-        switch_costume base_costume + i; # i var is costume number
+        switch_costume "large";
         set_size 35 / MAX(costume_widths[i], costume_heights[i]) * 100;
+        switch_costume base_costume + i; # i var is costume number
         stamp;
         switch_costume "large";
 
@@ -599,10 +607,10 @@ proc render_sounds {
     render_background;
 
     set_pen_color ui_c(MainText);
-    plain_text 0, 145, 1, "Sounds", "c", true;
+    plain_text 0, 147, 1, "Sounds", "c", true;
     local i = 1;
     local x = -50;
-    local y = 108;
+    local y = 125;
     repeat length sound_names {
         plain_text x, y, 1, i & ". " & sound_names[i], "l", true;
         y -= 15;
@@ -685,8 +693,9 @@ proc render_sprite_sidebar {
 
             # render preview of sprite
             goto x + width / 2, y - 25;
-            switch_costume base_costume + sprites[i].costume;
+            switch_costume "large";
             set_size 35 / MAX(costume_widths[sprites[i].costume], costume_heights[sprites[i].costume]) * 100;
+            switch_costume base_costume + sprites[i].costume;
             stamp;
             switch_costume "large";
 

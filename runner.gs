@@ -3,6 +3,8 @@
 %include code/helpful_utils
 costumes "assets/images/costumes/main/*";
 costumes "assets/images/costumes/other/*";
+costumes "assets/images/costumes/other2/*";
+costumes "assets/images/large.svg";
 sounds "assets/sounds/*";
 
 %define special_targets(num) if (args[num] in target_arg_lookup) target_arg_lookup[(args[num] in target_arg_lookup) + 1] else args[num]
@@ -52,6 +54,7 @@ list target_arg_lookup = [
 
 proc init {
     switch_costume "Cat-a";
+    switch_backdrop "blank";
     base_costume = costume_number() - 1;
     CURRENT_CLONE_ID = 0;
     CURRENT_BROADCAST_ID = 0;

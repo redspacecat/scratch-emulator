@@ -17,7 +17,7 @@ costumes
 $costumes$
 
 backdrops
-backdrop1
+$backdrops$
 
 graphicEffects
 color

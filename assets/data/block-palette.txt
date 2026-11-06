@@ -69,7 +69,7 @@ switch costume to,{costumes|Cat-a
 looks_nextcostume,stack
 next costume
 looks_switchbackdropto,stack
-switch backdrop to,{backdrops|backdrop1
+switch backdrop to,{backdrops|blank
 looks_nextbackdrop,stack
 next backdrop
 
@@ -145,7 +145,7 @@ when,[keys|space,key pressed
 event_whenthisspriteclicked,stack
 when this sprite clicked
 event_whenbackdropswitchesto,stack
-when backdrop switches to,{backdrops|backdrop1
+when backdrop switches to,{backdrops|blank
 
 
 

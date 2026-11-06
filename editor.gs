@@ -135,6 +135,7 @@ nowarp proc init_editor all { # all param is for initializing the editor for the
 
 onflag {
     erase_all;
+    switch_backdrop "blank";
     selected_workspace = Workspace.Code;
     if RUNNING {
         RUNNING = false;
@@ -475,8 +476,8 @@ func find_hovered_sprite(x, y) {
 
 func find_hovered_costume(x, y) {
     local i = 1;
-    local y = 133;
-    repeat 4 {
+    local y = 160;
+    repeat 5 {
         local x = -233;
         repeat 7 {
             if point_in_rect(Point {x: $x, y: $y}, Rect {x1: x, x2: x + 65 - 6, y1: y - 65, y2: y - 6}) {
@@ -1375,6 +1376,8 @@ proc handle_custom_dropdown t {
         copy_list(sprites, name);
     } elif $t == "$costumes$" {
         copy_list(costume_names);
+    } elif $t == "$backdrops$" {
+        copy_list(backdrop_names);
     } elif $t == "$sounds$" {
         copy_list(sound_names);
     } elif $t == "$messages$" {

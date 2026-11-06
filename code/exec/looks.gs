@@ -38,10 +38,12 @@ proc exec_looks cmd {
                 } else { # switch backdrop to
                     pop 1;
                     switch_backdrop args[1];
+                    broadcast "backdrop_switch_event";
                 }
             } else {
                 if $cmd < Opcode.looks_changesizeby { # next backdrop
                     next_backdrop;
+                    broadcast "backdrop_switch_event";
                 } elif $cmd < Opcode.looks_setsizeto { # change size by
                     pop 1;
                     change_size args[1];
@@ -158,4 +160,8 @@ proc post_costume_handle {
     if costume_number() < base_costume {
         switch_costume costume_number() + base_costume;
     }
+}
+
+on "backdrop_switch_event" {
+    start_hats "event_whenbackdropswitchesto", backdrop_name();
 }

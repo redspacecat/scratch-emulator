@@ -1,4 +1,5 @@
-costumes "assets/images/blank.svg" as "backdrop1";
+costumes "assets/images/blank.svg" as "blank";
+costumes "assets/images/backdrops/*";
 
 %include code/helpful_utils
 
@@ -151,3 +152,21 @@ var stage_w_multiplier;
 
 var ask_stopped;
 var ask_answer;
+
+list backdrop_names;
+
+on "init_renderer" {
+    get_backdrops;
+}
+
+proc get_backdrops {
+    delete backdrop_names;
+    switch_backdrop "blank";
+    add backdrop_name() to backdrop_names;
+    next_backdrop;
+
+    until costume_number() == 1 {
+        add backdrop_name() to backdrop_names;
+        next_backdrop;
+    }
+}
