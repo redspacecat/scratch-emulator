@@ -591,6 +591,7 @@ proc render_costumes {
         switch_costume base_costume + i; # i var is costume number
         stamp;
         switch_costume "large";
+        set_size 100;
 
         x += 67;
         if x > 233 {
@@ -698,6 +699,7 @@ proc render_sprite_sidebar {
             switch_costume base_costume + sprites[i].costume;
             stamp;
             switch_costume "large";
+            set_size 100;
 
             y -= 67;
             i++;
