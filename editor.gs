@@ -3013,6 +3013,10 @@ proc clean_up_blocks {
 }
 
 onkey "p" {
+    if RUNNING {
+        stop_this_script;
+    }
+    
     if no_clean_up_blocks_confirmation {
         clean_up_blocks;
     } else {
