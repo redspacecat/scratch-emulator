@@ -1122,8 +1122,8 @@ proc set_dropdown_hovered {
 }
 
 proc set_demo_projects_hovered {
-    if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: d_x, y1: d_y - (length demo_projects / 2 + 1) * 20 + 1, x2: d_x + d_width, y2: d_y}) {
-        demo_projects_hovered = floor((d_y - 20 - mouse_y()) / 20);
+    if point_in_rect(Point {x: mouse_x(), y: mouse_y()}, Rect {x1: d_x, y1: d_y - (length demo_projects / 2 + 1) * 16 + 1, x2: d_x + d_width, y2: d_y}) {
+        demo_projects_hovered = floor((d_y - 16 - mouse_y()) / 16);
     } else {
         demo_projects_hovered = -1;
     }

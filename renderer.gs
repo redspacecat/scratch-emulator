@@ -327,8 +327,8 @@ proc render_demo_projects {
             fill_rect d_x + 2, d_x + d_width - 2, d_y - d_height + 2, d_y - 2;
             if dhovered > -1 {
                 set_pen_color ui_c(NavButtonHovered);
-                local y = d_y - 20 - dhovered * 20 - dscroll;
-                fill_rect d_x + 2, d_x + d_width - 2, MAX(d_y - d_height, y - 20), MIN(d_y - 3, y - 3);
+                local y = d_y - 16 - dhovered * 16 - dscroll;
+                fill_rect d_x + 2, d_x + d_width - 2, MAX(d_y - d_height, y - 16), MIN(d_y - 3, y - 3);
             }
 
             set_pen_color ui_c(MainText);
@@ -339,7 +339,7 @@ proc render_demo_projects {
             local i = 1;
             local pos = 1;
             repeat length demo_projects / 2 {
-                local y = d_y - 20 - i * 20 + 6 - dscroll;
+                local y = d_y - 16 - i * 16 + 4 - dscroll;
                 if y < d_y - 8 and y > d_y - d_height + 3 {
                     set_pen_color ui_c(MainText);
                     plain_text round(d_x + 17), round(y), 1, demo_projects[pos], "l", true, false; 
@@ -352,7 +352,7 @@ proc render_demo_projects {
             # if length dropdown_data > 7 {
             #     set_pen_color ui_c(DropdownScrollbar);
             #     set_pen_size 4;
-            #     local total_height = length dropdown_data * 20;
+            #     local total_height = length dropdown_data * 16;
             #     local track_height = d_height - 5;
             #     local scrollbar_height = track_height * (d_height / total_height);
             #     goto d_x + d_width - 2, d_y - 2 - track_height * (-dscroll / total_height);
