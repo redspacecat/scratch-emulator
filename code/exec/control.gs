@@ -16,9 +16,10 @@ proc exec_control cmd {
             stop_level = "global";
         }
     } elif $cmd == Opcode.control_create_clone_of { # create clone
+        tmp_clone_id = clone_id;
         set_clone_id;
         clone;
-        clone_id = "";
+        clone_id = tmp_clone_id;
     } elif $cmd == Opcode.control_delete_this_clone { # delete this clone
         if clone_id > "" {
             stop_all_threads; # stop threads first to make sure receiver counts are counted correctly
